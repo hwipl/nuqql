@@ -1,0 +1,7 @@
+# rename to nuqql.conf
+
+[account1@jabber.com]
+id = 0
+buddies = buddy1@jabber.com
+	  buddy2@jabber.com
+
