@@ -449,8 +449,12 @@ class ListWin(Win):
 class LogWin(Win):
     def redrawPad(self):
         self.pad.clear()
+        # if window was resized, resize pad x size according to new window size
+        # TODO: do the same thing for y size and ensure a minimal pad y size?
+        if self.pad_x_max != self.win_x_max - 2:
+            self.pad_x_max = self.win_x_max - 2
+            self.pad.resize(self.pad_y_max, self.pad_x_max)
         # dump log messages and resize pad according to new lines added
-        # TODO: add resize for max_x based on window size?
         for msg in self.list[-(self.pad_y_max-1):]:
             old_y, old_x = self.pad.getyx()
             self.pad.addstr(msg + "\n")
