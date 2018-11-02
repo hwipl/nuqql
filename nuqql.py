@@ -703,18 +703,34 @@ def handleNetwork(client, conversation, list_win, log_win):
         return
     # TODO: do not ignore account name
     acc, acc_name, tstamp, sender, msg = client.parseMsg(msg)
-    conv_found = False
+
+    # look for an existing conversation and use it
     for conv in conversation:
-        if conv.input_win.account.id == acc and conv.input_win.name == sender:
+        if conv.input_win.account.id == acc and\
+           conv.input_win.name == sender:
             conv.log_win.add(tstamp + " " + sender + " --> " + msg)
             # if window is not already active notify user
             if not conv.input_win.active:
                 list_win.notify(acc, sender)
-            conv_found = True
-            break
-    # TODO: create new conversation if buddy exists before logging to main win
-    if not conv_found:
-        log_win.add(tstamp + " " + sender + " --> " + msg)
+            return
+
+    # create a new conversation if buddy exists
+    # TODO: can we add some helper functions?
+    for buddy in list_win.list:
+        if buddy[list_win.ACC_IDX].id == acc and\
+           buddy[list_win.BNAME_IDX] == sender:
+            c = Conversation(list_win.superWin,
+                             buddy[list_win.ACC_IDX],
+                             buddy[list_win.BNAME_IDX])
+            c.input_win.active = False
+            c.log_win.active = False
+            conversation.append(c)
+            c.log_win.add(tstamp + " " + sender + " --> " + msg)
+            list_win.notify(acc, sender)
+            return
+
+    # nothing found, log to main window
+    log_win.add(tstamp + " " + sender + " --> " + msg)
 
 def createMainWindows(config, stdscr, max_y, max_x):
     # determine window sizes
