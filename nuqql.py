@@ -283,7 +283,10 @@ class Win:
 
     def redrawWin(self):
         self.win.clear()
+        curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        self.win.attron(curses.color_pair(1) | curses.A_BOLD)
         self.win.border()
+        self.win.attroff(curses.color_pair(1) | curses.A_BOLD)
         self.win.refresh()
 
     def movePad(self):
@@ -399,6 +402,8 @@ class ListWin(Win):
     def redrawPad(self):
         self.cur_y, self.cur_x = self.pad.getyx()
         self.pad.clear()
+        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        self.pad.attron(curses.color_pair(2))
         # dump log messages and resize pad according to new lines added
         for buddy in self.list[-(self.pad_y_max-1):]:
             msg = buddy[self.ACC_IDX].id + " " + buddy[self.BNAME_IDX] + "\n"
@@ -410,6 +415,7 @@ class ListWin(Win):
                 self.pad.addstr(msg)
             self.pad_y_max += 1
             self.pad.resize(self.pad_y_max, self.pad_x_max)
+        self.pad.attroff(curses.color_pair(2))
 
         # move cursor back to original position
         self.pad.move(self.cur_y, self.cur_x)
