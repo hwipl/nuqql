@@ -29,6 +29,10 @@ default_keymap = {
     curses.ascii.ctrl("x")  : "KEY_CTRL_X",
     chr(curses.ascii.DEL)   : "KEY_DEL",
     330                     : "KEY_DEL",
+    262                     : "KEY_HOME",
+    360                     : "KEY_END",
+    339                     : "KEY_PAGE_UP",
+    338                     : "KEY_PAGE_DOWN",
 }
 
 # default key bindings for input windows
@@ -40,6 +44,10 @@ default_input_win_keybinds = {
     "KEY_UP"        : "CURSOR_UP",
     "KEY_CTRL_X"    : "SEND_MSG",
     "KEY_DEL"       : "DEL_CHAR",
+    "KEY_HOME"      : "CURSOR_MSG_START",
+    "KEY_END"       : "CURSOR_MSG_END",
+    "KEY_PAGE_UP"   : "CURSOR_LINE_START",
+    "KEY_PAGE_DOWN" : "CURSOR_LINE_END",
 }
 
 # default key bindings for log windows
@@ -348,6 +356,22 @@ class Win:
         # implemented in sub classes
         pass
 
+    def cursor_msg_start(self):
+        # implemented in sub classes
+        pass
+
+    def cursor_msg_end(self):
+        # implemented in sub classes
+        pass
+
+    def cursor_line_start(self):
+        # implemented in sub classes
+        pass
+
+    def cursor_line_end(self):
+        # implemented in sub classes
+        pass
+
     def init_keybinds(self):
         # implemented in sub classes
         pass
@@ -361,6 +385,10 @@ class Win:
             "CURSOR_UP": self.cursor_up,
             "SEND_MSG": self.send_msg,
             "DEL_CHAR": self.delete_char,
+            "CURSOR_MSG_START": self.cursor_msg_start,
+            "CURSOR_MSG_END": self.cursor_msg_end,
+            "CURSOR_LINE_START": self.cursor_line_start,
+            "CURSOR_LINE_END": self.cursor_line_end,
         }
 
 class ListWin(Win):
@@ -507,6 +535,23 @@ class InputWin(Win):
         if self.cur_x < self.pad_x_max and self.cur_x < len(
             segment[self.cur_y]):
             self.pad.move(self.cur_y, self.cur_x + 1)
+
+    def cursor_line_start(self, segment, client):
+        if self.cur_x > 0:
+            self.pad.move(self.cur_y, 0)
+
+    def cursor_line_end(self, segment, client):
+        if self.cur_x < self.pad_x_max and self.cur_x < len(
+            segment[self.cur_y]):
+            self.pad.move(self.cur_y, len(segment[self.cur_y]))
+
+    def cursor_msg_start(self, segment, client):
+        if self.cur_y > 0 or self.cur_x > 0:
+            self.pad.move(0, 0)
+
+    def cursor_msg_end(self, segment, client):
+        if self.cur_y < len(segment) - 1 or self.cur_x < len(segment[-1]):
+            self.pad.move(len(segment) - 1, len(segment[-1]))
 
     def send_msg(self, segment, client):
         # do not send empty messages
