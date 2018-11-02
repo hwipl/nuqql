@@ -395,6 +395,7 @@ class ListWin(Win):
     NOTIFY_IDX = 0
     ACC_IDX = 1
     BNAME_IDX = 2
+    HILIGHT_IDX = 3
     def redrawPad(self):
         self.cur_y, self.cur_x = self.pad.getyx()
         self.pad.clear()
@@ -403,7 +404,10 @@ class ListWin(Win):
             msg = buddy[self.ACC_IDX].id + " " + buddy[self.BNAME_IDX] + "\n"
             if buddy[self.NOTIFY_IDX] > 0:
                 msg = "# " + msg
-            self.pad.addstr(msg)
+            if buddy[self.HILIGHT_IDX]:
+                self.pad.addstr(msg, curses.A_REVERSE)
+            else:
+                self.pad.addstr(msg)
             self.pad_y_max += 1
             self.pad.resize(self.pad_y_max, self.pad_x_max)
 
@@ -415,13 +419,21 @@ class ListWin(Win):
         self.pad.refresh(self.pad_y, self.pad_x, self.pos_y + 1, self.pos_x + 1,
                 self.pos_y + self.win_y_max-2, self.pos_x + self.win_x_max-2)
 
+    def highlight(self, y, val):
+        buddy = self.list[y]
+        buddy[self.HILIGHT_IDX] = val
+
     def cursor_up(self):
         if self.cur_y > 0:
             self.pad.move(self.cur_y - 1, self.cur_x)
+            self.highlight(self.cur_y, False)
+            self.highlight(self.cur_y - 1, True)
 
     def cursor_down(self):
         if self.cur_y < self.pad_y_max and self.cur_y < len(self.list) - 1:
             self.pad.move(self.cur_y + 1, self.cur_x)
+            self.highlight(self.cur_y, False)
+            self.highlight(self.cur_y + 1, True)
 
     def init_keybinds(self):
         self.keybind = default_list_win_keybinds
@@ -716,7 +728,8 @@ def createMainWindows(config, stdscr, max_y, max_x):
     # fill with buddies from config
     for acc in config.account.keys():
         for buddy in config.account[acc].buddies:
-            list_win.add([0, config.account[acc], buddy])
+            # TODO: time to make a Buddy class?
+            list_win.add([0, config.account[acc], buddy, False])
 
     # control/config conversation
     # TODO: add to conversation somehow? and/or add variables for the sizes?
