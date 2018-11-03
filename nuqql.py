@@ -422,8 +422,10 @@ class ListWin(Win):
         # check if visible part of pad needs to be moved and display it
         self.movePad()
         self.checkBorders()
-        self.pad.refresh(self.pad_y, self.pad_x, self.pos_y + 1, self.pos_x + 1,
-                self.pos_y + self.win_y_max-2, self.pos_x + self.win_x_max-2)
+        self.pad.refresh(self.pad_y, self.pad_x,
+                         self.pos_y + 1, self.pos_x + 1,
+                         self.pos_y + self.win_y_max - 2,
+                         self.pos_x + self.win_x_max - 2)
 
     def highlight(self, y, val):
         buddy = self.list[y]
@@ -512,15 +514,19 @@ class LogWin(Win):
         self.cur_y, self.cur_x = self.pad.getyx()
         self.movePad()
         self.checkBorders()
-        self.pad.refresh(self.pad_y, self.pad_x, self.pos_y + 1, self.pos_x + 1,
-                self.pos_y + self.win_y_max-2, self.pos_x + self.win_x_max-2)
+        self.pad.refresh(self.pad_y, self.pad_x,
+                         self.pos_y + 1, self.pos_x + 1,
+                         self.pos_y + self.win_y_max - 2,
+                         self.pos_x + self.win_x_max - 2)
 
 class InputWin(Win):
     def redrawPad(self):
         self.movePad()
         self.checkBorders()
-        self.pad.refresh(self.pad_y, self.pad_x, self.pos_y + 1, self.pos_x + 1,
-                self.pos_y + self.win_y_max - 2, self.pos_x + self.win_x_max - 2)
+        self.pad.refresh(self.pad_y, self.pad_x,
+                         self.pos_y + 1, self.pos_x + 1,
+                         self.pos_y + self.win_y_max - 2,
+                         self.pos_x + self.win_x_max - 2)
 
     def movePad(self):
         self.cur_y, self.cur_x = self.pad.getyx()
