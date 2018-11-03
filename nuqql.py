@@ -227,16 +227,18 @@ class Conversation:
         # create and draw windows
         self.log_win = LogWin(stdscr, account, name, None, 0, list_win_x,
                               log_win_y, log_win_x,
-                              log_win_y - 2, log_win_x - 2)
+                              log_win_y - 2, log_win_x - 2,
+                              "Chat log with " + name)
         self.log_win.redraw()
         self.input_win = InputWin(stdscr, account, name, self.log_win,
                                   max_y - input_win_y, list_win_x,
-                                  input_win_y, input_win_x, 2000, 2000)
+                                  input_win_y, input_win_x, 2000, 2000,
+                                  "Message to " + name)
         self.input_win.redraw()
 
 class Win:
     def __init__(self, stdscr, account, name, log, pos_y, pos_x,
-                 win_y_max, win_x_max, pad_y_max, pad_x_max):
+                 win_y_max, win_x_max, pad_y_max, pad_x_max, title):
         self.superWin = stdscr
         self.name = name
 
@@ -281,12 +283,30 @@ class Win:
         # account
         self.account = account
 
+        # window title
+        # TODO: use name instead?
+        self.title = " " + title + " "
+
     def redrawWin(self):
         self.win.clear()
+
+       # color settings on
         curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
         self.win.attron(curses.color_pair(1) | curses.A_BOLD)
+
+        # window border
         self.win.border()
+
+        # window title
+        max_title_len = min(len(self.title), self.win_x_max - 3)
+        title = self.title[:max_title_len]
+        if len(title) > 0:
+            title = title[:-1] + " "
+        self.win.addstr(0, 2, title)
+
+        # color settings off
         self.win.attroff(curses.color_pair(1) | curses.A_BOLD)
+
         self.win.refresh()
 
     def movePad(self):
@@ -751,7 +771,8 @@ def createMainWindows(config, stdscr, max_y, max_x):
     # main screen
     # list window for buddy list
     list_win = ListWin(stdscr, None, "BuddyList", None, 0, 0,
-                       list_win_y, list_win_x, list_win_y - 2, 128)
+                       list_win_y, list_win_x, list_win_y - 2, 128,
+                       "Buddy List")
     list_win.redraw()
     # fill with buddies from config
     for acc in config.account.keys():
@@ -762,10 +783,12 @@ def createMainWindows(config, stdscr, max_y, max_x):
     # control/config conversation
     # TODO: add to conversation somehow? and/or add variables for the sizes?
     log_win = LogWin(stdscr, None, "nuqql", None, 0, list_win_x,
-                     log_win_y, log_win_x, log_win_y - 2, log_win_x - 2)
+                     log_win_y, log_win_x, log_win_y - 2, log_win_x - 2,
+                     "nuqql main log")
     log_win.redraw()
     input_win = InputWin(stdscr, None, "nuqql", log_win, max_y - input_win_y,
-                         list_win_x, input_win_y, input_win_x, 2000, 2000)
+                         list_win_x, input_win_y, input_win_x, 2000, 2000,
+                         "nuqql commands (unused)")
     input_win.redraw()
 
     return list_win, log_win, input_win
