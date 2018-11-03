@@ -28,11 +28,11 @@ default_keymap = {
     curses.KEY_UP           : "KEY_UP",
     curses.ascii.ctrl("x")  : "KEY_CTRL_X",
     chr(curses.ascii.DEL)   : "KEY_DEL",
-    330                     : "KEY_DEL",
-    262                     : "KEY_HOME",
-    360                     : "KEY_END",
-    339                     : "KEY_PAGE_UP",
-    338                     : "KEY_PAGE_DOWN",
+    curses.KEY_DC           : "KEY_DEL",
+    curses.KEY_HOME         : "KEY_HOME",
+    curses.KEY_END          : "KEY_END",
+    curses.KEY_PPAGE        : "KEY_PAGE_UP",
+    curses.KEY_NPAGE        : "KEY_PAGE_DOWN",
 }
 
 # default key bindings for input windows
