@@ -201,6 +201,46 @@ class PurpledClient:
         return acc, acc_name, tstamp, sender, msg
 
 
+######################
+### Helper Classes ###
+######################
+
+class LogMessage:
+    """Class for log messages to be displayed in LogWins"""
+
+    def __init__(self, log_win, tstamp, account, buddy, inc, msg):
+        # associate this message with a LogWin
+        self.log_win = log_win
+
+        # timestamp
+        self.tstamp = tstamp
+
+        # account
+        self.account = account
+
+        # buddy and is message incoming or outgoing
+        self.buddy = buddy
+        self.inc = inc
+
+        # message itself
+        self.msg = msg
+
+        # has message been read?
+        self.is_read = False
+
+    def show(self):
+        """Show message in LogWin"""
+        # TODO: maybe in the future?
+        #self.log_win.pad.addstr(msg + "\n")
+        # message is read now
+        #self.is_read = True
+        return
+
+class Buddy:
+    #TODO: implement me?
+    pass
+
+
 ###########################
 ### USER INTERFACE PART ###
 ###########################
@@ -524,10 +564,55 @@ class LogWin(Win):
         if self.pad_x_max != self.win_x_max - 2:
             self.pad_x_max = self.win_x_max - 2
             self.pad.resize(self.pad_y_max, self.pad_x_max)
+
         # dump log messages and resize pad according to new lines added
         for msg in self.list[-(self.pad_y_max-1):]:
+            # current pad dimensions for resize later
             old_y, old_x = self.pad.getyx()
-            self.pad.addstr(msg + "\n")
+
+            # define colors for own and buddy's messages
+            # TODO: move all color definitions to config part?
+            curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+            curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)
+
+            # set colors and attributes for message:
+            # * unread messages are bold
+            # * read messages are normal
+            if msg.inc:
+                # message from buddy
+                if msg.is_read:
+                    # old message
+                    self.pad.attroff(curses.A_BOLD)
+                    self.pad.attron(curses.color_pair(3) | curses.A_NORMAL)
+                else:
+                    # new message
+                    self.pad.attroff(curses.A_NORMAL)
+                    self.pad.attron(curses.color_pair(3) | curses.A_BOLD)
+
+                # output message
+                self.pad.addstr(msg.tstamp + " ")
+                self.pad.addstr(getShortName(msg.buddy) + ": ")
+                self.pad.addstr(msg.msg + "\n")
+            else:
+                # message from you
+                if msg.is_read:
+                    # old message
+                    self.pad.attroff(curses.A_BOLD)
+                    self.pad.attron(curses.color_pair(4) | curses.A_NORMAL)
+                else:
+                    # new message
+                    self.pad.attroff(curses.A_NORMAL)
+                    self.pad.attron(curses.color_pair(4) | curses.A_BOLD)
+
+                # output message
+                self.pad.addstr(msg.tstamp + " ")
+                self.pad.addstr(getShortName(msg.account.name) + ": ")
+                self.pad.addstr(msg.msg + "\n")
+
+            # message has now been read
+            msg.is_read = True
+
+            # resize pad
             new_y, new_x = self.pad.getyx()
             self.pad_y_max += new_y - old_y
             self.pad.resize(self.pad_y_max, self.pad_x_max)
@@ -605,9 +690,12 @@ class InputWin(Win):
             return
         #now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         #self.log_win.add(now + " " + self.name + " <-- " + self.msg)
+        #self.log_win.add(now + " " + getShortName(self.account.name) + ": " +\
+        #                 self.msg)
         now = datetime.datetime.now().strftime("%H:%M:%S")
-        self.log_win.add(now + " " + getShortName(self.account.name) + ": " +\
-                         self.msg)
+        log_msg = LogMessage(self.log_win, now, self.account, self.name, False,
+                             self.msg)
+        self.log_win.add(log_msg)
         # send message
         client.sendClient(self.account.id, self.name, self.msg)
         # reset input
@@ -740,7 +828,10 @@ def handleNetwork(client, conversation, list_win, log_win):
         if conv.input_win.account.id == acc and\
            conv.input_win.name == sender:
             #conv.log_win.add(tstamp + " " + sender + " --> " + msg)
-            conv.log_win.add(tstamp + " " + getShortName(sender) + ": " + msg)
+            #conv.log_win.add(tstamp + " " + getShortName(sender) + ": " + msg)
+            log_msg = LogMessage(conv.log_win, tstamp, conv.account, conv.name,
+                                 True, msg)
+            conv.log_win.add(log_msg)
             # if window is not already active notify user
             if not conv.input_win.active:
                 list_win.notify(acc, sender)
@@ -758,12 +849,16 @@ def handleNetwork(client, conversation, list_win, log_win):
             c.log_win.active = False
             conversation.append(c)
             #c.log_win.add(tstamp + " " + sender + " --> " + msg)
-            c.log_win.add(tstamp + " " + getShortName(sender) + ": " + msg)
+            #c.log_win.add(tstamp + " " + getShortName(sender) + ": " + msg)
+            log_msg = LogMessage(c.log_win, tstamp, c.account, c.name, True,
+                                 msg)
+            c.log_win.add(log_msg)
             list_win.notify(acc, sender)
             return
 
     # nothing found, log to main window
-    log_win.add(tstamp + " " + sender + " --> " + msg)
+    #log_win.add(tstamp + " " + sender + " --> " + msg)
+    log_msg = LogMessage(log_win, tstamp, None, sender, True, msg)
 
 def createMainWindows(config, stdscr, max_y, max_x):
     # determine window sizes
