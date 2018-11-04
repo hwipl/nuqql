@@ -188,7 +188,9 @@ class PurpledClient:
             if msg[-1] == "\n": # TODO: is that always ok?
                 msg = msg[:-1]
             tstamp = datetime.datetime.fromtimestamp(int(tstamp))
-            tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
+            #tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
+            # TODO: move timestamp conversion to caller?
+            tstamp = tstamp.strftime("%H:%M:%S")
         except:
             # TODO: improve/remove this error handling!
             acc = -1
@@ -601,8 +603,11 @@ class InputWin(Win):
         # do not send empty messages
         if len(self.msg) is 0:
             return
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.log_win.add(now + " " + self.name + " <-- " + self.msg)
+        #now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        #self.log_win.add(now + " " + self.name + " <-- " + self.msg)
+        now = datetime.datetime.now().strftime("%H:%M:%S")
+        self.log_win.add(now + " " + getShortName(self.account.name) + ": " +\
+                         self.msg)
         # send message
         client.sendClient(self.account.id, self.name, self.msg)
         # reset input
@@ -734,7 +739,8 @@ def handleNetwork(client, conversation, list_win, log_win):
     for conv in conversation:
         if conv.input_win.account.id == acc and\
            conv.input_win.name == sender:
-            conv.log_win.add(tstamp + " " + sender + " --> " + msg)
+            #conv.log_win.add(tstamp + " " + sender + " --> " + msg)
+            conv.log_win.add(tstamp + " " + getShortName(sender) + ": " + msg)
             # if window is not already active notify user
             if not conv.input_win.active:
                 list_win.notify(acc, sender)
@@ -751,7 +757,8 @@ def handleNetwork(client, conversation, list_win, log_win):
             c.input_win.active = False
             c.log_win.active = False
             conversation.append(c)
-            c.log_win.add(tstamp + " " + sender + " --> " + msg)
+            #c.log_win.add(tstamp + " " + sender + " --> " + msg)
+            c.log_win.add(tstamp + " " + getShortName(sender) + ": " + msg)
             list_win.notify(acc, sender)
             return
 
@@ -792,6 +799,11 @@ def createMainWindows(config, stdscr, max_y, max_x):
     input_win.redraw()
 
     return list_win, log_win, input_win
+
+def getShortName(name):
+    # TODO: move that somewhere? Improve it?
+    # Save short name in account and buddy instead?
+    return name.split("@")[0]
 
 ###################
 ### MAIN (LOOP) ###
