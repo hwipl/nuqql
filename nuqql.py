@@ -150,6 +150,8 @@ class PurpledClient:
     def __init__(self, config):
         self.config = config
         self.sock = None
+        self.buffer = ""
+        self.collect_acc = -1
 
     def initClient(self):
         # open sockets and connect
@@ -163,8 +165,20 @@ class PurpledClient:
         reads, writes, errs = select.select([self.sock,], [],
                                             [self.sock,], 0)
         if self.sock in reads:
+            # read data from socket and add it to buffer
             data = self.sock.recv(BUFFER_SIZE)
-            return data.decode()
+            self.buffer += data.decode()
+
+        # get next message from buffer and return it
+        eom = self.buffer.find("\n") + 1
+        if eom == 0:
+            # no message found
+            return None
+
+        # remove message from buffer and return it
+        msg = self.buffer[:eom]
+        self.buffer = self.buffer[eom:]
+        return msg
 
     def sendClient(self, account, buddy, msg):
         prefix = "account {0} send {1} ".format(account, buddy)
@@ -174,23 +188,52 @@ class PurpledClient:
         msg = msg.encode()
         self.sock.send(msg)
 
+    def collectClient(self, account):
+        msg = "account {0} collect\r\n".format(account)
+        msg = msg.encode()
+        self.collect_acc = account
+        self.sock.send(msg)
+
+    def parseCollectMsg(self, orig_msg):
+        part = orig_msg.split(" ")
+        acc_name = part[0]
+        tstamp = part[1]
+        sender = part[2].split("/")[0] # TODO: handle names better?
+        msg = " ".join(part[3:])
+        msg = "\n".join(msg.split("<BR>"))
+        msg = html.unescape(msg)
+        if msg[-1] == "\n": # TODO: is that always ok?
+            msg = msg[:-1]
+        tstamp = datetime.datetime.fromtimestamp(int(tstamp))
+        #tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
+        # TODO: move timestamp conversion to caller?
+        tstamp = tstamp.strftime("%H:%M:%S")
+        return self.collect_acc, acc_name, tstamp, sender, msg
+
+    def parseBuddyMsg(self, orig_msg):
+        part = orig_msg.split(" ")
+        acc = part[0]
+        acc_name = part[1]
+        tstamp = part[2]
+        sender = part[3].split("/")[0] # TODO: handle names better?
+        msg = " ".join(part[4:])
+        msg = "\n".join(msg.split("<BR>"))
+        msg = html.unescape(msg)
+        if msg[-1] == "\n": # TODO: is that always ok?
+            msg = msg[:-1]
+        tstamp = datetime.datetime.fromtimestamp(int(tstamp))
+        #tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
+        # TODO: move timestamp conversion to caller?
+        tstamp = tstamp.strftime("%H:%M:%S")
+        return acc, acc_name, tstamp, sender, msg
+
     def parseMsg(self, orig_msg):
         # TODO: handle error messages somehow
         try:
-            part = orig_msg.split(" ")
-            acc = part[0]
-            acc_name = part[1]
-            tstamp = part[2]
-            sender = part[3].split("/")[0] # TODO: handle names better?
-            msg = " ".join(part[4:])
-            msg = "\n".join(msg.split("<BR>"))
-            msg = html.unescape(msg)
-            if msg[-1] == "\n": # TODO: is that always ok?
-                msg = msg[:-1]
-            tstamp = datetime.datetime.fromtimestamp(int(tstamp))
-            #tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
-            # TODO: move timestamp conversion to caller?
-            tstamp = tstamp.strftime("%H:%M:%S")
+            if orig_msg[0] == "(":
+                return self.parseCollectMsg(orig_msg)
+            else:
+                return self.parseBuddyMsg(orig_msg)
         except:
             # TODO: improve/remove this error handling!
             acc = -1
@@ -198,7 +241,9 @@ class PurpledClient:
             tstamp = "never"
             sender = "purpled"
             msg = "Error parsing message: " + orig_msg
-        return acc, acc_name, tstamp, sender, msg
+            if msg[-1] == "\n": # TODO: is that always ok?
+                msg = msg[:-1]
+            return acc, acc_name, tstamp, sender, msg
 
 
 ######################
@@ -821,6 +866,7 @@ def handleNetwork(client, conversation, list_win, log_win):
     if msg == None:
         return
     # TODO: do not ignore account name
+    # TODO: it's not even an acc_name, it's the name of the buddy? FIXME
     acc, acc_name, tstamp, sender, msg = client.parseMsg(msg)
 
     # look for an existing conversation and use it
@@ -859,6 +905,7 @@ def handleNetwork(client, conversation, list_win, log_win):
     # nothing found, log to main window
     #log_win.add(tstamp + " " + sender + " --> " + msg)
     log_msg = LogMessage(log_win, tstamp, None, sender, True, msg)
+    log_win.add(log_msg)
 
 def createMainWindows(config, stdscr, max_y, max_x):
     # determine window sizes
@@ -922,6 +969,13 @@ def main(stdscr):
     # init network
     client = PurpledClient(config)
     client.initClient()
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_msg = LogMessage(log_win, now, None, "nuqql", True,
+                         "Collecting messages...")
+    log_win.add(log_msg)
+    # TODO: do it for all accounts
+    # TODO: collected messages are not even ordered. Sort them.
+    client.collectClient("0")
 
     # main loop
     while True:
