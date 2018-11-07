@@ -149,8 +149,28 @@ import socket
 import select
 import datetime
 import html
+import subprocess
+import time
 
 BUFFER_SIZE = 4096
+
+class PurpledServer:
+    def __init__(self):
+        self.proc = None
+
+    def start(self):
+        purpled_cmd = "./purpled -u"
+        self.proc = subprocess.Popen(
+            purpled_cmd,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        # give it some time
+        time.sleep(1)
+
+    def stop(self):
+        self.proc.terminate()
 
 class PurpledClient:
     def __init__(self, config):
@@ -976,18 +996,32 @@ def main(stdscr):
     list_win, log_win, input_win = createMainWindows(config, stdscr,
                                                      max_y, max_x)
 
-    # init network
+    # start purpled
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_msg = LogMessage(log_win, now, None, "nuqql", True, "Start purpled.")
+    log_win.add(log_msg)
+    server = PurpledServer()
+    server.start()
+
+    # start purpled client
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_msg = LogMessage(log_win, now, None, "nuqql", True, "Start client.")
+    log_win.add(log_msg)
     client = PurpledClient(config)
     client.initClient()
+
+    # collect messages from purpled
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_msg = LogMessage(log_win, now, None, "nuqql", True,
-                         "Collecting messages...")
+                         "Collecting messages.")
     log_win.add(log_msg)
-    # TODO: do it for all accounts
-    # TODO: collected messages are not even ordered. Sort them.
-    client.collectClient("0")
+    for acc in config.account.keys():
+        client.collectClient(config.account[acc].id)
 
-    # main loop
+    # start main loop
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_msg = LogMessage(log_win, now, None, "nuqql", True, "Ready.")
+    log_win.add(log_msg)
     while True:
         # wait for user input
         try:
@@ -1025,6 +1059,7 @@ def main(stdscr):
             else:
                 # list window is also inactive -> user quit
                 client.exitClient()
+                server.stop()
                 break
 
 curses.wrapper(main)
