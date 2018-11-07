@@ -2,14 +2,20 @@
 
 import curses
 import curses.ascii
+from pathlib import Path
 
 ###################
 ### CONFIG PART ###
 ###################
 
 # purpled server address/port
+SERVER_INET = False
 SERVER_IP = "127.0.0.1"
 SERVER_PORT = 32000
+
+SERVER_UNIX = True
+# /home/<user>/purpled/purpled.sock
+SERVER_UNIX_PATH = str(Path.home()) + "/purpled/purpled.sock"
 
 # window x and y sizes in percent
 list_win_y_per = 1
@@ -155,8 +161,12 @@ class PurpledClient:
 
     def initClient(self):
         # open sockets and connect
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((SERVER_IP, SERVER_PORT))
+        if SERVER_INET:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.connect((SERVER_IP, SERVER_PORT))
+        elif SERVER_UNIX:
+            self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            self.sock.connect(SERVER_UNIX_PATH)
 
     def exitClient(self):
         self.sock.close()
