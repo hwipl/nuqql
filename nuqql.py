@@ -225,22 +225,11 @@ class PurpledClient:
         self.sock.send(msg)
 
     def parseCollectMsg(self, orig_msg):
-        part = orig_msg.split(" ")
-        acc_name = part[0]
-        tstamp = part[1]
-        sender = part[2].split("/")[0] # TODO: handle names better?
-        msg = " ".join(part[3:])
-        msg = "\n".join(msg.split("<BR>"))
-        msg = html.unescape(msg)
-        if msg[-1] == "\n": # TODO: is that always ok?
-            msg = msg[:-1]
-        tstamp = datetime.datetime.fromtimestamp(int(tstamp))
-        #tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
-        # TODO: move timestamp conversion to caller?
-        tstamp = tstamp.strftime("%H:%M:%S")
-        return self.collect_acc, acc_name, tstamp, sender, msg
+        # collect response and message have the same message format
+        return self.parseMessageMsg(orig_msg)
 
-    def parseBuddyMsg(self, orig_msg):
+    def parseMessageMsg(self, orig_msg):
+        orig_msg = orig_msg[9:]
         part = orig_msg.split(" ")
         acc = part[0]
         acc_name = part[1]
@@ -258,13 +247,11 @@ class PurpledClient:
         return acc, acc_name, tstamp, sender, msg
 
     def parseMsg(self, orig_msg):
-        # TODO: handle error messages somehow
-        try:
-            if orig_msg[0] == "(":
-                return self.parseCollectMsg(orig_msg)
-            else:
-                return self.parseBuddyMsg(orig_msg)
-        except:
+        if orig_msg.startswith("message: "):
+            return self.parseMessageMsg(orig_msg)
+        elif orig_msg.startswith("collect: "):
+            return self.parseCollectMsg(orig_msg)
+        else:
             # TODO: improve/remove this error handling!
             acc = -1
             acc_name = "error"
