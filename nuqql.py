@@ -322,8 +322,22 @@ class LogMessage:
         return
 
 class Buddy:
-    #TODO: implement me?
-    pass
+    def __init__(self, account, name):
+        self.account = account
+        self.name = name
+        self.status = "Offline"
+        self.hilight = False
+        self.notify = False
+
+    #def __cmp__(self, other):
+    #    if hasattr(other, 'getKey'):
+    #        return self.getKey().__cmp__(other.getKey())
+
+    def __lt__(self, other):
+        return self.getKey() < other.getKey()
+
+    def getKey(self):
+        return self.status + self.name
 
 
 ###########################
@@ -542,26 +556,38 @@ class Win:
         }
 
 class ListWin(Win):
-    NOTIFY_IDX = 0
-    ACC_IDX = 1
-    BNAME_IDX = 2
-    HILIGHT_IDX = 3
     def redrawPad(self):
         self.cur_y, self.cur_x = self.pad.getyx()
         self.pad.clear()
+        # set colors
         curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
         self.pad.attron(curses.color_pair(2))
+        # sort list
+        self.list.sort()
         # dump log messages and resize pad according to new lines added
         for buddy in self.list[-(self.pad_y_max-1):]:
-            msg = buddy[self.ACC_IDX].id + " " + buddy[self.BNAME_IDX] + "\n"
-            if buddy[self.NOTIFY_IDX] > 0:
+            msg = buddy.account.id + " " + buddy.name + "\n"
+            # add buddy status
+            if buddy.status == "Offline":
+                msg = "[off] " + msg
+            elif buddy.status == "Available":
+                msg = "[on] " + msg
+            else:
+                msg = "[{0}] ".format(buddy.status) + msg
+            # add notifications
+            if buddy.notify > 0:
                 msg = "# " + msg
-            if buddy[self.HILIGHT_IDX]:
+            if buddy.hilight:
+                # highlight buddy in list
                 self.pad.addstr(msg, curses.A_REVERSE)
             else:
+                # just show buddy in list
                 self.pad.addstr(msg)
+
+            # resize pad for more buddies
             self.pad_y_max += 1
             self.pad.resize(self.pad_y_max, self.pad_x_max)
+        # reset colors
         self.pad.attroff(curses.color_pair(2))
 
         # move cursor back to original position
@@ -576,7 +602,7 @@ class ListWin(Win):
 
     def highlight(self, y, val):
         buddy = self.list[y]
-        buddy[self.HILIGHT_IDX] = val
+        buddy.hilight = val
 
     def cursor_up(self):
         if self.cur_y > 0:
@@ -606,37 +632,29 @@ class ListWin(Win):
         elif ch == "\n":
             # if a conversation exists already, switch to it
             for c in conversation:
-                if c.account == self.list[self.cur_y][self.ACC_IDX] and\
-                   c.name == self.list[self.cur_y][self.BNAME_IDX]:
+                if c.account == self.list[self.cur_y].account and\
+                   c.name == self.list[self.cur_y].name:
                     c.input_win.active = True
                     c.input_win.redraw()
                     c.log_win.active = True
                     c.log_win.redraw()
-                    self.clearNotifications(self.list[self.cur_y][
-                        self.ACC_IDX].id, self.list[self.cur_y][self.BNAME_IDX])
+                    self.clearNotifications(self.list[self.cur_y])
                     return
             # new conversation
-            c = Conversation(self.superWin,
-                             self.list[self.cur_y][self.ACC_IDX],
-                             self.list[self.cur_y][self.BNAME_IDX])
+            c = Conversation(self.superWin, self.list[self.cur_y].account,
+                             self.list[self.cur_y].name)
             conversation.append(c)
         # display changes in the pad
         self.redrawPad()
 
     def notify(self, acc_id, name):
         for buddy in self.list:
-            if buddy[self.ACC_IDX].id == acc_id and\
-               buddy[self.BNAME_IDX] == name:
-                buddy[self.NOTIFY_IDX] = 1
+            if buddy.account.id == acc_id and buddy.name == name:
+                buddy.notify = 1
         self.redrawPad()
 
-    # TODO: make a variant just with the list index? we have it
-    # in processInput()
-    def clearNotifications(self, acc_id, name):
-        for buddy in self.list:
-            if buddy[self.ACC_IDX].id == acc_id and\
-               buddy[self.BNAME_IDX] == name:
-                buddy[self.NOTIFY_IDX] = 0
+    def clearNotifications(self, buddy):
+        buddy.notify = 0
         self.redrawPad()
 
 
@@ -913,14 +931,15 @@ def handleBuddyMsg(config, list_win, msg):
 
     # look for existing buddy
     for i, buddy in enumerate(list_win.list):
-        if buddy[list_win.ACC_IDX].id == acc and\
-           buddy[list_win.BNAME_IDX] == name:
-            # TODO: use/update status
+        if buddy.account.id == acc and\
+           buddy.name == name:
+            buddy.status = status
             return
     # new buddy
     for acc_name, account in config.account.items():
         if account.id == acc:
-            list_win.add([0, config.account[acc_name], name, False])
+            new_buddy = Buddy(account, name)
+            list_win.add(new_buddy)
             list_win.redraw()
             return
 
@@ -970,11 +989,8 @@ def handleNetwork(config, client, conversation, list_win, log_win):
     # create a new conversation if buddy exists
     # TODO: can we add some helper functions?
     for buddy in list_win.list:
-        if buddy[list_win.ACC_IDX].id == acc and\
-           buddy[list_win.BNAME_IDX] == sender:
-            c = Conversation(list_win.superWin,
-                             buddy[list_win.ACC_IDX],
-                             buddy[list_win.BNAME_IDX])
+        if buddy.account.id == acc and buddy.name == sender:
+            c = Conversation(list_win.superWin, buddy.account, buddy.name)
             c.input_win.active = False
             c.log_win.active = False
             conversation.append(c)
@@ -1010,8 +1026,8 @@ def createMainWindows(config, stdscr, max_y, max_x):
     # fill with buddies from config
     for acc in config.account.keys():
         for buddy in config.account[acc].buddies:
-            # TODO: time to make a Buddy class?
-            list_win.add([0, config.account[acc], buddy, False])
+            new_buddy = Buddy(config.account[acc], buddy)
+            list_win.add(new_buddy)
 
     # control/config conversation
     # TODO: add to conversation somehow? and/or add variables for the sizes?
