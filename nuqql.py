@@ -8,6 +8,9 @@ from pathlib import Path
 ### CONFIG PART ###
 ###################
 
+# purpled
+PURPLED_CMD = "./purpled -u"
+
 # purpled server address/port
 SERVER_INET = False
 SERVER_IP = "127.0.0.1"
@@ -159,7 +162,7 @@ class PurpledServer:
         self.proc = None
 
     def start(self):
-        purpled_cmd = "./purpled -u"
+        purpled_cmd = PURPLED_CMD
         self.proc = subprocess.Popen(
             purpled_cmd,
             shell=True,
