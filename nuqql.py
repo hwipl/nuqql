@@ -264,7 +264,7 @@ class PurpledClient:
         acc = part[0]
         status = part[2]
         name = part[4]
-        alias = part[6]
+        alias = part[6][:-1] # remove newline
         return "buddy", acc, status, name, alias
 
     def parseMsg(self, orig_msg):
@@ -325,6 +325,7 @@ class Buddy:
     def __init__(self, account, name):
         self.account = account
         self.name = name
+        self.alias = name
         self.status = "Offline"
         self.hilight = False
         self.notify = False
@@ -566,7 +567,8 @@ class ListWin(Win):
         self.list.sort()
         # dump log messages and resize pad according to new lines added
         for buddy in self.list[-(self.pad_y_max-1):]:
-            msg = buddy.account.id + " " + buddy.name + "\n"
+            #msg = buddy.account.id + " " + buddy.name + "\n"
+            msg = buddy.account.id + " " + buddy.alias + "\n"
             # add buddy status
             if buddy.status == "Offline":
                 msg = "[off] " + msg
@@ -930,15 +932,22 @@ def handleBuddyMsg(config, list_win, msg):
     # config.account[acc].buddies.append(name)
 
     # look for existing buddy
-    for i, buddy in enumerate(list_win.list):
+    for buddy in list_win.list:
         if buddy.account.id == acc and\
            buddy.name == name:
+            old_status = buddy.status
+            old_alias = buddy.alias
             buddy.status = status
+            buddy.alias = alias
+            if old_status != status or old_alias != alias:
+                list_win.redraw()
             return
     # new buddy
     for acc_name, account in config.account.items():
         if account.id == acc:
             new_buddy = Buddy(account, name)
+            new_buddy.status = status
+            new_buddy.alias = alias
             list_win.add(new_buddy)
             list_win.redraw()
             return
