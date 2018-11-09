@@ -20,6 +20,9 @@ SERVER_UNIX = True
 # /home/<user>/purpled/purpled.sock
 SERVER_UNIX_PATH = str(Path.home()) + "/purpled/purpled.sock"
 
+# update buddies only every BUDDY_UPDATE_TIMER seconds
+BUDDY_UPDATE_TIMER = 5
+
 # window x and y sizes in percent
 list_win_y_per = 1
 list_win_x_per = 0.2
@@ -921,11 +924,15 @@ def handleBuddyMsg(config, list_win, msg):
             list_win.redraw()
             return
 
-#def updateBuddies(config, last_update = 0):
-#    # TODO
-#    for acc in config.account.keys():
-#        client.buddiesClient(config.account[acc].id)
-#    return last_update
+def updateBuddies(config, client, last_update):
+    # update only once every BUDDY_UPDATE_TIMER seconds
+    if time.time() - last_update <= BUDDY_UPDATE_TIMER:
+        return last_update
+
+    # update buddies
+    for acc in config.account.keys():
+        client.buddiesClient(config.account[acc].id)
+    return time.time()
 
 def handleNetwork(config, client, conversation, list_win, log_win):
     msg = client.readClient()
@@ -1062,8 +1069,9 @@ def main(stdscr):
     log_msg = LogMessage(log_win, now, None, "nuqql", True,
                          "Collecting buddies.")
     log_win.add(log_msg)
-    for acc in config.account.keys():
-        client.buddiesClient(config.account[acc].id)
+    last_buddy_update = 0
+    last_buddy_update = updateBuddies(config, client, last_buddy_update)
+
 
     # collect messages from purpled
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -1090,8 +1098,7 @@ def main(stdscr):
                                         conversation, max_y, max_x)
 
         # update buddies
-        # TODO: implement it
-        #updateBuddies()
+        last_buddy_update = updateBuddies(config, client, last_buddy_update)
 
         # handle network input
         handleNetwork(config, client, conversation, list_win, log_win)
