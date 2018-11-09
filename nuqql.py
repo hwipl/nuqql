@@ -177,7 +177,7 @@ class PurpledClient:
         self.config = config
         self.sock = None
         self.buffer = ""
-        self.collect_acc = -1
+        #self.collect_acc = -1
 
     def initClient(self):
         # open sockets and connect
@@ -221,7 +221,12 @@ class PurpledClient:
     def collectClient(self, account):
         msg = "account {0} collect\r\n".format(account)
         msg = msg.encode()
-        self.collect_acc = account
+        #self.collect_acc = account
+        self.sock.send(msg)
+
+    def buddiesClient(self, account):
+        msg = "account {0} buddies\r\n".format(account)
+        msg = msg.encode()
         self.sock.send(msg)
 
     def parseCollectMsg(self, orig_msg):
@@ -244,13 +249,25 @@ class PurpledClient:
         #tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
         # TODO: move timestamp conversion to caller?
         tstamp = tstamp.strftime("%H:%M:%S")
-        return acc, acc_name, tstamp, sender, msg
+        return "message", acc, acc_name, tstamp, sender, msg
+
+    def parseBuddyMsg(self, orig_msg):
+        orig_msg = orig_msg[7:]
+        # <acc> status: <Offline/Available> name: <name> alias: <alias>
+        part = orig_msg.split(" ")
+        acc = part[0]
+        status = part[2]
+        name = part[4]
+        alias = part[6]
+        return "buddy", acc, status, name, alias
 
     def parseMsg(self, orig_msg):
         if orig_msg.startswith("message: "):
             return self.parseMessageMsg(orig_msg)
         elif orig_msg.startswith("collect: "):
             return self.parseCollectMsg(orig_msg)
+        elif orig_msg.startswith("buddy: "):
+            return self.parseBuddyMsg(orig_msg)
         else:
             # TODO: improve/remove this error handling!
             acc = -1
@@ -260,7 +277,7 @@ class PurpledClient:
             msg = "Error parsing message: " + orig_msg
             if msg[-1] == "\n": # TODO: is that always ok?
                 msg = msg[:-1]
-            return acc, acc_name, tstamp, sender, msg
+            return "error", acc, acc_name, tstamp, sender, msg
 
 
 ######################
@@ -878,13 +895,53 @@ def resizeMainWindow(stdscr, list_win, log_win, input_win, conversation,
 
     return max_y, max_x
 
-def handleNetwork(client, conversation, list_win, log_win):
+def handleBuddyMsg(config, list_win, msg):
+    (msg_type, acc, status, name, alias) = msg
+    ## look for existing buddy
+    #for buddy in config.account[acc].buddies:
+    #    if buddy == name:
+    #        # TODO: use/update status
+    #        return
+    ## new buddy
+    # config.account[acc].buddies.append(name)
+
+    # look for existing buddy
+    for i, buddy in enumerate(list_win.list):
+        if buddy[list_win.ACC_IDX].id == acc and\
+           buddy[list_win.BNAME_IDX] == name:
+            # TODO: use/update status
+            return
+    # new buddy
+    for acc_name, account in config.account.items():
+        if account.id == acc:
+            list_win.add([0, config.account[acc_name], name, False])
+            list_win.redraw()
+            return
+
+#def updateBuddies(config, last_update = 0):
+#    # TODO
+#    for acc in config.account.keys():
+#        client.buddiesClient(config.account[acc].id)
+#    return last_update
+
+def handleNetwork(config, client, conversation, list_win, log_win):
     msg = client.readClient()
     if msg == None:
         return
     # TODO: do not ignore account name
     # TODO: it's not even an acc_name, it's the name of the buddy? FIXME
-    acc, acc_name, tstamp, sender, msg = client.parseMsg(msg)
+    msg = client.parseMsg(msg)
+    msg_type = msg[0]
+
+    # handle buddy messages
+    if msg_type == "buddy":
+        handleBuddyMsg(config, list_win, msg)
+        return
+
+    # handle normal messages and error messages
+    # TODO: handle error messages somewhere else?
+    if msg_type == "message" or msg_type == "error":
+        (msg_type, acc, acc_name, tstamp, sender, msg) = msg
 
     # look for an existing conversation and use it
     for conv in conversation:
@@ -997,6 +1054,14 @@ def main(stdscr):
     client = PurpledClient(config)
     client.initClient()
 
+    # collect buddies from purpled
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_msg = LogMessage(log_win, now, None, "nuqql", True,
+                         "Collecting buddies.")
+    log_win.add(log_msg)
+    for acc in config.account.keys():
+        client.buddiesClient(config.account[acc].id)
+
     # collect messages from purpled
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_msg = LogMessage(log_win, now, None, "nuqql", True,
@@ -1021,8 +1086,12 @@ def main(stdscr):
         max_y, max_x = resizeMainWindow(stdscr, list_win, log_win, input_win,
                                         conversation, max_y, max_x)
 
+        # update buddies
+        # TODO: implement it
+        #updateBuddies()
+
         # handle network input
-        handleNetwork(client, conversation, list_win, log_win)
+        handleNetwork(config, client, conversation, list_win, log_win)
 
         # handle user input
         if ch is None:
