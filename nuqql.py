@@ -566,7 +566,10 @@ class ListWin(Win):
         # sort list
         self.list.sort()
         # dump log messages and resize pad according to new lines added
-        for buddy in self.list[-(self.pad_y_max-1):]:
+        self.pad_y_max = self.win_y_max - 2 # reset minimum size of pad
+        #for buddy in self.list[-(self.pad_y_max-1):]:
+        #for buddy in self.list[:self.pad_y_max-1]:
+        for buddy in self.list:
             #msg = buddy.account.id + " " + buddy.name + "\n"
             msg = buddy.account.id + " " + buddy.alias + "\n"
             # add buddy status
@@ -601,6 +604,21 @@ class ListWin(Win):
                          self.pos_y + 1, self.pos_x + 1,
                          self.pos_y + self.win_y_max - 2,
                          self.pos_x + self.win_x_max - 2)
+
+    def movePad(self):
+        # TODO: re-check all that moving stuff
+        self.cur_y, self.cur_x = self.pad.getyx()
+        if self.cur_x >= self.win_x_max - 2:
+            # TODO: change -3 to -2 somehow? then use super class function
+            self.pad_x = self.cur_x - (self.win_x_max - 3)
+        if self.cur_x < self.pad_x:
+            self.pad_x = self.cur_x
+        # TODO: change -3 to -2 somehow? then use super class function
+        if self.cur_y >= self.win_y_max - 3:
+            # TODO: change -3 to -2 somehow? then use super class function
+            self.pad_y = self.cur_y - (self.win_y_max - 3)
+        elif self.cur_y < self.pad_y:
+            self.pad_y = self.cur_y
 
     def highlight(self, y, val):
         buddy = self.list[y]
