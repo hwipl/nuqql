@@ -216,6 +216,10 @@ class PurpledClient:
         self.buffer = self.buffer[eom:]
         return msg
 
+    def commandClient(self, cmd):
+        # TODO: do something
+        return
+
     def sendClient(self, account, buddy, msg):
         prefix = "account {0} send {1} ".format(account, buddy)
         msg = html.escape(msg)
@@ -367,19 +371,19 @@ class Conversation:
                                                    input_win_x_per)
 
         # create and draw windows
-        self.log_win = LogWin(stdscr, account, name, None, 0, list_win_x,
+        self.log_win = LogWin(stdscr, account, name, None, None, 0, list_win_x,
                               log_win_y, log_win_x,
                               log_win_y - 2, log_win_x - 2,
                               "Chat log with " + name)
         self.log_win.redraw()
-        self.input_win = InputWin(stdscr, account, name, self.log_win,
+        self.input_win = InputWin(stdscr, account, name, self.log_win, None,
                                   max_y - input_win_y, list_win_x,
                                   input_win_y, input_win_x, 2000, 2000,
                                   "Message to " + name)
         self.input_win.redraw()
 
 class Win:
-    def __init__(self, stdscr, account, name, log, pos_y, pos_x,
+    def __init__(self, stdscr, account, name, log_win, input_win, pos_y, pos_x,
                  win_y_max, win_x_max, pad_y_max, pad_x_max, title):
         self.superWin = stdscr
         self.name = name
@@ -410,7 +414,10 @@ class Win:
         self.msg = ""
 
         # log window
-        self.log_win = log
+        self.log_win = log_win
+
+        # input window
+        self.input_win = input_win
 
         # list entries/message log
         self.list = []
@@ -649,6 +656,11 @@ class ListWin(Win):
         elif ch == "q":
             self.active = False
             return  # Exit the while loop
+        elif ch == ":":
+            # switch to command mode
+            self.input_win.active = True
+            self.log_win.active = True
+            return
         elif ch == "\n":
             # if a conversation exists already, switch to it
             for c in conversation:
@@ -883,6 +895,24 @@ class InputWin(Win):
         # display changes in the pad
         self.redrawPad()
 
+class MainInputWin(InputWin):
+    def send_msg(self, segment, client):
+        # do not send empty messages
+        if len(self.msg) is 0:
+            return
+
+        now = datetime.datetime.now().strftime("%H:%M:%S")
+        log_msg = LogMessage(self.log_win, now, self.account, self.name, False,
+                             self.msg)
+        self.log_win.add(log_msg)
+
+        # send command message
+        client.commandClient(self.msg)
+
+        # reset input
+        self.msg = ""
+        self.pad.clear()
+
 ########################
 ### HELPER FUNCTIONS ###
 ########################
@@ -1044,9 +1074,15 @@ def createMainWindows(config, stdscr, max_y, max_x):
     input_win_y, input_win_x = getAbsoluteSize(max_y, max_x,
                                                input_win_y_per, input_win_x_per)
 
+    # dummy account for main windows
+    nuqql_acc = Account()
+    nuqql_acc.name = "nuqql"
+    nuqql_acc.id = -1
+    nuqql_acc.buddies = []
+
     # main screen
     # list window for buddy list
-    list_win = ListWin(stdscr, None, "BuddyList", None, 0, 0,
+    list_win = ListWin(stdscr, nuqql_acc, "BuddyList", None, None, 0, 0,
                        list_win_y, list_win_x, list_win_y - 2, 128,
                        "Buddy List")
     list_win.redraw()
@@ -1058,14 +1094,22 @@ def createMainWindows(config, stdscr, max_y, max_x):
 
     # control/config conversation
     # TODO: add to conversation somehow? and/or add variables for the sizes?
-    log_win = LogWin(stdscr, None, "nuqql", None, 0, list_win_x,
+    log_win = LogWin(stdscr, nuqql_acc, "nuqql", None, None, 0, list_win_x,
                      log_win_y, log_win_x, log_win_y - 2, log_win_x - 2,
                      "nuqql main log")
     log_win.redraw()
-    input_win = InputWin(stdscr, None, "nuqql", log_win, max_y - input_win_y,
-                         list_win_x, input_win_y, input_win_x, 2000, 2000,
-                         "nuqql commands (unused)")
+    input_win = MainInputWin(stdscr, nuqql_acc, "nuqql", log_win, None,
+                             max_y - input_win_y, list_win_x,
+                             input_win_y, input_win_x, 2000, 2000,
+                             "nuqql commands")
     input_win.redraw()
+
+    # user does not start in command mode, so set input_win inactive
+    input_win.active = False
+
+    # save input_win and log_win in list_win
+    list_win.log_win = log_win
+    list_win.input_win = input_win
 
     return list_win, log_win, input_win
 
@@ -1160,7 +1204,9 @@ def main(stdscr):
                 break
         # if no conversation is active pass input to list window
         if not conv_active:
-            if list_win.active:
+            if input_win.active:
+                input_win.processInput(ch, client)
+            elif list_win.active:
                 # TODO: improve ctrl window handling?
                 input_win.redraw()
                 log_win.redraw()
