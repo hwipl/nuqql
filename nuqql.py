@@ -206,14 +206,15 @@ class PurpledClient:
             self.buffer += data.decode()
 
         # get next message from buffer and return it
-        eom = self.buffer.find("\n") + 1
-        if eom == 0:
+        eom = self.buffer.find("\r\n")
+        if eom == -1:
             # no message found
             return None
 
         # remove message from buffer and return it
         msg = self.buffer[:eom]
-        self.buffer = self.buffer[eom:]
+        # remove message including "\r\n" from buffer
+        self.buffer = self.buffer[eom + 2:]
         return msg
 
     def commandClient(self, cmd):
@@ -250,11 +251,11 @@ class PurpledClient:
         acc_name = part[1]
         tstamp = part[2]
         sender = part[3].split("/")[0] # TODO: handle names better?
+        if sender[-1] == ":": # TODO: fix for icq. handle names better?
+            sender = sender[:-1]
         msg = " ".join(part[4:])
         msg = "\n".join(msg.split("<BR>"))
         msg = html.unescape(msg)
-        if msg[-1] == "\n": # TODO: is that always ok?
-            msg = msg[:-1]
         tstamp = datetime.datetime.fromtimestamp(int(tstamp))
         #tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
         # TODO: move timestamp conversion to caller?
@@ -268,7 +269,7 @@ class PurpledClient:
         acc = part[0]
         status = part[2]
         name = part[4]
-        alias = part[6][:-1] # remove newline
+        alias = part[6]
         return "buddy", acc, status, name, alias
 
     def parseMsg(self, orig_msg):
@@ -285,8 +286,6 @@ class PurpledClient:
             tstamp = "never"
             sender = "purpled"
             msg = "Error parsing message: " + orig_msg
-            if msg[-1] == "\n": # TODO: is that always ok?
-                msg = msg[:-1]
             return "error", acc, acc_name, tstamp, sender, msg
 
 
