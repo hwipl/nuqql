@@ -138,6 +138,7 @@ class Config:
                 acc = Account()
                 acc.name = section
                 acc.id = self.config[section]["id"]
+                acc.type = self.config[section]["type"]
                 acc.buddies = self.config[section]["buddies"]
                 acc.buddies = acc.buddies.split()
                 self.addAccount(acc)
@@ -250,9 +251,7 @@ class PurpledClient:
         acc = part[0]
         acc_name = part[1]
         tstamp = part[2]
-        sender = part[3].split("/")[0] # TODO: handle names better?
-        if sender[-1] == ":": # TODO: fix for icq. handle names better?
-            sender = sender[:-1]
+        sender = part[3]
         msg = " ".join(part[4:])
         msg = "\n".join(msg.split("<BR>"))
         msg = html.unescape(msg)
@@ -1027,6 +1026,21 @@ def handleNetwork(config, client, conversation, list_win, log_win):
     # TODO: handle error messages somewhere else?
     if msg_type == "message" or msg_type == "error":
         (msg_type, acc, acc_name, tstamp, sender, msg) = msg
+
+    # account specific message parsing
+    for tmp_acc_name, tmp_acc in config.account.items():
+        if tmp_acc.id == acc:
+            if tmp_acc.type == "icq":
+                if sender[-1] == ":":
+                    sender = sender[:-1]
+                if msg[:6] == "<BODY>":
+                    msg = msg[6:]
+                if msg[-7:] == "</BODY>":
+                    msg = msg[:-7]
+                break
+            elif tmp_acc.type == "xmpp":
+                sender = sender.split("/")[0]
+                break
 
     # look for an existing conversation and use it
     for conv in conversation:
