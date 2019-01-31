@@ -172,6 +172,7 @@ class PurpledServer:
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            start_new_session=True, # dont send SIGINT from nuqql to subprocess
         )
         # give it some time
         time.sleep(1)
@@ -1229,5 +1230,9 @@ def main(stdscr):
                 client.exitClient()
                 server.stop()
                 break
+
+# ignore SIGINT
+import signal
+signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 curses.wrapper(main)
