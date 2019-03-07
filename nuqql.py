@@ -2,11 +2,22 @@
 
 import curses
 import curses.ascii
+# import sys
+import socket
+import select
+import datetime
+import html
+import subprocess
+import time
+import configparser
+import signal
+
+
 from pathlib import Path
 
-###################
-### CONFIG PART ###
-###################
+###############
+# CONFIG PART #
+###############
 
 # purpled
 PURPLED_CMD = "./purpled -u"
@@ -33,33 +44,33 @@ input_win_x_per = 0.8
 
 # default keymap for special keys
 default_keymap = {
-    chr(curses.ascii.ESC)   : "KEY_ESC",
-    curses.KEY_RIGHT        : "KEY_RIGHT",
-    curses.KEY_LEFT         : "KEY_LEFT",
-    curses.KEY_DOWN         : "KEY_DOWN",
-    curses.KEY_UP           : "KEY_UP",
-    curses.ascii.ctrl("x")  : "KEY_CTRL_X",
-    chr(curses.ascii.DEL)   : "KEY_DEL",
-    curses.KEY_DC           : "KEY_DEL",
-    curses.KEY_HOME         : "KEY_HOME",
-    curses.KEY_END          : "KEY_END",
-    curses.KEY_PPAGE        : "KEY_PAGE_UP",
-    curses.KEY_NPAGE        : "KEY_PAGE_DOWN",
+    chr(curses.ascii.ESC):  "KEY_ESC",
+    curses.KEY_RIGHT:       "KEY_RIGHT",
+    curses.KEY_LEFT:        "KEY_LEFT",
+    curses.KEY_DOWN:        "KEY_DOWN",
+    curses.KEY_UP:          "KEY_UP",
+    curses.ascii.ctrl("x"): "KEY_CTRL_X",
+    chr(curses.ascii.DEL):  "KEY_DEL",
+    curses.KEY_DC:          "KEY_DEL",
+    curses.KEY_HOME:        "KEY_HOME",
+    curses.KEY_END:         "KEY_END",
+    curses.KEY_PPAGE:       "KEY_PAGE_UP",
+    curses.KEY_NPAGE:       "KEY_PAGE_DOWN",
 }
 
 # default key bindings for input windows
 default_input_win_keybinds = {
-    "KEY_ESC"       : "GO_BACK",
-    "KEY_RIGHT"     : "CURSOR_RIGHT",
-    "KEY_LEFT"      : "CURSOR_LEFT",
-    "KEY_DOWN"      : "CURSOR_DOWN",
-    "KEY_UP"        : "CURSOR_UP",
-    "KEY_CTRL_X"    : "SEND_MSG",
-    "KEY_DEL"       : "DEL_CHAR",
-    "KEY_HOME"      : "CURSOR_MSG_START",
-    "KEY_END"       : "CURSOR_MSG_END",
-    "KEY_PAGE_UP"   : "CURSOR_LINE_START",
-    "KEY_PAGE_DOWN" : "CURSOR_LINE_END",
+    "KEY_ESC":          "GO_BACK",
+    "KEY_RIGHT":        "CURSOR_RIGHT",
+    "KEY_LEFT":         "CURSOR_LEFT",
+    "KEY_DOWN":         "CURSOR_DOWN",
+    "KEY_UP":           "CURSOR_UP",
+    "KEY_CTRL_X":       "SEND_MSG",
+    "KEY_DEL":          "DEL_CHAR",
+    "KEY_HOME":         "CURSOR_MSG_START",
+    "KEY_END":          "CURSOR_MSG_END",
+    "KEY_PAGE_UP":      "CURSOR_LINE_START",
+    "KEY_PAGE_DOWN":    "CURSOR_LINE_END",
 }
 
 # default key bindings for log windows
@@ -68,23 +79,22 @@ default_log_win_keybinds = default_input_win_keybinds
 
 # default key bindings for list window (Buddy List)
 default_list_win_keybinds = default_input_win_keybinds
-#default_list_win_keybinds = {
+# default_list_win_keybinds = {
 #   ...
 #    #"q"             : "GO_BACK", # TODO: do we want something like that?
 #    #"\n"            : "DO_SOMETHING", # TODO: do we want something like that?
 #   ...
-#}
+# }
 
 
+####################
+# CONFIG FILE PART #
+####################
 
-########################
-### CONFIG FILE PART ###
-########################
-
-import configparser
 
 class Account:
     pass
+
 
 class Config:
     def __init__(self, config_file="nuqql.conf"):
@@ -147,19 +157,13 @@ class Config:
         with open(self.config_file, "w") as configfile:
             self.config.write(configfile)
 
-####################
-### NETWORK PART ###
-####################
 
-import sys
-import socket
-import select
-import datetime
-import html
-import subprocess
-import time
+################
+# NETWORK PART #
+################
 
 BUFFER_SIZE = 4096
+
 
 class PurpledServer:
     def __init__(self):
@@ -172,7 +176,8 @@ class PurpledServer:
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            start_new_session=True, # dont send SIGINT from nuqql to subprocess
+            start_new_session=True,     # dont send SIGINT from nuqql to
+                                        # subprocess
         )
         # give it some time
         time.sleep(1)
@@ -180,12 +185,13 @@ class PurpledServer:
     def stop(self):
         self.proc.terminate()
 
+
 class PurpledClient:
     def __init__(self, config):
         self.config = config
         self.sock = None
         self.buffer = ""
-        #self.collect_acc = -1
+        # self.collect_acc = -1
 
     def initClient(self):
         # open sockets and connect
@@ -200,8 +206,8 @@ class PurpledClient:
         self.sock.close()
 
     def readClient(self):
-        reads, writes, errs = select.select([self.sock,], [],
-                                            [self.sock,], 0)
+        reads, writes, errs = select.select([self.sock, ], [],
+                                            [self.sock, ], 0)
         if self.sock in reads:
             # read data from socket and add it to buffer
             data = self.sock.recv(BUFFER_SIZE)
@@ -234,7 +240,7 @@ class PurpledClient:
     def collectClient(self, account):
         msg = "account {0} collect\r\n".format(account)
         msg = msg.encode()
-        #self.collect_acc = account
+        # self.collect_acc = account
         self.sock.send(msg)
 
     def buddiesClient(self, account):
@@ -257,7 +263,7 @@ class PurpledClient:
         msg = "\n".join(msg.split("<BR>"))
         msg = html.unescape(msg)
         tstamp = datetime.datetime.fromtimestamp(int(tstamp))
-        #tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
+        # tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
         # TODO: move timestamp conversion to caller?
         tstamp = tstamp.strftime("%H:%M:%S")
         return "message", acc, acc_name, tstamp, sender, msg
@@ -289,9 +295,9 @@ class PurpledClient:
             return "error", acc, acc_name, tstamp, sender, msg
 
 
-######################
-### Helper Classes ###
-######################
+##################
+# Helper Classes #
+##################
 
 class LogMessage:
     """Class for log messages to be displayed in LogWins"""
@@ -319,10 +325,11 @@ class LogMessage:
     def show(self):
         """Show message in LogWin"""
         # TODO: maybe in the future?
-        #self.log_win.pad.addstr(msg + "\n")
+        # self.log_win.pad.addstr(msg + "\n")
         # message is read now
-        #self.is_read = True
+        # self.is_read = True
         return
+
 
 class Buddy:
     def __init__(self, account, name):
@@ -333,7 +340,7 @@ class Buddy:
         self.hilight = False
         self.notify = False
 
-    #def __cmp__(self, other):
+    # def __cmp__(self, other):
     #    if hasattr(other, 'getKey'):
     #        return self.getKey().__cmp__(other.getKey())
 
@@ -344,13 +351,14 @@ class Buddy:
         return self.status + self.name
 
 
-###########################
-### USER INTERFACE PART ###
-###########################
+#######################
+# USER INTERFACE PART #
+#######################
 
 # list of active conversations
 # TODO: does this even make sense?
 conversation = []
+
 
 class Conversation:
     def __init__(self, stdscr, account, name):
@@ -380,6 +388,7 @@ class Conversation:
                                   input_win_y, input_win_x, 2000, 2000,
                                   "Message to " + name)
         self.input_win.redraw()
+
 
 class Win:
     def __init__(self, stdscr, account, name, log_win, input_win, pos_y, pos_x,
@@ -438,7 +447,7 @@ class Win:
     def redrawWin(self):
         self.win.clear()
 
-       # color settings on
+        # color settings on
         curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
         self.win.attron(curses.color_pair(1) | curses.A_BOLD)
 
@@ -478,7 +487,7 @@ class Win:
             self.pad_y = self.pad_y_max - self.win_y_max
 
     def redrawPad(self):
-        pass # implemented in other classes
+        pass    # implemented in other classes
 
     def redraw(self):
         self.redrawWin()
@@ -562,6 +571,7 @@ class Win:
             "CURSOR_LINE_END": self.cursor_line_end,
         }
 
+
 class ListWin(Win):
     def redrawPad(self):
         self.cur_y, self.cur_x = self.pad.getyx()
@@ -572,11 +582,11 @@ class ListWin(Win):
         # sort list
         self.list.sort()
         # dump log messages and resize pad according to new lines added
-        self.pad_y_max = self.win_y_max - 2 # reset minimum size of pad
-        #for buddy in self.list[-(self.pad_y_max-1):]:
-        #for buddy in self.list[:self.pad_y_max-1]:
+        self.pad_y_max = self.win_y_max - 2     # reset minimum size of pad
+        # for buddy in self.list[-(self.pad_y_max-1):]:
+        # for buddy in self.list[:self.pad_y_max-1]:
         for buddy in self.list:
-            #msg = buddy.account.id + " " + buddy.name + "\n"
+            # msg = buddy.account.id + " " + buddy.name + "\n"
             msg = buddy.account.id + " " + buddy.alias + "\n"
             # add buddy status
             if buddy.status == "Offline":
@@ -689,7 +699,6 @@ class ListWin(Win):
         self.redrawPad()
 
 
-
 class LogWin(Win):
     def redrawPad(self):
         self.pad.clear()
@@ -760,6 +769,7 @@ class LogWin(Win):
                          self.pos_y + self.win_y_max - 2,
                          self.pos_x + self.win_x_max - 2)
 
+
 class InputWin(Win):
     def redrawPad(self):
         self.movePad()
@@ -797,8 +807,8 @@ class InputWin(Win):
             self.pad.move(self.cur_y, self.cur_x - 1)
 
     def cursor_right(self, segment, client):
-        if self.cur_x < self.pad_x_max and self.cur_x < len(
-            segment[self.cur_y]):
+        if self.cur_x < self.pad_x_max and \
+           self.cur_x < len(segment[self.cur_y]):
             self.pad.move(self.cur_y, self.cur_x + 1)
 
     def cursor_line_start(self, segment, client):
@@ -806,8 +816,8 @@ class InputWin(Win):
             self.pad.move(self.cur_y, 0)
 
     def cursor_line_end(self, segment, client):
-        if self.cur_x < self.pad_x_max and self.cur_x < len(
-            segment[self.cur_y]):
+        if self.cur_x < self.pad_x_max and \
+           self.cur_x < len(segment[self.cur_y]):
             self.pad.move(self.cur_y, len(segment[self.cur_y]))
 
     def cursor_msg_start(self, segment, client):
@@ -820,12 +830,12 @@ class InputWin(Win):
 
     def send_msg(self, segment, client):
         # do not send empty messages
-        if len(self.msg) is 0:
+        if len(self.msg) == 0:
             return
-        #now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        #self.log_win.add(now + " " + self.name + " <-- " + self.msg)
-        #self.log_win.add(now + " " + getShortName(self.account.name) + ": " +\
-        #                 self.msg)
+        # now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # self.log_win.add(now + " " + self.name + " <-- " + self.msg)
+        # self.log_win.add(now + " " + getShortName(self.account.name) + \
+        #                  ": " + self.msg)
         now = datetime.datetime.now().strftime("%H:%M:%S")
         log_msg = LogMessage(self.log_win, now, self.account, self.name, False,
                              self.msg)
@@ -840,12 +850,12 @@ class InputWin(Win):
         if self.cur_x > 0:
             # delete charater within a line
             segment[self.cur_y] = segment[self.cur_y][:self.cur_x - 1] +\
-                    segment[self.cur_y][self.cur_x:]
+                segment[self.cur_y][self.cur_x:]
         elif self.cur_y > 0:
             # delete newline
             old_prev_len = len(segment[self.cur_y - 1])
             segment[self.cur_y - 1] = segment[self.cur_y - 1] +\
-                    segment[self.cur_y]
+                segment[self.cur_y]
             segment = segment[:self.cur_y] + segment[self.cur_y + 1:]
         # reconstruct and display message
         self.msg = "\n".join(segment)
@@ -877,7 +887,7 @@ class InputWin(Win):
             if type(c) is not str:
                 return
             segment[self.cur_y] = segment[self.cur_y][:self.cur_x] + c +\
-                    segment[self.cur_y][self.cur_x:]
+                segment[self.cur_y][self.cur_x:]
             # reconstruct orginal message for output in pad
             self.msg = "\n".join(segment)
             # reconstruct segments in case newline character was entered
@@ -894,10 +904,11 @@ class InputWin(Win):
         # display changes in the pad
         self.redrawPad()
 
+
 class MainInputWin(InputWin):
     def send_msg(self, segment, client):
         # do not send empty messages
-        if len(self.msg) is 0:
+        if len(self.msg) == 0:
             return
 
         now = datetime.datetime.now().strftime("%H:%M:%S")
@@ -912,14 +923,16 @@ class MainInputWin(InputWin):
         self.msg = ""
         self.pad.clear()
 
-########################
-### HELPER FUNCTIONS ###
-########################
+####################
+# HELPER FUNCTIONS #
+####################
+
 
 def getAbsoluteSize(y_max, x_max, y_rel, x_rel):
     y_abs = int(y_max * y_rel)
     x_abs = int(x_max * x_rel)
     return y_abs, x_abs
+
 
 def resizeMainWindow(stdscr, list_win, log_win, input_win, conversation,
                      max_y, max_x):
@@ -937,7 +950,8 @@ def resizeMainWindow(stdscr, list_win, log_win, input_win, conversation,
     log_win_y, log_win_x = getAbsoluteSize(max_y, max_x,
                                            log_win_y_per, log_win_x_per)
     input_win_y, input_win_x = getAbsoluteSize(max_y, max_x,
-                                               input_win_y_per, input_win_x_per)
+                                               input_win_y_per,
+                                               input_win_x_per)
 
     # resize and move main windows
     list_win.resizeWin(list_win_y, list_win_x)
@@ -968,14 +982,15 @@ def resizeMainWindow(stdscr, list_win, log_win, input_win, conversation,
 
     return max_y, max_x
 
+
 def handleBuddyMsg(config, list_win, msg):
     (msg_type, acc, status, name, alias) = msg
-    ## look for existing buddy
-    #for buddy in config.account[acc].buddies:
+    # # look for existing buddy
+    # for buddy in config.account[acc].buddies:
     #    if buddy == name:
     #        # TODO: use/update status
     #        return
-    ## new buddy
+    # # new buddy
     # config.account[acc].buddies.append(name)
 
     # look for existing buddy
@@ -999,6 +1014,7 @@ def handleBuddyMsg(config, list_win, msg):
             list_win.redraw()
             return
 
+
 def updateBuddies(config, client, last_update):
     # update only once every BUDDY_UPDATE_TIMER seconds
     if time.time() - last_update <= BUDDY_UPDATE_TIMER:
@@ -1009,9 +1025,10 @@ def updateBuddies(config, client, last_update):
         client.buddiesClient(config.account[acc].id)
     return time.time()
 
+
 def handleNetwork(config, client, conversation, list_win, log_win):
     msg = client.readClient()
-    if msg == None:
+    if msg is None:
         return
     # TODO: do not ignore account name
     # TODO: it's not even an acc_name, it's the name of the buddy? FIXME
@@ -1047,8 +1064,8 @@ def handleNetwork(config, client, conversation, list_win, log_win):
     for conv in conversation:
         if conv.input_win.account.id == acc and\
            conv.input_win.name == sender:
-            #conv.log_win.add(tstamp + " " + sender + " --> " + msg)
-            #conv.log_win.add(tstamp + " " + getShortName(sender) + ": " + msg)
+            # conv.log_win.add(tstamp + " " + sender + " --> " + msg)
+            # conv.log_win.add(tstamp + " " + getShortName(sender) + ": " +msg)
             log_msg = LogMessage(conv.log_win, tstamp, conv.account, conv.name,
                                  True, msg)
             conv.log_win.add(log_msg)
@@ -1065,8 +1082,8 @@ def handleNetwork(config, client, conversation, list_win, log_win):
             c.input_win.active = False
             c.log_win.active = False
             conversation.append(c)
-            #c.log_win.add(tstamp + " " + sender + " --> " + msg)
-            #c.log_win.add(tstamp + " " + getShortName(sender) + ": " + msg)
+            # c.log_win.add(tstamp + " " + sender + " --> " + msg)
+            # c.log_win.add(tstamp + " " + getShortName(sender) + ": " + msg)
             log_msg = LogMessage(c.log_win, tstamp, c.account, c.name, True,
                                  msg)
             c.log_win.add(log_msg)
@@ -1074,9 +1091,10 @@ def handleNetwork(config, client, conversation, list_win, log_win):
             return
 
     # nothing found, log to main window
-    #log_win.add(tstamp + " " + sender + " --> " + msg)
+    # log_win.add(tstamp + " " + sender + " --> " + msg)
     log_msg = LogMessage(log_win, tstamp, None, sender, True, msg)
     log_win.add(log_msg)
+
 
 def createMainWindows(config, stdscr, max_y, max_x):
     # determine window sizes
@@ -1086,7 +1104,8 @@ def createMainWindows(config, stdscr, max_y, max_x):
     log_win_y, log_win_x = getAbsoluteSize(max_y, max_x,
                                            log_win_y_per, log_win_x_per)
     input_win_y, input_win_x = getAbsoluteSize(max_y, max_x,
-                                               input_win_y_per, input_win_x_per)
+                                               input_win_y_per,
+                                               input_win_x_per)
 
     # dummy account for main windows
     nuqql_acc = Account()
@@ -1127,14 +1146,16 @@ def createMainWindows(config, stdscr, max_y, max_x):
 
     return list_win, log_win, input_win
 
+
 def getShortName(name):
     # TODO: move that somewhere? Improve it?
     # Save short name in account and buddy instead?
     return name.split("@")[0]
 
-###################
-### MAIN (LOOP) ###
-###################
+###############
+# MAIN (LOOP) #
+###############
+
 
 def main(stdscr):
     max_y, max_x = stdscr.getmaxyx()
@@ -1172,7 +1193,6 @@ def main(stdscr):
     log_win.add(log_msg)
     last_buddy_update = 0
     last_buddy_update = updateBuddies(config, client, last_buddy_update)
-
 
     # collect messages from purpled
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -1231,8 +1251,8 @@ def main(stdscr):
                 server.stop()
                 break
 
+
 # ignore SIGINT
-import signal
 signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 curses.wrapper(main)
