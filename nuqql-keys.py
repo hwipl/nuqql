@@ -3,6 +3,7 @@
 import curses
 import curses.ascii
 
+
 def main(stdscr):
     while True:
         ch = stdscr.get_wch()
@@ -15,5 +16,6 @@ def main(stdscr):
             msg += " crtl: " + curses.ascii.ctrl(ch)
             msg += " alt: " + curses.ascii.alt(ch) + "\n"
         stdscr.addstr(msg)
+
 
 curses.wrapper(main)
