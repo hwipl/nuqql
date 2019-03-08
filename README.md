@@ -69,3 +69,7 @@ Basic controls of nuqql are:
 
 If certain keys do not work, nuqql-keys.py is a tool that might help you to set
 up or reconfigure the keymaps within the nuqql code.
+
+## Changes
+* v0.1:
+  * First/initial release.
