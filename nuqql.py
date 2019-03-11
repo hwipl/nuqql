@@ -20,7 +20,7 @@ from pathlib import Path
 ###############
 
 # purpled
-PURPLED_CMD = "./purpled -u"
+PURPLED_CMD = "purpled -u"
 
 # purpled server address/port
 SERVER_INET = False
