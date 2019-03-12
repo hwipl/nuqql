@@ -220,7 +220,10 @@ class PurpledClient:
         return msg
 
     def commandClient(self, cmd):
-        # TODO: do something
+        # TODO: do more?
+        msg = cmd + "\r\n"
+        msg = msg.encode()
+        self.sock.send(msg)
         return
 
     def sendClient(self, account, buddy, msg):
@@ -998,6 +1001,12 @@ def resizeMainWindow(stdscr, list_win, log_win, input_win, conversation,
 def handleAccountMsg(config, client, log_win, msg):
     # "account", acc_id, acc_alias, acc_prot, acc_user, acc_status
     (msg_type, acc_id, acc_alias, acc_prot, acc_user, acc_status) = msg
+
+    # do not add account if it already exists
+    if acc_user in config.account:
+        return
+
+    # new account, add it
     acc = Account()
     acc.name = acc_user
     acc.id = acc_id
