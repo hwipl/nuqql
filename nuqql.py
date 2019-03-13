@@ -250,6 +250,16 @@ class PurpledClient:
         msg = msg.encode()
         self.sock.send(msg)
 
+    def parseErrorMsg(self, orig_msg):
+        # "error: %s\r\n"
+        error = orig_msg[7:]
+        return "error", error
+
+    def parseInfoMsg(self, orig_msg):
+        # "info: %s\r\n"
+        info = orig_msg[6:]
+        return "info", info
+
     def parseAccountMsg(self, orig_msg):
         # "account: %d %s %s %s [%s]\r\n"
         orig_msg = orig_msg[9:]
@@ -300,6 +310,10 @@ class PurpledClient:
             return self.parseBuddyMsg(orig_msg)
         elif orig_msg.startswith("account: "):
             return self.parseAccountMsg(orig_msg)
+        elif orig_msg.startswith("info: "):
+            return self.parseInfoMsg(orig_msg)
+        elif orig_msg.startswith("error: "):
+            return self.parseErrorMsg(orig_msg)
         else:
             # TODO: improve/remove this error handling!
             acc = -1
@@ -1085,6 +1099,14 @@ def handleNetwork(config, client, conversation, list_win, log_win):
     # TODO: it's not even an acc_name, it's the name of the buddy? FIXME
     msg = client.parseMsg(msg)
     msg_type = msg[0]
+
+    # handle info message or error message
+    if msg_type == "info" or msg_type == "error":
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        text = msg_type + ": " + msg[1]
+        log_msg = LogMessage(log_win, now, None, "nuqql", True, text)
+        log_win.add(log_msg)
+        return
 
     # handle account message
     if msg_type == "account":
