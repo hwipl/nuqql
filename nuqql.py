@@ -1016,6 +1016,13 @@ def handleAccountMsg(config, client, log_win, msg):
     # "account", acc_id, acc_alias, acc_prot, acc_user, acc_status
     (msg_type, acc_id, acc_alias, acc_prot, acc_user, acc_status) = msg
 
+    # output account
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    text = "account {0} ({1}) {2} {3} {4}.".format(acc_id, acc_alias, acc_prot,
+                                                   acc_user, acc_status)
+    log_msg = LogMessage(log_win, now, None, "nuqql", True, text)
+    log_win.add(log_msg)
+
     # do not add account if it already exists
     if acc_user in config.account:
         return
