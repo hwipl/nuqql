@@ -8,47 +8,43 @@ Currently, nuqql requires [purpled](https://github.com/hwipl/purpled) v0.1 as
 a back-end. purpled is a daemon that uses libpurple and allows nuqql to
 connect to multiple chat networks.
 
-## Configuration
+## Setup
 
-Unfortunately, the setup of the current nuqql version is a bit complicated. It
-requires the following steps.
+The basic setup of nuqql consists of installing purpled and adding your instant
+messaging accounts.
 
-### Add accounts to purpled
+### Installing purpled
+
+nuqql needs purpled to connect to chat networks. If you have not done already,
+install purpled with the following steps:
+
+* Download [purpled](https://github.com/hwipl/purpled)
+* Build and install purpled with:
+  * `meson builddir`
+  * `ninja -C builddir install`
+
+(Note: these steps require the [meson](https://mesonbuild.com/) build system.)
+
+### Adding purpled accounts
 
 If you have not done already, you need to add your instant messaging accounts
-in purpled (see also the purpled documentation):
+in purpled (see also the purpled documentation). You can do this from nuqql
+with the following steps:
 
-* Start purpled with: `purpled -i`
-* In another terminal connect to purpled with telnet: `telnet localhost 32000`
-* In the telnet session:
-  * add your accounts; for example a jabber account with: `account add xmpp
-    user@jabber-server.com users_password`
-  * you can list your accounts with: `account list`
-  * remember the IDs (first number in account list output) of the accounts you
-    want to use in nuqql. You need to use them in the nuqql.conf later.
-* Close the telnet session
-* Terminate purpled
-
-### Setup nuqql and add accounts from purpled
-
-In order to use nuqql, you have to make the purpled binary available to nuqql
-and add the purpled accounts:
-
-* Enter the nuqql directory
-* Link/copy the purpled binary into the nuqql directory
-* Copy/rename nuqql.conf-example to nuqql.conf
-* Add your purpled account(s) to nuqql.conf:
-  * Add your account user name in the [] brackets, e.g.:
-    `[user@jabber-server.com]`
-  * Add the ID of your purpled account (as shown by `account list` in
-    purpled; see above) in the `id` field
-  * Tell nuqql the type of the account in the `type` field. Currently, only
-    `xmpp` and `icq` types are implemented.
-  * If you want to add extra buddies, you can do that in the `buddies` field
+* Start nuqql.
+* Enter the command window with the `:` key.
+* Add your accounts in the command window (send commands to purpled with the
+  `CTRL-X` key combination):
+  * for example a jabber account with:
+    `account add xmpp user@jabber-server.com users_password`
+  * You can list your accounts with: `account list`
+* If you want to add an extra buddy, you can just send a message to it, for
+  example, with: `account 0 send user_name@server.com`. Note: `0` is the
+  account ID as shown with `account list`.
 
 ## Usage
 
-After the previous steps, you should finally be able to use nuqql.
+After the previous setup steps, you should finally be able to use nuqql.
 
 ### Run
 
@@ -64,6 +60,8 @@ Basic controls of nuqql are:
   * Send message with `CTRL-X`
   * Leave conversation with the `ESC` key
 * Exit nuqql with the `q` key when you are in no conversation
+* Enter a special conversation named the command window with the `:` key when
+  you are in no conversation
 
 ### Hacky stuff/additional tools
 
@@ -71,5 +69,12 @@ If certain keys do not work, nuqql-keys.py is a tool that might help you to set
 up or reconfigure the keymaps within the nuqql code.
 
 ## Changes
+* v0.2:
+  * Make nuqql configuration easier:
+    * Look for purpled in $PATH
+    * Retrieve accounts from purpled
+    * Allow sending commands to purpled directly from nuqql using the command
+      window
+  * ...
 * v0.1:
   * First/initial release.
