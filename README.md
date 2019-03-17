@@ -75,6 +75,7 @@ up or reconfigure the keymaps within the nuqql code.
     * Retrieve accounts from purpled
     * Allow sending commands to purpled directly from nuqql using the command
       window
+  * Restructure code.
   * ...
 * v0.1:
   * First/initial release.
