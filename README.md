@@ -4,7 +4,7 @@ nuqql is a command line instant messenger inspired by
 [centericq](http://thekonst.net/centericq/) and
 [centerim](http://www.centerim.org) written in Python and using ncurses.
 
-Currently, nuqql requires [purpled](https://github.com/hwipl/purpled) v0.1 as
+Currently, nuqql requires [purpled](https://github.com/hwipl/purpled) as
 a back-end. purpled is a daemon that uses libpurple and allows nuqql to
 connect to multiple chat networks.
 
@@ -79,6 +79,7 @@ up or reconfigure the keymaps within the nuqql code.
   * Introduce `.config/nuqql` in your home directory as working directory.
     purpled sock file, config, logs, etc. are stored in
     `.config/nuqql/backend/purpled`
-  * ...
+  * Requires purpled v0.2.
 * v0.1:
   * First/initial release.
+  * Requires purpled v0.1.
