@@ -235,7 +235,10 @@ class PurpledClient:
         self.sock.send(msg)
 
     def collectClient(self, account):
-        msg = "account {0} collect\r\n".format(account)
+        # collect all messages since time 0
+        # TODO: only works as intended if we spawn our own purpled daemon at
+        # nuqql's startup, FIXME?
+        msg = "account {0} collect 0\r\n".format(account)
         msg = msg.encode()
         # self.collect_acc = account
         self.sock.send(msg)
