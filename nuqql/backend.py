@@ -13,17 +13,21 @@ import nuqql.ui
 
 from pathlib import Path
 
-# purpled
-PURPLED_CMD = "purpled -u"
-
 # purpled server address/port
 SERVER_INET = False
 SERVER_IP = "127.0.0.1"
 SERVER_PORT = 32000
 
+# working directory for purpled
+SERVER_PATH = str(Path.home()) + "/.config/nuqql/backend/purpled"
+# purpled
+SERVER_CMD = "purpled -u -w" + SERVER_PATH
+
 SERVER_UNIX = True
 # /home/<user>/purpled/purpled.sock
-SERVER_UNIX_PATH = str(Path.home()) + "/purpled/purpled.sock"
+# SERVER_UNIX_PATH = str(Path.home()) + "/purpled/purpled.sock"
+# /home/<user>/.config/nuqql/purpled/purpled.sock
+SERVER_UNIX_PATH = SERVER_PATH + "/purpled.sock"
 
 # network buffer
 BUFFER_SIZE = 4096
@@ -37,7 +41,11 @@ class PurpledServer:
         self.proc = None
 
     def start(self):
-        purpled_cmd = PURPLED_CMD
+        # make sure server's working directory exists
+        Path(SERVER_PATH).mkdir(parents=True, exist_ok=True)
+
+        # start server process
+        purpled_cmd = SERVER_CMD
         self.proc = subprocess.Popen(
             purpled_cmd,
             shell=True,

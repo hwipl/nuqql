@@ -32,15 +32,15 @@ in purpled (see also the purpled documentation). You can do this from nuqql
 with the following steps:
 
 * Start nuqql.
-* Enter the command window with the `:` key.
-* Add your accounts in the command window (send commands to purpled with the
-  `CTRL-X` key combination):
-  * for example a jabber account with:
+* Enter the command window with the `:` key (in the command window, send the
+  following commands to purpled with the `CTRL-X` key combination).
+* Add your accounts in the command window:
+  * for example, you can add a jabber account with this command:
     `account add xmpp user@jabber-server.com users_password`
-  * You can list your accounts with: `account list`
+* List your accounts with the command: `account list`
 * If you want to add an extra buddy, you can just send a message to it, for
-  example, with: `account 0 send user_name@server.com`. Note: `0` is the
-  account ID as shown with `account list`.
+  example, with this command: `account 0 send user_name@server.com`. Note: `0`
+  is the account ID as shown with `account list`.
 
 ## Usage
 
@@ -76,6 +76,9 @@ up or reconfigure the keymaps within the nuqql code.
     * Allow sending commands to purpled directly from nuqql using the command
       window
   * Restructure code.
+  * Introduce `.config/nuqql` in your home directory as working directory.
+    purpled sock file, config, logs, etc. are stored in
+    `.config/nuqql/backend/purpled`
   * ...
 * v0.1:
   * First/initial release.
