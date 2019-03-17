@@ -1,12 +1,2 @@
 # rename to nuqql.conf
-
-[account1@jabber.com]
-id = 0
-type = xmpp
-buddies = buddy1@jabber.com
-	  buddy2@jabber.com
-
-[123456789]
-id = 1
-type = icq
-buddies =
+# TODO: decide what to do with this. Remove?
