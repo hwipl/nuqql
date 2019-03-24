@@ -268,7 +268,9 @@ class Backend:
 
         # look for an existing conversation and use it
         for conv in conversation:
-            if conv.input_win.account.id == acc and\
+            # TODO: use conv.backend etc?
+            if conv.input_win.backend is self and \
+               conv.input_win.account.id == acc and \
                conv.input_win.name == sender:
                 # conv.log_win.add(tstamp + " " + sender + " --> " + msg)
                 # conv.log_win.add(tstamp + " " + getShortName(sender) + \
@@ -285,9 +287,11 @@ class Backend:
         # create a new conversation if buddy exists
         # TODO: can we add some helper functions?
         for buddy in list_win.list:
-            if buddy.account.id == acc and buddy.name == sender:
-                c = nuqql.ui.Conversation(list_win.superWin, buddy.account,
-                                          buddy.name)
+            if buddy.backend is self and \
+               buddy.account.id == acc and \
+               buddy.name == sender:
+                c = nuqql.ui.Conversation(list_win.superWin, buddy.backend,
+                                          buddy.account, buddy.name)
                 c.input_win.active = False
                 c.log_win.active = False
                 conversation.append(c)
