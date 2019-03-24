@@ -66,9 +66,10 @@ input_win_x_per = 0.8
 
 
 class Conversation:
-    def __init__(self, stdscr, account, name):
+    def __init__(self, stdscr, backend, account, name):
         max_y, max_x = stdscr.getmaxyx()
         self.name = name
+        self.backend = backend
         self.account = account
 
         # determine window sizes
@@ -83,21 +84,22 @@ class Conversation:
                                                    input_win_x_per)
 
         # create and draw windows
-        self.log_win = LogWin(stdscr, account, name, None, None, 0, list_win_x,
-                              log_win_y, log_win_x,
+        self.log_win = LogWin(stdscr, backend, account, name, None, None, 0,
+                              list_win_x, log_win_y, log_win_x,
                               log_win_y - 2, log_win_x - 2,
                               "Chat log with " + name)
         self.log_win.redraw()
-        self.input_win = InputWin(stdscr, account, name, self.log_win, None,
-                                  max_y - input_win_y, list_win_x,
+        self.input_win = InputWin(stdscr, backend, account, name, self.log_win,
+                                  None, max_y - input_win_y, list_win_x,
                                   input_win_y, input_win_x, 2000, 2000,
                                   "Message to " + name)
         self.input_win.redraw()
 
 
 class Win:
-    def __init__(self, stdscr, account, name, log_win, input_win, pos_y, pos_x,
-                 win_y_max, win_x_max, pad_y_max, pad_x_max, title):
+    def __init__(self, stdscr, backend, account, name, log_win, input_win,
+                 pos_y, pos_x, win_y_max, win_x_max, pad_y_max, pad_x_max,
+                 title):
         self.superWin = stdscr
         self.name = name
 
@@ -141,6 +143,9 @@ class Win:
         self.init_keybinds()
         self.keyfunc = {}
         self.init_keyfunc()
+
+        # backend
+        self.backend = backend
 
         # account
         self.account = account
@@ -387,7 +392,8 @@ class ListWin(Win):
                     self.clearNotifications(self.list[self.cur_y])
                     return
             # new conversation
-            c = Conversation(self.superWin, self.list[self.cur_y].account,
+            c = Conversation(self.superWin, self.list[self.cur_y].backend,
+                             self.list[self.cur_y].account,
                              self.list[self.cur_y].name)
             conversation.append(c)
         # display changes in the pad
@@ -497,43 +503,43 @@ class InputWin(Win):
         if self.cur_y < self.pad_y:
             self.pad_y = self.cur_y
 
-    def cursor_up(self, segment, client):
+    def cursor_up(self, segment):
         if self.cur_y > 0:
             self.pad.move(self.cur_y - 1,
                           min(self.cur_x, len(segment[self.cur_y - 1])))
 
-    def cursor_down(self, segment, client):
+    def cursor_down(self, segment):
         if self.cur_y < self.pad_y_max and self.cur_y < len(segment) - 1:
             self.pad.move(self.cur_y + 1,
                           min(self.cur_x, len(segment[self.cur_y + 1])))
 
-    def cursor_left(self, segment, client):
+    def cursor_left(self, segment):
         if self.cur_x > 0:
             self.pad.move(self.cur_y, self.cur_x - 1)
 
-    def cursor_right(self, segment, client):
+    def cursor_right(self, segment):
         if self.cur_x < self.pad_x_max and \
            self.cur_x < len(segment[self.cur_y]):
             self.pad.move(self.cur_y, self.cur_x + 1)
 
-    def cursor_line_start(self, segment, client):
+    def cursor_line_start(self, segment):
         if self.cur_x > 0:
             self.pad.move(self.cur_y, 0)
 
-    def cursor_line_end(self, segment, client):
+    def cursor_line_end(self, segment):
         if self.cur_x < self.pad_x_max and \
            self.cur_x < len(segment[self.cur_y]):
             self.pad.move(self.cur_y, len(segment[self.cur_y]))
 
-    def cursor_msg_start(self, segment, client):
+    def cursor_msg_start(self, segment):
         if self.cur_y > 0 or self.cur_x > 0:
             self.pad.move(0, 0)
 
-    def cursor_msg_end(self, segment, client):
+    def cursor_msg_end(self, segment):
         if self.cur_y < len(segment) - 1 or self.cur_x < len(segment[-1]):
             self.pad.move(len(segment) - 1, len(segment[-1]))
 
-    def send_msg(self, segment, client):
+    def send_msg(self, segment):
         # do not send empty messages
         if len(self.msg) == 0:
             return
@@ -546,12 +552,12 @@ class InputWin(Win):
                              self.msg)
         self.log_win.add(log_msg)
         # send message
-        client.sendClient(self.account.id, self.name, self.msg)
+        self.backend.sendClient(self.account.id, self.name, self.msg)
         # reset input
         self.msg = ""
         self.pad.clear()
 
-    def delete_char(self, segment, client):
+    def delete_char(self, segment):
         if self.cur_x > 0:
             # delete charater within a line
             segment[self.cur_y] = segment[self.cur_y][:self.cur_x - 1] +\
@@ -572,21 +578,21 @@ class InputWin(Win):
         elif self.cur_y > 0:
             self.pad.move(self.cur_y - 1, old_prev_len)
 
-    def go_back(self, segment, client):
+    def go_back(self, segment):
         self.active = False
         self.log_win.active = False
 
     def init_keybinds(self):
         self.keybind = default_input_win_keybinds
 
-    def processInput(self, c, client):
+    def processInput(self, c):
         segment = self.msg.split("\n")
         self.cur_y, self.cur_x = self.pad.getyx()
 
         # look for special key mappings in keymap or process as text
         if c in self.keymap:
             func = self.keyfunc[self.keybind[self.keymap[c]]]
-            func(segment, client)
+            func(segment)
         else:
             # insert new character into segments
             if type(c) is not str:
@@ -611,9 +617,20 @@ class InputWin(Win):
 
 
 class MainInputWin(InputWin):
-    def send_msg(self, segment, client):
+    def send_msg(self, segment):
         # do not send empty messages
         if len(self.msg) == 0:
+            return
+
+        # try to guess backend
+        parts = self.msg.split()
+        backend = parts[0]
+        if backend not in nuqql.backend.backends:
+            # if its not an existing backend, log error and stop here
+            now = datetime.datetime.now().strftime("%H:%M:%S")
+            log_msg = LogMessage(self.log_win, now, self.account, self.name,
+                                 False, "Unknown backend")
+            self.log_win.add(log_msg)
             return
 
         now = datetime.datetime.now().strftime("%H:%M:%S")
@@ -622,7 +639,9 @@ class MainInputWin(InputWin):
         self.log_win.add(log_msg)
 
         # send command message
-        client.commandClient(self.msg)
+        # nuqql.backend.backends[backend].commandClient(self.msg)
+        nuqql.backend.backends[backend].commandClient(
+            self.msg[len(parts[0])+1:])
 
         # reset input
         self.msg = ""
@@ -749,18 +768,19 @@ def createMainWindows(config, stdscr, max_y, max_x):
 
     # main screen
     # list window for buddy list
-    list_win = ListWin(stdscr, nuqql_acc, "BuddyList", None, None, 0, 0,
+    list_win = ListWin(stdscr, None, nuqql_acc, "BuddyList", None, None, 0, 0,
                        list_win_y, list_win_x, list_win_y - 2, 128,
                        "Buddy List")
     list_win.redraw()
 
     # control/config conversation
     # TODO: add to conversation somehow? and/or add variables for the sizes?
-    log_win = LogWin(stdscr, nuqql_acc, "nuqql", None, None, 0, list_win_x,
-                     log_win_y, log_win_x, log_win_y - 2, log_win_x - 2,
+    log_win = LogWin(stdscr, None, nuqql_acc, "nuqql", None, None,
+                     0, list_win_x, log_win_y, log_win_x,
+                     log_win_y - 2, log_win_x - 2,
                      "nuqql main log")
     log_win.redraw()
-    input_win = MainInputWin(stdscr, nuqql_acc, "nuqql", log_win, None,
+    input_win = MainInputWin(stdscr, None, nuqql_acc, "nuqql", log_win, None,
                              max_y - input_win_y, list_win_x,
                              input_win_y, input_win_x, 2000, 2000,
                              "nuqql commands")

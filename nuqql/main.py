@@ -150,15 +150,14 @@ def main_loop(stdscr):
         for conv in nuqql.ui.conversation:
             if conv.input_win.active:
                 # conv.input_win.processInput(ch, client)
-                conv.input_win.processInput(ch,
-                                            nuqql.backend.backends["purpled"])
+                conv.input_win.processInput(ch)
                 conv_active = True
                 break
         # if no conversation is active pass input to list window
         if not conv_active:
             if input_win.active:
                 # input_win.processInput(ch, client)
-                input_win.processInput(ch, nuqql.backend.backends["purpled"])
+                input_win.processInput(ch)
             elif list_win.active:
                 # TODO: improve ctrl window handling?
                 input_win.redraw()

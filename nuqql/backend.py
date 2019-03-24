@@ -381,7 +381,7 @@ class Backend:
         # new buddy
         for acc_name, account in self.accounts.items():
             if account.id == acc:
-                new_buddy = Buddy(account, name)
+                new_buddy = Buddy(self, account, name)
                 new_buddy.status = status
                 new_buddy.alias = alias
                 list_win.add(new_buddy)
@@ -411,7 +411,8 @@ class Account:
 
 
 class Buddy:
-    def __init__(self, account, name):
+    def __init__(self, backend, account, name):
+        self.backend = backend
         self.account = account
         self.name = name
         self.alias = name
