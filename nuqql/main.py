@@ -98,23 +98,28 @@ def main_loop(stdscr):
     log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
                                   "Start purpled.")
     log_win.add(log_msg)
-    server = nuqql.backend.PurpledServer()
-    server.start()
+    nuqql.backend.initBackends(config)
+    # server = nuqql.backend.PurpledServer()
+    backend = nuqql.backend.backends["purpled"]
+    # server.start()
+    backend.startServer()
 
     # start purpled client
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
                                   "Start client.")
     log_win.add(log_msg)
-    client = nuqql.backend.PurpledClient(config)
-    client.initClient()
+    # client = nuqql.backend.PurpledClient(config)
+    # client.initClient()
+    backend.initClient()
 
     # collect accounts from purpled
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
                                   "Collecting accounts.")
     log_win.add(log_msg)
-    client.accountsClient()
+    # client.accountsClient()
+    backend.accountsClient()
 
     # start main loop
     while True:
@@ -132,10 +137,12 @@ def main_loop(stdscr):
                                                  max_x)
 
         # update buddies
-        nuqql.backend.updateBuddies(config, client, log_win)
+        # nuqql.backend.updateBuddies(config, client, log_win)
+        nuqql.backend.updateBuddies(config, backend, log_win)
 
         # handle network input
-        nuqql.backend.handleNetwork(config, client, nuqql.ui.conversation,
+        # nuqql.backend.handleNetwork(config, client, nuqql.ui.conversation,
+        nuqql.backend.handleNetwork(config, backend, nuqql.ui.conversation,
                                     list_win, log_win)
 
         # handle user input
@@ -147,13 +154,15 @@ def main_loop(stdscr):
         conv_active = False
         for conv in nuqql.ui.conversation:
             if conv.input_win.active:
-                conv.input_win.processInput(ch, client)
+                # conv.input_win.processInput(ch, client)
+                conv.input_win.processInput(ch, backend)
                 conv_active = True
                 break
         # if no conversation is active pass input to list window
         if not conv_active:
             if input_win.active:
-                input_win.processInput(ch, client)
+                # input_win.processInput(ch, client)
+                input_win.processInput(ch, backend)
             elif list_win.active:
                 # TODO: improve ctrl window handling?
                 input_win.redraw()
@@ -161,8 +170,10 @@ def main_loop(stdscr):
                 list_win.processInput(ch)
             else:
                 # list window is also inactive -> user quit
-                client.exitClient()
-                server.stop()
+                # client.exitClient()
+                # server.stop()
+                backend.exitClient()
+                backend.stopServer()
                 break
 
 

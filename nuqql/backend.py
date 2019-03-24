@@ -14,20 +14,20 @@ import nuqql.ui
 from pathlib import Path
 
 # purpled server address/port
-SERVER_INET = False
-SERVER_IP = "127.0.0.1"
-SERVER_PORT = 32000
+# SERVER_INET = False
+# SERVER_IP = "127.0.0.1"
+# SERVER_PORT = 32000
 
 # working directory for purpled
-SERVER_PATH = str(Path.home()) + "/.config/nuqql/backend/purpled"
+# SERVER_PATH = str(Path.home()) + "/.config/nuqql/backend/purpled"
 # purpled
-SERVER_CMD = "purpled -u -w" + SERVER_PATH
+# SERVER_CMD = "purpled -u -w" + SERVER_PATH
 
-SERVER_UNIX = True
+# SERVER_UNIX = True
 # /home/<user>/purpled/purpled.sock
 # SERVER_UNIX_PATH = str(Path.home()) + "/purpled/purpled.sock"
 # /home/<user>/.config/nuqql/purpled/purpled.sock
-SERVER_UNIX_PATH = SERVER_PATH + "/purpled.sock"
+# SERVER_UNIX_PATH = SERVER_PATH + "/purpled.sock"
 
 # network buffer
 BUFFER_SIZE = 4096
@@ -35,19 +35,65 @@ BUFFER_SIZE = 4096
 # update buddies only every BUDDY_UPDATE_TIMER seconds
 BUDDY_UPDATE_TIMER = 5
 
+# dictionary for all active backends
+backends = {}
 
-class PurpledServer:
-    def __init__(self):
+
+def initBackends(config):
+    """
+    Helper for starting all backends
+    """
+
+    # purpled
+    purpled_path = str(Path.home()) + "/.config/nuqql/backend/purpled"
+    purpled_cmd = "purpled -u -w" + purpled_path
+    purpled_sock_file = purpled_path + "/purpled.sock"
+
+    purpled = Backend(config, "purpled", cmd=purpled_cmd, path=purpled_path,
+                      sock_file=purpled_sock_file)
+
+    backends["purpled"] = purpled
+
+
+class Backend:
+    """
+    Class for backends. Allows starting server processes and connecting to
+    (self-started or externally started) servers
+    """
+
+    def __init__(self, config, name, external=False, cmd="", path="",
+                 af=socket.AF_UNIX, ip="127.0.0.1", port=32000, sock_file=""):
+        # backend
+        self.config = config
+        self.name = name
+
+        # server
+        self.external = external
         self.proc = None
+        self.server_path = path
+        self.server_cmd = cmd
 
-    def start(self):
+        # client
+        self.sock = None
+        self.sock_af = af
+        self.sock_file = sock_file
+        self.ip = ip
+        self.port = port
+        self.buffer = ""
+
+        # self.collect_acc = -1
+
+    def startServer(self):
+        # do not start a server process if backend is external
+        if self.external:
+            return
+
         # make sure server's working directory exists
-        Path(SERVER_PATH).mkdir(parents=True, exist_ok=True)
+        Path(self.server_path).mkdir(parents=True, exist_ok=True)
 
         # start server process
-        purpled_cmd = SERVER_CMD
         self.proc = subprocess.Popen(
-            purpled_cmd,
+            self.server_cmd,
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -57,25 +103,22 @@ class PurpledServer:
         # give it some time
         time.sleep(1)
 
-    def stop(self):
+    def stopServer(self):
+        # do not stop anything if the backend is external
+        if self.external:
+            return
+
+        # stop running server
         self.proc.terminate()
-
-
-class PurpledClient:
-    def __init__(self, config):
-        self.config = config
-        self.sock = None
-        self.buffer = ""
-        # self.collect_acc = -1
 
     def initClient(self):
         # open sockets and connect
-        if SERVER_INET:
+        if self.sock_af == socket.AF_INET:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.connect((SERVER_IP, SERVER_PORT))
-        elif SERVER_UNIX:
+            self.sock.connect((self.ip, self.port))
+        elif self.sock_af == socket.AF_UNIX:
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            self.sock.connect(SERVER_UNIX_PATH)
+            self.sock.connect(self.sock_file)
 
     def exitClient(self):
         self.sock.close()
