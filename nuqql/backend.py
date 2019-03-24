@@ -238,12 +238,12 @@ class Backend:
 
         # handle account message
         if msg_type == "account":
-            handleAccountMsg(self.config, self, log_win, msg)
+            self.handleAccountMsg(log_win, msg)
             return
 
         # handle buddy messages
         if msg_type == "buddy":
-            handleBuddyMsg(self.config, list_win, msg)
+            self.handleBuddyMsg(list_win, msg)
             return
 
         # handle normal messages and error messages
@@ -305,6 +305,89 @@ class Backend:
         log_msg = nuqql.ui.LogMessage(log_win, tstamp, None, sender, True, msg)
         log_win.add(log_msg)
 
+    def handleAccountMsg(self, log_win, msg):
+        """
+        Handle Account message
+        """
+
+        # "account", acc_id, acc_alias, acc_prot, acc_user, acc_status
+        (msg_type, acc_id, acc_alias, acc_prot, acc_user, acc_status) = msg
+
+        # output account
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        text = "account {0} ({1}) {2} {3} {4}.".format(acc_id, acc_alias,
+                                                       acc_prot, acc_user,
+                                                       acc_status)
+        log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True, text)
+        log_win.add(log_msg)
+
+        # do not add account if it already exists
+        if acc_user in self.config.account:
+            return
+
+        # new account, add it
+        acc = Account()
+        acc.name = acc_user
+        acc.id = acc_id
+        acc.alias = acc_alias
+        acc.type = acc_prot
+        acc.status = acc_status
+        acc.buddies = []
+        acc.buddies_update = 0
+        self.config.addAccount(acc)
+
+        # collect buddies from purpled
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        text = "Collecting buddies for {0} account {1}: {2}.".format(
+            acc.type, acc.id, acc.name)
+        log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True, text)
+        log_win.add(log_msg)
+        acc.buddies_update = time.time()
+        self.buddiesClient(acc.id)
+
+        # collect messages from purpled
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        text = "Collecting messages for {0} account {1}: {2}.".format(
+            acc.type, acc.id, acc.name)
+        log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True, text)
+        log_win.add(log_msg)
+        self.collectClient(acc.id)
+
+    def handleBuddyMsg(self, list_win, msg):
+        """
+        Handle Buddy message
+        """
+
+        (msg_type, acc, status, name, alias) = msg
+        # # look for existing buddy
+        # for buddy in config.account[acc].buddies:
+        #    if buddy == name:
+        #        # TODO: use/update status
+        #        return
+        # # new buddy
+        # config.account[acc].buddies.append(name)
+
+        # look for existing buddy
+        for buddy in list_win.list:
+            if buddy.account.id == acc and\
+               buddy.name == name:
+                old_status = buddy.status
+                old_alias = buddy.alias
+                buddy.status = status
+                buddy.alias = alias
+                if old_status != status or old_alias != alias:
+                    list_win.redraw()
+                return
+        # new buddy
+        for acc_name, account in self.config.account.items():
+            if account.id == acc:
+                new_buddy = Buddy(account, name)
+                new_buddy.status = status
+                new_buddy.alias = alias
+                list_win.add(new_buddy)
+                list_win.redraw()
+                return
+
     def updateBuddies(self, log_win):
         """
         Update buddies of this account
@@ -350,82 +433,6 @@ class Buddy:
 ####################
 # HELPER FUNCTIONS #
 ####################
-
-def handleAccountMsg(config, client, log_win, msg):
-    # "account", acc_id, acc_alias, acc_prot, acc_user, acc_status
-    (msg_type, acc_id, acc_alias, acc_prot, acc_user, acc_status) = msg
-
-    # output account
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = "account {0} ({1}) {2} {3} {4}.".format(acc_id, acc_alias, acc_prot,
-                                                   acc_user, acc_status)
-    log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True, text)
-    log_win.add(log_msg)
-
-    # do not add account if it already exists
-    if acc_user in config.account:
-        return
-
-    # new account, add it
-    acc = Account()
-    acc.name = acc_user
-    acc.id = acc_id
-    acc.alias = acc_alias
-    acc.type = acc_prot
-    acc.status = acc_status
-    acc.buddies = []
-    acc.buddies_update = 0
-    config.addAccount(acc)
-
-    # collect buddies from purpled
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = "Collecting buddies for {0} account {1}: {2}.".format(
-        acc.type, acc.id, acc.name)
-    log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True, text)
-    log_win.add(log_msg)
-    acc.buddies_update = time.time()
-    client.buddiesClient(acc.id)
-
-    # collect messages from purpled
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = "Collecting messages for {0} account {1}: {2}.".format(
-        acc.type, acc.id, acc.name)
-    log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True, text)
-    log_win.add(log_msg)
-    client.collectClient(acc.id)
-
-
-def handleBuddyMsg(config, list_win, msg):
-    (msg_type, acc, status, name, alias) = msg
-    # # look for existing buddy
-    # for buddy in config.account[acc].buddies:
-    #    if buddy == name:
-    #        # TODO: use/update status
-    #        return
-    # # new buddy
-    # config.account[acc].buddies.append(name)
-
-    # look for existing buddy
-    for buddy in list_win.list:
-        if buddy.account.id == acc and\
-           buddy.name == name:
-            old_status = buddy.status
-            old_alias = buddy.alias
-            buddy.status = status
-            buddy.alias = alias
-            if old_status != status or old_alias != alias:
-                list_win.redraw()
-            return
-    # new buddy
-    for acc_name, account in config.account.items():
-        if account.id == acc:
-            new_buddy = Buddy(account, name)
-            new_buddy.status = status
-            new_buddy.alias = alias
-            list_win.add(new_buddy)
-            list_win.redraw()
-            return
-
 
 def updateBuddies(log_win):
     """
