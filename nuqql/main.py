@@ -93,33 +93,34 @@ def main_loop(stdscr):
     list_win, log_win, input_win = nuqql.ui.createMainWindows(config, stdscr,
                                                               max_y, max_x)
 
-    # start purpled
+    # init and start all backends
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
-                                  "Start purpled.")
+                                  "Start backends.")
     log_win.add(log_msg)
     nuqql.backend.initBackends(config)
-    # server = nuqql.backend.PurpledServer()
-    backend = nuqql.backend.backends["purpled"]
-    # server.start()
-    backend.startServer()
+    for backend in nuqql.backend.backends.values():
+        # start this backend's server
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
+                                      "Start backend \"{0}\".".format(
+                                          backend.name))
+        log_win.add(log_msg)
+        backend.startServer()
 
-    # start purpled client
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
-                                  "Start client.")
-    log_win.add(log_msg)
-    # client = nuqql.backend.PurpledClient(config)
-    # client.initClient()
-    backend.initClient()
+        # start this backend's client
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
+                                      "Start client.")
+        log_win.add(log_msg)
+        backend.initClient()
 
-    # collect accounts from purpled
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
-                                  "Collecting accounts.")
-    log_win.add(log_msg)
-    # client.accountsClient()
-    backend.accountsClient()
+        # collect accounts from this backend
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
+                                      "Collecting accounts.")
+        log_win.add(log_msg)
+        backend.accountsClient()
 
     # start main loop
     while True:
@@ -138,12 +139,11 @@ def main_loop(stdscr):
 
         # update buddies
         # nuqql.backend.updateBuddies(config, client, log_win)
-        nuqql.backend.updateBuddies(config, backend, log_win)
+        nuqql.backend.updateBuddies(log_win)
 
         # handle network input
         # nuqql.backend.handleNetwork(config, client, nuqql.ui.conversation,
-        nuqql.backend.handleNetwork(config, backend, nuqql.ui.conversation,
-                                    list_win, log_win)
+        nuqql.backend.handleNetwork(nuqql.ui.conversation, list_win, log_win)
 
         # handle user input
         if ch is None:
@@ -155,14 +155,15 @@ def main_loop(stdscr):
         for conv in nuqql.ui.conversation:
             if conv.input_win.active:
                 # conv.input_win.processInput(ch, client)
-                conv.input_win.processInput(ch, backend)
+                conv.input_win.processInput(ch,
+                                            nuqql.backend.backends["purpled"])
                 conv_active = True
                 break
         # if no conversation is active pass input to list window
         if not conv_active:
             if input_win.active:
                 # input_win.processInput(ch, client)
-                input_win.processInput(ch, backend)
+                input_win.processInput(ch, nuqql.backend.backends["purpled"])
             elif list_win.active:
                 # TODO: improve ctrl window handling?
                 input_win.redraw()
@@ -172,8 +173,7 @@ def main_loop(stdscr):
                 # list window is also inactive -> user quit
                 # client.exitClient()
                 # server.stop()
-                backend.exitClient()
-                backend.stopServer()
+                nuqql.backend.stopBackends()
                 break
 
 

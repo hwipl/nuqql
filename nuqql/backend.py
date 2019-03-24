@@ -13,22 +13,6 @@ import nuqql.ui
 
 from pathlib import Path
 
-# purpled server address/port
-# SERVER_INET = False
-# SERVER_IP = "127.0.0.1"
-# SERVER_PORT = 32000
-
-# working directory for purpled
-# SERVER_PATH = str(Path.home()) + "/.config/nuqql/backend/purpled"
-# purpled
-# SERVER_CMD = "purpled -u -w" + SERVER_PATH
-
-# SERVER_UNIX = True
-# /home/<user>/purpled/purpled.sock
-# SERVER_UNIX_PATH = str(Path.home()) + "/purpled/purpled.sock"
-# /home/<user>/.config/nuqql/purpled/purpled.sock
-# SERVER_UNIX_PATH = SERVER_PATH + "/purpled.sock"
-
 # network buffer
 BUFFER_SIZE = 4096
 
@@ -37,22 +21,6 @@ BUDDY_UPDATE_TIMER = 5
 
 # dictionary for all active backends
 backends = {}
-
-
-def initBackends(config):
-    """
-    Helper for starting all backends
-    """
-
-    # purpled
-    purpled_path = str(Path.home()) + "/.config/nuqql/backend/purpled"
-    purpled_cmd = "purpled -u -w" + purpled_path
-    purpled_sock_file = purpled_path + "/purpled.sock"
-
-    purpled = Backend(config, "purpled", cmd=purpled_cmd, path=purpled_path,
-                      sock_file=purpled_sock_file)
-
-    backends["purpled"] = purpled
 
 
 class Backend:
@@ -250,6 +218,106 @@ class Backend:
             msg = "Error parsing message: " + orig_msg
             return "error", acc, acc_name, tstamp, sender, msg
 
+    def handleNetwork(self, conversation, list_win, log_win):
+        msg = self.readClient()
+        if msg is None:
+            return
+        # TODO: do not ignore account name
+        # TODO: it's not even an acc_name, it's the name of the buddy? FIXME
+        msg = self.parseMsg(msg)
+        msg_type = msg[0]
+
+        # handle info message or error message
+        if msg_type == "info" or msg_type == "error":
+            now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            text = msg_type + ": " + msg[1]
+            log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
+                                          text)
+            log_win.add(log_msg)
+            return
+
+        # handle account message
+        if msg_type == "account":
+            handleAccountMsg(self.config, self, log_win, msg)
+            return
+
+        # handle buddy messages
+        if msg_type == "buddy":
+            handleBuddyMsg(self.config, list_win, msg)
+            return
+
+        # handle normal messages and error messages
+        # TODO: handle error messages somewhere else?
+        if msg_type == "message" or msg_type == "error":
+            (msg_type, acc, acc_name, tstamp, sender, msg) = msg
+
+        # account specific message parsing
+        for tmp_acc_name, tmp_acc in self.config.account.items():
+            if tmp_acc.id == acc:
+                if tmp_acc.type == "icq":
+                    if sender[-1] == ":":
+                        sender = sender[:-1]
+                    if msg[:6] == "<BODY>":
+                        msg = msg[6:]
+                    if msg[-7:] == "</BODY>":
+                        msg = msg[:-7]
+                    break
+                elif tmp_acc.type == "xmpp":
+                    sender = sender.split("/")[0]
+                    break
+
+        # look for an existing conversation and use it
+        for conv in conversation:
+            if conv.input_win.account.id == acc and\
+               conv.input_win.name == sender:
+                # conv.log_win.add(tstamp + " " + sender + " --> " + msg)
+                # conv.log_win.add(tstamp + " " + getShortName(sender) + \
+                #         ": " +msg)
+                log_msg = nuqql.ui.LogMessage(conv.log_win, tstamp,
+                                              conv.account, conv.name, True,
+                                              msg)
+                conv.log_win.add(log_msg)
+                # if window is not already active notify user
+                if not conv.input_win.active:
+                    list_win.notify(acc, sender)
+                return
+
+        # create a new conversation if buddy exists
+        # TODO: can we add some helper functions?
+        for buddy in list_win.list:
+            if buddy.account.id == acc and buddy.name == sender:
+                c = nuqql.ui.Conversation(list_win.superWin, buddy.account,
+                                          buddy.name)
+                c.input_win.active = False
+                c.log_win.active = False
+                conversation.append(c)
+                # c.log_win.add(tstamp + " " + sender + " --> " + msg)
+                # c.log_win.add(tstamp + " " + getShortName(sender) + \
+                #         ": " + msg)
+                log_msg = nuqql.ui.LogMessage(c.log_win, tstamp, c.account,
+                                              c.name, True, msg)
+                c.log_win.add(log_msg)
+                list_win.notify(acc, sender)
+                return
+
+        # nothing found, log to main window
+        # log_win.add(tstamp + " " + sender + " --> " + msg)
+        log_msg = nuqql.ui.LogMessage(log_win, tstamp, None, sender, True, msg)
+        log_win.add(log_msg)
+
+    def updateBuddies(self, log_win):
+        """
+        Update buddies of this account
+        """
+        # update buddies
+        # TODO: move account list to backend?
+        for acc in self.config.account.values():
+            # update only once every BUDDY_UPDATE_TIMER seconds
+            if time.time() - acc.buddies_update <= BUDDY_UPDATE_TIMER:
+                continue
+            acc.buddies_update = time.time()
+            self.buddiesClient(acc.id)
+
 
 ##################
 # Helper Classes #
@@ -359,95 +427,44 @@ def handleBuddyMsg(config, list_win, msg):
             return
 
 
-def updateBuddies(config, client, log_win):
-    # update buddies
-    for acc in config.account.values():
-        # update only once every BUDDY_UPDATE_TIMER seconds
-        if time.time() - acc.buddies_update <= BUDDY_UPDATE_TIMER:
-            continue
-        acc.buddies_update = time.time()
-        client.buddiesClient(acc.id)
+def updateBuddies(log_win):
+    """
+    Helper for updating buddies on all backends
+    """
+
+    for backend in backends.values():
+        backend.updateBuddies(log_win)
 
 
-def handleNetwork(config, client, conversation, list_win, log_win):
-    msg = client.readClient()
-    if msg is None:
-        return
-    # TODO: do not ignore account name
-    # TODO: it's not even an acc_name, it's the name of the buddy? FIXME
-    msg = client.parseMsg(msg)
-    msg_type = msg[0]
+def handleNetwork(conversation, list_win, log_win):
+    """
+    Helper for handling network events on all backends
+    """
 
-    # handle info message or error message
-    if msg_type == "info" or msg_type == "error":
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        text = msg_type + ": " + msg[1]
-        log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True, text)
-        log_win.add(log_msg)
-        return
+    for backend in backends.values():
+        backend.handleNetwork(conversation, list_win, log_win)
 
-    # handle account message
-    if msg_type == "account":
-        handleAccountMsg(config, client, log_win, msg)
-        return
 
-    # handle buddy messages
-    if msg_type == "buddy":
-        handleBuddyMsg(config, list_win, msg)
-        return
+def initBackends(config):
+    """
+    Helper for starting all backends
+    """
 
-    # handle normal messages and error messages
-    # TODO: handle error messages somewhere else?
-    if msg_type == "message" or msg_type == "error":
-        (msg_type, acc, acc_name, tstamp, sender, msg) = msg
+    # purpled
+    purpled_path = str(Path.home()) + "/.config/nuqql/backend/purpled"
+    purpled_cmd = "purpled -u -w" + purpled_path
+    purpled_sock_file = purpled_path + "/purpled.sock"
 
-    # account specific message parsing
-    for tmp_acc_name, tmp_acc in config.account.items():
-        if tmp_acc.id == acc:
-            if tmp_acc.type == "icq":
-                if sender[-1] == ":":
-                    sender = sender[:-1]
-                if msg[:6] == "<BODY>":
-                    msg = msg[6:]
-                if msg[-7:] == "</BODY>":
-                    msg = msg[:-7]
-                break
-            elif tmp_acc.type == "xmpp":
-                sender = sender.split("/")[0]
-                break
+    purpled = Backend(config, "purpled", cmd=purpled_cmd, path=purpled_path,
+                      sock_file=purpled_sock_file)
 
-    # look for an existing conversation and use it
-    for conv in conversation:
-        if conv.input_win.account.id == acc and\
-           conv.input_win.name == sender:
-            # conv.log_win.add(tstamp + " " + sender + " --> " + msg)
-            # conv.log_win.add(tstamp + " " + getShortName(sender) + ": " +msg)
-            log_msg = nuqql.ui.LogMessage(conv.log_win, tstamp, conv.account,
-                                          conv.name, True, msg)
-            conv.log_win.add(log_msg)
-            # if window is not already active notify user
-            if not conv.input_win.active:
-                list_win.notify(acc, sender)
-            return
+    backends["purpled"] = purpled
 
-    # create a new conversation if buddy exists
-    # TODO: can we add some helper functions?
-    for buddy in list_win.list:
-        if buddy.account.id == acc and buddy.name == sender:
-            c = nuqql.ui.Conversation(list_win.superWin, buddy.account,
-                                      buddy.name)
-            c.input_win.active = False
-            c.log_win.active = False
-            conversation.append(c)
-            # c.log_win.add(tstamp + " " + sender + " --> " + msg)
-            # c.log_win.add(tstamp + " " + getShortName(sender) + ": " + msg)
-            log_msg = nuqql.ui.LogMessage(c.log_win, tstamp, c.account, c.name,
-                                          True, msg)
-            c.log_win.add(log_msg)
-            list_win.notify(acc, sender)
-            return
 
-    # nothing found, log to main window
-    # log_win.add(tstamp + " " + sender + " --> " + msg)
-    log_msg = nuqql.ui.LogMessage(log_win, tstamp, None, sender, True, msg)
-    log_win.add(log_msg)
+def stopBackends():
+    """
+    Helper for stopping all backends
+    """
+    for backend in backends.values():
+        backend.exitClient()
+        backend.stopServer()
