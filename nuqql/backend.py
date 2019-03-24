@@ -29,11 +29,11 @@ class Backend:
     (self-started or externally started) servers
     """
 
-    def __init__(self, config, name, external=False, cmd="", path="",
+    def __init__(self, name, external=False, cmd="", path="",
                  af=socket.AF_UNIX, ip="127.0.0.1", port=32000, sock_file=""):
         # backend
-        self.config = config
         self.name = name
+        self.accounts = {}
 
         # server
         self.external = external
@@ -252,7 +252,7 @@ class Backend:
             (msg_type, acc, acc_name, tstamp, sender, msg) = msg
 
         # account specific message parsing
-        for tmp_acc_name, tmp_acc in self.config.account.items():
+        for tmp_acc_name, tmp_acc in self.accounts.items():
             if tmp_acc.id == acc:
                 if tmp_acc.type == "icq":
                     if sender[-1] == ":":
@@ -322,7 +322,7 @@ class Backend:
         log_win.add(log_msg)
 
         # do not add account if it already exists
-        if acc_user in self.config.account:
+        if acc_user in self.accounts:
             return
 
         # new account, add it
@@ -334,7 +334,7 @@ class Backend:
         acc.status = acc_status
         acc.buddies = []
         acc.buddies_update = 0
-        self.config.addAccount(acc)
+        self.accounts[acc.name] = acc
 
         # collect buddies from purpled
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -379,7 +379,7 @@ class Backend:
                     list_win.redraw()
                 return
         # new buddy
-        for acc_name, account in self.config.account.items():
+        for acc_name, account in self.accounts.items():
             if account.id == acc:
                 new_buddy = Buddy(account, name)
                 new_buddy.status = status
@@ -394,7 +394,7 @@ class Backend:
         """
         # update buddies
         # TODO: move account list to backend?
-        for acc in self.config.account.values():
+        for acc in self.accounts.values():
             # update only once every BUDDY_UPDATE_TIMER seconds
             if time.time() - acc.buddies_update <= BUDDY_UPDATE_TIMER:
                 continue
@@ -452,7 +452,7 @@ def handleNetwork(conversation, list_win, log_win):
         backend.handleNetwork(conversation, list_win, log_win)
 
 
-def initBackends(config):
+def initBackends():
     """
     Helper for starting all backends
     """
@@ -462,7 +462,7 @@ def initBackends(config):
     purpled_cmd = "purpled -u -w" + purpled_path
     purpled_sock_file = purpled_path + "/purpled.sock"
 
-    purpled = Backend(config, "purpled", cmd=purpled_cmd, path=purpled_path,
+    purpled = Backend("purpled", cmd=purpled_cmd, path=purpled_path,
                       sock_file=purpled_sock_file)
 
     backends["purpled"] = purpled

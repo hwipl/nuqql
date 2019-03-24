@@ -753,11 +753,6 @@ def createMainWindows(config, stdscr, max_y, max_x):
                        list_win_y, list_win_x, list_win_y - 2, 128,
                        "Buddy List")
     list_win.redraw()
-    # fill with buddies from config
-    for acc in config.account.keys():
-        for buddy in config.account[acc].buddies:
-            new_buddy = nuqql.backend.Buddy(config.account[acc], buddy)
-            list_win.add(new_buddy)
 
     # control/config conversation
     # TODO: add to conversation somehow? and/or add variables for the sizes?

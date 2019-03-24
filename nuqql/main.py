@@ -35,9 +35,6 @@ class Config:
         # accounts
         self.account = {}
 
-    def addAccount(self, account):
-        self.account[account.name] = account
-
     def delAccount(self, account):
         del self.account[account.name]
 
@@ -98,7 +95,7 @@ def main_loop(stdscr):
     log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
                                   "Start backends.")
     log_win.add(log_msg)
-    nuqql.backend.initBackends(config)
+    nuqql.backend.initBackends()
     for backend in nuqql.backend.backends.values():
         # start this backend's server
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -138,11 +135,9 @@ def main_loop(stdscr):
                                                  max_x)
 
         # update buddies
-        # nuqql.backend.updateBuddies(config, client, log_win)
         nuqql.backend.updateBuddies(log_win)
 
         # handle network input
-        # nuqql.backend.handleNetwork(config, client, nuqql.ui.conversation,
         nuqql.backend.handleNetwork(nuqql.ui.conversation, list_win, log_win)
 
         # handle user input
