@@ -216,7 +216,7 @@ class Backend:
             tstamp = "never"
             sender = "purpled"
             msg = "Error parsing message: " + orig_msg
-            return "error", acc, acc_name, tstamp, sender, msg
+            return "parsing error", acc, acc_name, tstamp, sender, msg
 
     def handleNetwork(self, conversation, list_win, log_win):
         msg = self.readClient()
@@ -248,7 +248,7 @@ class Backend:
 
         # handle normal messages and error messages
         # TODO: handle error messages somewhere else?
-        if msg_type == "message" or msg_type == "error":
+        if msg_type == "message" or msg_type == "parsing error":
             (msg_type, acc, acc_name, tstamp, sender, msg) = msg
 
         # account specific message parsing
@@ -367,9 +367,14 @@ class Backend:
         # # new buddy
         # config.account[acc].buddies.append(name)
 
+        # if there is no alias, just use name
+        if len(alias) == 0:
+            alias = name
+
         # look for existing buddy
         for buddy in list_win.list:
-            if buddy.account.id == acc and\
+            if buddy.backend is self and \
+               buddy.account.id == acc and \
                buddy.name == name:
                 old_status = buddy.status
                 old_alias = buddy.alias
@@ -461,12 +466,23 @@ def initBackends():
     # purpled
     purpled_path = str(Path.home()) + "/.config/nuqql/backend/purpled"
     purpled_cmd = "purpled -u -w" + purpled_path
-    purpled_sock_file = purpled_path + "/purpled.sock"
+    purpled_sockfile = purpled_path + "/purpled.sock"
 
     purpled = Backend("purpled", cmd=purpled_cmd, path=purpled_path,
-                      sock_file=purpled_sock_file)
+                      sock_file=purpled_sockfile)
 
     backends["purpled"] = purpled
+
+    # nuqql-based
+    based_path = str(Path.home()) + "/.config/nuqql/backend/based"
+    based_cmd = "./based.py --af unix --dir {0} --sockfile based.sock".format(
+        based_path)
+    based_sockfile = based_path + "/based.sock"
+
+    based = Backend("based", cmd=based_cmd, path=based_path,
+                    sock_file=based_sockfile)
+
+    backends["based"] = based
 
 
 def stopBackends():
