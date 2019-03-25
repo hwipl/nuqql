@@ -74,7 +74,7 @@ input_win_x_per = 0.8
 
 
 class Conversation:
-    def __init__(self, stdscr, backend, account, name, ctype="buddy"):
+    def __init__(self, backend, account, name, ctype="buddy"):
         max_y, max_x = stdscr.getmaxyx()
         self.name = name
         self.backend = backend
@@ -96,26 +96,21 @@ class Conversation:
         # TODO: unify this?
         if self.type == "buddy":
             # standard chat windows
-            self.log_win = LogWin(stdscr, backend, account, name, None, None,
-                                  0, list_win_x, log_win_y, log_win_x,
+            self.log_win = LogWin(self, 0, list_win_x, log_win_y, log_win_x,
                                   log_win_y - 2, log_win_x - 2,
                                   "Chat log with " + name)
-            self.input_win = InputWin(stdscr, backend, account, name,
-                                      self.log_win, None, max_y - input_win_y,
-                                      list_win_x, input_win_y, input_win_x,
-                                      2000, 2000, "Message to " + name)
+            self.input_win = InputWin(self, max_y - input_win_y, list_win_x,
+                                      input_win_y, input_win_x, 2000, 2000,
+                                      "Message to " + name)
         if self.type == "nuqql" or \
            self.type == "backend":
             # command windows for nuqql and backends
-            self.log_win = LogWin(stdscr, backend, account, name, None, None,
-                                  0, list_win_x, log_win_y, log_win_x,
+            self.log_win = LogWin(self, 0, list_win_x, log_win_y, log_win_x,
                                   log_win_y - 2, log_win_x - 2,
                                   "Command log of " + name)
-            self.input_win = MainInputWin(stdscr, backend, account, name,
-                                          self.log_win, None,
-                                          max_y - input_win_y, list_win_x,
-                                          input_win_y, input_win_x, 2000, 2000,
-                                          "Command to: " + name)
+            self.input_win = MainInputWin(self, max_y - input_win_y,
+                                          list_win_x, input_win_y, input_win_x,
+                                          2000, 2000, "Command to: " + name)
             # do not start as active
             self.input_win.active = False
 
@@ -125,12 +120,8 @@ class Conversation:
 
 
 class Win:
-    def __init__(self, stdscr, backend, account, name, log_win, input_win,
-                 pos_y, pos_x, win_y_max, win_x_max, pad_y_max, pad_x_max,
-                 title):
-        self.superWin = stdscr
-        self.name = name
-
+    def __init__(self, conversation, pos_y, pos_x, win_y_max, win_x_max,
+                 pad_y_max, pad_x_max, title):
         # is window active?
         self.active = True
         self.pos_y = pos_y
@@ -156,12 +147,6 @@ class Win:
         # input message
         self.msg = ""
 
-        # log window
-        self.log_win = log_win
-
-        # input window
-        self.input_win = input_win
-
         # list entries/message log
         self.list = []
 
@@ -172,11 +157,8 @@ class Win:
         self.keyfunc = {}
         self.init_keyfunc()
 
-        # backend
-        self.backend = backend
-
-        # account
-        self.account = account
+        # conversation
+        self.conversation = conversation
 
         # window title
         # TODO: use name instead?
@@ -405,8 +387,8 @@ class ListWin(Win):
             return  # Exit the while loop
         elif ch == ":":
             # switch to command mode
-            self.input_win.active = True
-            self.log_win.active = True
+            self.conversation.input_win.active = True
+            self.conversation.log_win.active = True
             return
         elif ch == "\n":
             # if a conversation exists already, switch to it
@@ -420,7 +402,7 @@ class ListWin(Win):
                     self.clearNotifications(self.list[self.cur_y])
                     return
             # new conversation
-            c = Conversation(self.superWin, self.list[self.cur_y].backend,
+            c = Conversation(self.list[self.cur_y].backend,
                              self.list[self.cur_y].account,
                              self.list[self.cur_y].name)
             conversations.append(c)
@@ -462,7 +444,7 @@ class LogWin(Win):
             # set colors and attributes for message:
             # * unread messages are bold
             # * read messages are normal
-            if msg.inc:
+            if not msg.own:
                 # message from buddy
                 if msg.is_read:
                     # old message
@@ -472,11 +454,6 @@ class LogWin(Win):
                     # new message
                     self.pad.attroff(curses.A_NORMAL)
                     self.pad.attron(curses.color_pair(3) | curses.A_BOLD)
-
-                # output message
-                self.pad.addstr(msg.tstamp + " ")
-                self.pad.addstr(getShortName(msg.buddy) + ": ")
-                self.pad.addstr(msg.msg + "\n")
             else:
                 # message from you
                 if msg.is_read:
@@ -488,10 +465,10 @@ class LogWin(Win):
                     self.pad.attroff(curses.A_NORMAL)
                     self.pad.attron(curses.color_pair(4) | curses.A_BOLD)
 
-                # output message
-                self.pad.addstr(msg.tstamp + " ")
-                self.pad.addstr(getShortName(msg.account.name) + ": ")
-                self.pad.addstr(msg.msg + "\n")
+            # output message
+            self.pad.addstr(msg.tstamp + " ")
+            self.pad.addstr(getShortName(msg.sender) + ": ")
+            self.pad.addstr(msg.msg + "\n")
 
             # message has now been read
             msg.is_read = True
@@ -578,10 +555,13 @@ class InputWin(Win):
         # self.log_win.add(now + " " + getShortName(self.account.name) + \
         #                  ": " + self.msg)
         now = datetime.datetime.now().strftime("%H:%M:%S")
-        log_msg = LogMessage(now, self.account, self.name, False, self.msg)
-        self.log_win.add(log_msg)
+        log_msg = LogMessage(now, self.conversation.account.name, self.msg,
+                             own=True)
+        self.conversation.log_win.add(log_msg)
         # send message
-        self.backend.sendClient(self.account.id, self.name, self.msg)
+        self.conversation.backend.sendClient(self.conversation.account.id,
+                                             self.conversation.name,
+                                             self.msg)
         # reset input
         self.msg = ""
         self.pad.clear()
@@ -609,7 +589,7 @@ class InputWin(Win):
 
     def go_back(self, segment):
         self.active = False
-        self.log_win.active = False
+        self.conversation.log_win.active = False
 
     def init_keybinds(self):
         self.keybind = default_input_win_keybinds
@@ -652,12 +632,13 @@ class MainInputWin(InputWin):
             return
 
         now = datetime.datetime.now().strftime("%H:%M:%S")
-        log_msg = LogMessage(now, self.account, self.name, False, self.msg)
-        self.log_win.add(log_msg)
+        log_msg = LogMessage(now, self.conversation.account.name, self.msg,
+                             own=True)
+        self.conversation.log_win.add(log_msg)
 
         # send command message
-        if self.backend is not None:
-            self.backend.commandClient(self.msg)
+        if self.conversation.backend is not None:
+            self.conversation.backend.commandClient(self.msg)
 
         # reset input
         self.msg = ""
@@ -671,33 +652,25 @@ class MainInputWin(InputWin):
 class LogMessage:
     """Class for log messages to be displayed in LogWins"""
 
-    def __init__(self, tstamp, account, buddy, inc, msg):
-        # associate this message with a LogWin
-        # self.log_win = log_win
+    def __init__(self, tstamp, sender, msg, own=False):
+        """
+        Initialize log message with timestamp, sender of the message, and
+        the message itself
+        """
 
         # timestamp
         self.tstamp = tstamp
 
-        # account
-        self.account = account
+        # sender could be us or buddy/other user, as
+        # indicated by self.own (helps with coloring etc. later)
+        self.sender = sender
+        self.own = own
 
-        # buddy and is message incoming or outgoing
-        self.buddy = buddy
-        self.inc = inc
-
-        # message itself
+        # the message itself
         self.msg = msg
 
         # has message been read?
         self.is_read = False
-
-    def show(self):
-        """Show message in LogWin"""
-        # TODO: maybe in the future?
-        # self.log_win.pad.addstr(msg + "\n")
-        # message is read now
-        # self.is_read = True
-        return
 
 
 ####################
@@ -764,7 +737,7 @@ def getShortName(name):
     return name.split("@")[0]
 
 
-def createMainWindows(config):
+def createMainWindows():
     # determine window sizes
     # TODO: add to conversation somehow? and/or add variables for the sizes?
     list_win_y, list_win_x = getAbsoluteSize(max_y, max_x,
@@ -782,33 +755,20 @@ def createMainWindows(config):
     nuqql_acc.buddies = []
 
     # main screen
+    # dummy conversation for main windows, creates log_win and input_win
+    nuqql_conv = Conversation(None, nuqql_acc, "nuqql", ctype="nuqql")
+    # user does not start in command mode, so set input_win inactive
+    nuqql_conv.input_win.active = False
+
     # list window for buddy list
-    list_win = ListWin(stdscr, None, nuqql_acc, "BuddyList", None, None, 0, 0,
-                       list_win_y, list_win_x, list_win_y - 2, 128,
-                       "Buddy List")
+    list_win = ListWin(nuqql_conv, 0, 0, list_win_y, list_win_x,
+                       list_win_y - 2, 128, "Buddy List")
     list_win.redraw()
 
-    # control/config conversation
-    # TODO: add to conversation somehow? and/or add variables for the sizes?
-    log_win = LogWin(stdscr, None, nuqql_acc, "nuqql", None, None,
-                     0, list_win_x, log_win_y, log_win_x,
-                     log_win_y - 2, log_win_x - 2,
-                     "nuqql main log")
-    log_win.redraw()
-    input_win = MainInputWin(stdscr, None, nuqql_acc, "nuqql", log_win, None,
-                             max_y - input_win_y, list_win_x,
-                             input_win_y, input_win_x, 2000, 2000,
-                             "nuqql commands")
-    input_win.redraw()
-
-    # user does not start in command mode, so set input_win inactive
-    input_win.active = False
-
-    # save input_win and log_win in list_win
-    list_win.log_win = log_win
-    list_win.input_win = input_win
-
-    return list_win, log_win, input_win
+    # save windows
+    nuqql.ui.list_win = list_win
+    nuqql.ui.log_win = nuqql_conv.log_win
+    nuqql.ui.input_win = nuqql_conv.input_win
 
 
 def readInput():
@@ -826,7 +786,7 @@ def readInput():
     return ch
 
 
-def init(config, stdscr):
+def init(stdscr):
     """
     Initialize UI
     """
@@ -845,5 +805,4 @@ def init(config, stdscr):
     stdscr.refresh()
 
     # create main windows
-    nuqql.ui.list_win, nuqql.ui.log_win, nuqql.ui.input_win = \
-        nuqql.ui.createMainWindows(config)
+    nuqql.ui.createMainWindows()
