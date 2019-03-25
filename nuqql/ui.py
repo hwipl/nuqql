@@ -66,11 +66,12 @@ input_win_x_per = 0.8
 
 
 class Conversation:
-    def __init__(self, stdscr, backend, account, name):
+    def __init__(self, stdscr, backend, account, name, ctype="buddy"):
         max_y, max_x = stdscr.getmaxyx()
         self.name = name
         self.backend = backend
         self.account = account
+        self.type = ctype
 
         # determine window sizes
         list_win_y, list_win_x = getAbsoluteSize(max_y, max_x,
@@ -83,16 +84,35 @@ class Conversation:
                                                    input_win_y_per,
                                                    input_win_x_per)
 
-        # create and draw windows
-        self.log_win = LogWin(stdscr, backend, account, name, None, None, 0,
-                              list_win_x, log_win_y, log_win_x,
-                              log_win_y - 2, log_win_x - 2,
-                              "Chat log with " + name)
+        # create windows
+        # TODO: unify this?
+        if self.type == "buddy":
+            # standard chat windows
+            self.log_win = LogWin(stdscr, backend, account, name, None, None,
+                                  0, list_win_x, log_win_y, log_win_x,
+                                  log_win_y - 2, log_win_x - 2,
+                                  "Chat log with " + name)
+            self.input_win = InputWin(stdscr, backend, account, name,
+                                      self.log_win, None, max_y - input_win_y,
+                                      list_win_x, input_win_y, input_win_x,
+                                      2000, 2000, "Message to " + name)
+        if self.type == "nuqql" or \
+           self.type == "backend":
+            # command windows for nuqql and backends
+            self.log_win = LogWin(stdscr, backend, account, name, None, None,
+                                  0, list_win_x, log_win_y, log_win_x,
+                                  log_win_y - 2, log_win_x - 2,
+                                  "Command log of " + name)
+            self.input_win = MainInputWin(stdscr, backend, account, name,
+                                          self.log_win, None,
+                                          max_y - input_win_y, list_win_x,
+                                          input_win_y, input_win_x, 2000, 2000,
+                                          "Command to: " + name)
+            # do not start as active
+            self.input_win.active = False
+
+        # draw windows
         self.log_win.redraw()
-        self.input_win = InputWin(stdscr, backend, account, name, self.log_win,
-                                  None, max_y - input_win_y, list_win_x,
-                                  input_win_y, input_win_x, 2000, 2000,
-                                  "Message to " + name)
         self.input_win.redraw()
 
 
@@ -399,9 +419,11 @@ class ListWin(Win):
         # display changes in the pad
         self.redrawPad()
 
-    def notify(self, acc_id, name):
+    def notify(self, backend, acc_id, name):
         for buddy in self.list:
-            if buddy.account.id == acc_id and buddy.name == name:
+            if buddy.backend == backend and \
+               buddy.account.id == acc_id and \
+               buddy.name == name:
                 buddy.notify = 1
         self.redrawPad()
 
@@ -622,26 +644,14 @@ class MainInputWin(InputWin):
         if len(self.msg) == 0:
             return
 
-        # try to guess backend
-        parts = self.msg.split()
-        backend = parts[0]
-        if backend not in nuqql.backend.backends:
-            # if its not an existing backend, log error and stop here
-            now = datetime.datetime.now().strftime("%H:%M:%S")
-            log_msg = LogMessage(self.log_win, now, self.account, self.name,
-                                 False, "Unknown backend")
-            self.log_win.add(log_msg)
-            return
-
         now = datetime.datetime.now().strftime("%H:%M:%S")
         log_msg = LogMessage(self.log_win, now, self.account, self.name, False,
                              self.msg)
         self.log_win.add(log_msg)
 
         # send command message
-        # nuqql.backend.backends[backend].commandClient(self.msg)
-        nuqql.backend.backends[backend].commandClient(
-            self.msg[len(parts[0])+1:])
+        if self.backend is not None:
+            self.backend.commandClient(self.msg)
 
         # reset input
         self.msg = ""

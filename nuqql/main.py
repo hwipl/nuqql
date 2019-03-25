@@ -95,8 +95,13 @@ def main_loop(stdscr):
     log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
                                   "Start backends.")
     log_win.add(log_msg)
-    nuqql.backend.initBackends()
+    nuqql.backend.initBackends(stdscr, list_win)
     for backend in nuqql.backend.backends.values():
+        # start conversation with this backend
+        # c = nuqql.ui.Conversation(stdscr, backend, None, backend.name,
+        #                           ctype="backend")
+        # nuqql.ui.conversation.append(c)
+
         # start this backend's server
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,

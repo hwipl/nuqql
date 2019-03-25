@@ -34,6 +34,8 @@ class Backend:
         # backend
         self.name = name
         self.accounts = {}
+        # conversation for communication with the backend. TODO: check
+        self.conversation = None
 
         # server
         self.external = external
@@ -281,7 +283,7 @@ class Backend:
                 conv.log_win.add(log_msg)
                 # if window is not already active notify user
                 if not conv.input_win.active:
-                    list_win.notify(acc, sender)
+                    list_win.notify(self, acc, sender)
                 return
 
         # create a new conversation if buddy exists
@@ -301,7 +303,7 @@ class Backend:
                 log_msg = nuqql.ui.LogMessage(c.log_win, tstamp, c.account,
                                               c.name, True, msg)
                 c.log_win.add(log_msg)
-                list_win.notify(acc, sender)
+                list_win.notify(self, acc, sender)
                 return
 
         # nothing found, log to main window
@@ -340,7 +342,7 @@ class Backend:
         acc.buddies_update = 0
         self.accounts[acc.name] = acc
 
-        # collect buddies from purpled
+        # collect buddies from backend
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         text = "Collecting buddies for {0} account {1}: {2}.".format(
             acc.type, acc.id, acc.name)
@@ -349,7 +351,7 @@ class Backend:
         acc.buddies_update = time.time()
         self.buddiesClient(acc.id)
 
-        # collect messages from purpled
+        # collect messages from backend
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         text = "Collecting messages for {0} account {1}: {2}.".format(
             acc.type, acc.id, acc.name)
@@ -459,15 +461,21 @@ def handleNetwork(conversation, list_win, log_win):
     """
 
     for backend in backends.values():
-        backend.handleNetwork(conversation, list_win, log_win)
+        backend.handleNetwork(conversation, list_win,
+                              backend.conversation.log_win)
 
 
-def initBackends():
+def initBackends(stdscr, list_win):
     """
     Helper for starting all backends
     """
 
-    # purpled
+    # TODO: cleanup this mess? ;D
+
+    ###########
+    # purpled #
+    ###########
+
     purpled_path = str(Path.home()) + "/.config/nuqql/backend/purpled"
     purpled_cmd = "purpled -u -w" + purpled_path
     purpled_sockfile = purpled_path + "/purpled.sock"
@@ -477,7 +485,31 @@ def initBackends():
 
     backends["purpled"] = purpled
 
-    # nuqql-based
+    # pseudo account
+    account = Account()
+    account.name = "purpled"
+    account.id = "0"
+    account.buddies = []
+
+    # add pseudo buddy for purpled
+    new_buddy = Buddy(purpled, account, "purpled")
+    new_buddy.status = "backend"
+    new_buddy.alias = "purpled"
+    # TODO: change it to nuqql.ui.list_win or something?
+    list_win.add(new_buddy)
+    list_win.redraw()
+
+    # add conversation for purpled
+    # TODO: change stdscr to nuqql.ui.stdscr or something?
+    c = nuqql.ui.Conversation(stdscr, purpled, account, purpled.name,
+                              ctype="backend")
+    nuqql.ui.conversation.append(c)
+    purpled.conversation = c
+
+    ###############
+    # nuqql-based #
+    ###############
+
     based_path = str(Path.home()) + "/.config/nuqql/backend/based"
     based_cmd = "./based.py --af unix --dir {0} --sockfile based.sock".format(
         based_path)
@@ -487,6 +519,27 @@ def initBackends():
                     sock_file=based_sockfile)
 
     backends["based"] = based
+
+    # pseudo account
+    account = Account()
+    account.name = "based"
+    account.id = "1"
+    account.buddies = []
+
+    # add pseudo buddy for purpled
+    new_buddy = Buddy(based, account, "based")
+    new_buddy.status = "backend"
+    new_buddy.alias = "based"
+    # TODO: change it to nuqql.ui.list_win or something?
+    list_win.add(new_buddy)
+    list_win.redraw()
+
+    # add conversation for purpled
+    # TODO: change stdscr to nuqql.ui.stdscr or something?
+    c = nuqql.ui.Conversation(stdscr, based, account, based.name,
+                              ctype="backend")
+    nuqql.ui.conversation.append(c)
+    based.conversation = c
 
 
 def stopBackends():
