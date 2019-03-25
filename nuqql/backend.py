@@ -220,7 +220,7 @@ class Backend:
             msg = "Error parsing message: " + orig_msg
             return "parsing error", acc, acc_name, tstamp, sender, msg
 
-    def handleNetwork(self, list_win, log_win):
+    def handleNetwork(self):
         msg = self.readClient()
         if msg is None:
             return
@@ -233,19 +233,18 @@ class Backend:
         if msg_type == "info" or msg_type == "error":
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             text = msg_type + ": " + msg[1]
-            log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
-                                          text)
-            log_win.add(log_msg)
+            log_msg = nuqql.ui.LogMessage(now, None, "nuqql", True, text)
+            self.conversation.log_win.add(log_msg)
             return
 
         # handle account message
         if msg_type == "account":
-            self.handleAccountMsg(log_win, msg)
+            self.handleAccountMsg(msg)
             return
 
         # handle buddy messages
         if msg_type == "buddy":
-            self.handleBuddyMsg(list_win, msg)
+            self.handleBuddyMsg(msg)
             return
 
         # handle normal messages and error messages
@@ -277,22 +276,21 @@ class Backend:
                 # conv.log_win.add(tstamp + " " + sender + " --> " + msg)
                 # conv.log_win.add(tstamp + " " + getShortName(sender) + \
                 #         ": " +msg)
-                log_msg = nuqql.ui.LogMessage(conv.log_win, tstamp,
-                                              conv.account, conv.name, True,
-                                              msg)
+                log_msg = nuqql.ui.LogMessage(tstamp, conv.account, conv.name,
+                                              True, msg)
                 conv.log_win.add(log_msg)
                 # if window is not already active notify user
                 if not conv.input_win.active:
-                    list_win.notify(self, acc, sender)
+                    nuqql.ui.list_win.notify(self, acc, sender)
                 return
 
         # create a new conversation if buddy exists
         # TODO: can we add some helper functions?
-        for buddy in list_win.list:
+        for buddy in nuqql.ui.list_win.list:
             if buddy.backend is self and \
                buddy.account.id == acc and \
                buddy.name == sender:
-                c = nuqql.ui.Conversation(list_win.superWin, buddy.backend,
+                c = nuqql.ui.Conversation(nuqql.ui.stdscr, buddy.backend,
                                           buddy.account, buddy.name)
                 c.input_win.active = False
                 c.log_win.active = False
@@ -300,18 +298,18 @@ class Backend:
                 # c.log_win.add(tstamp + " " + sender + " --> " + msg)
                 # c.log_win.add(tstamp + " " + getShortName(sender) + \
                 #         ": " + msg)
-                log_msg = nuqql.ui.LogMessage(c.log_win, tstamp, c.account,
-                                              c.name, True, msg)
+                log_msg = nuqql.ui.LogMessage(tstamp, c.account, c.name, True,
+                                              msg)
                 c.log_win.add(log_msg)
-                list_win.notify(self, acc, sender)
+                nuqql.ui.list_win.notify(self, acc, sender)
                 return
 
         # nothing found, log to main window
         # log_win.add(tstamp + " " + sender + " --> " + msg)
-        log_msg = nuqql.ui.LogMessage(log_win, tstamp, None, sender, True, msg)
-        log_win.add(log_msg)
+        log_msg = nuqql.ui.LogMessage(tstamp, None, sender, True, msg)
+        self.conversation.log_win.add(log_msg)
 
-    def handleAccountMsg(self, log_win, msg):
+    def handleAccountMsg(self, msg):
         """
         Handle Account message
         """
@@ -324,8 +322,8 @@ class Backend:
         text = "account {0} ({1}) {2} {3} {4}.".format(acc_id, acc_alias,
                                                        acc_prot, acc_user,
                                                        acc_status)
-        log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True, text)
-        log_win.add(log_msg)
+        log_msg = nuqql.ui.LogMessage(now, None, "nuqql", True, text)
+        self.conversation.log_win.add(log_msg)
 
         # do not add account if it already exists
         if acc_user in self.accounts:
@@ -346,8 +344,8 @@ class Backend:
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         text = "Collecting buddies for {0} account {1}: {2}.".format(
             acc.type, acc.id, acc.name)
-        log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True, text)
-        log_win.add(log_msg)
+        log_msg = nuqql.ui.LogMessage(now, None, "nuqql", True, text)
+        self.conversation.log_win.add(log_msg)
         acc.buddies_update = time.time()
         self.buddiesClient(acc.id)
 
@@ -355,11 +353,11 @@ class Backend:
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         text = "Collecting messages for {0} account {1}: {2}.".format(
             acc.type, acc.id, acc.name)
-        log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True, text)
-        log_win.add(log_msg)
+        log_msg = nuqql.ui.LogMessage(now, None, "nuqql", True, text)
+        self.conversation.log_win.add(log_msg)
         self.collectClient(acc.id)
 
-    def handleBuddyMsg(self, list_win, msg):
+    def handleBuddyMsg(self, msg):
         """
         Handle Buddy message
         """
@@ -378,7 +376,7 @@ class Backend:
             alias = name
 
         # look for existing buddy
-        for buddy in list_win.list:
+        for buddy in nuqql.ui.list_win.list:
             if buddy.backend is self and \
                buddy.account.id == acc and \
                buddy.name == name:
@@ -387,7 +385,7 @@ class Backend:
                 buddy.status = status
                 buddy.alias = alias
                 if old_status != status or old_alias != alias:
-                    list_win.redraw()
+                    nuqql.ui.list_win.redraw()
                 return
         # new buddy
         for acc_name, account in self.accounts.items():
@@ -395,11 +393,11 @@ class Backend:
                 new_buddy = Buddy(self, account, name)
                 new_buddy.status = status
                 new_buddy.alias = alias
-                list_win.add(new_buddy)
-                list_win.redraw()
+                nuqql.ui.list_win.add(new_buddy)
+                nuqql.ui.list_win.redraw()
                 return
 
-    def updateBuddies(self, log_win):
+    def updateBuddies(self):
         """
         Update buddies of this account
         """
@@ -446,25 +444,25 @@ class Buddy:
 # HELPER FUNCTIONS #
 ####################
 
-def updateBuddies(log_win):
+def updateBuddies():
     """
     Helper for updating buddies on all backends
     """
 
     for backend in backends.values():
-        backend.updateBuddies(log_win)
+        backend.updateBuddies()
 
 
-def handleNetwork(list_win, log_win):
+def handleNetwork():
     """
     Helper for handling network events on all backends
     """
 
     for backend in backends.values():
-        backend.handleNetwork(list_win, backend.conversation.log_win)
+        backend.handleNetwork()
 
 
-def initBackends(stdscr, list_win):
+def initBackends():
     """
     Helper for starting all backends
     """
@@ -495,12 +493,12 @@ def initBackends(stdscr, list_win):
     new_buddy.status = "backend"
     new_buddy.alias = "purpled"
     # TODO: change it to nuqql.ui.list_win or something?
-    list_win.add(new_buddy)
-    list_win.redraw()
+    nuqql.ui.list_win.add(new_buddy)
+    nuqql.ui.list_win.redraw()
 
     # add conversation for purpled
     # TODO: change stdscr to nuqql.ui.stdscr or something?
-    c = nuqql.ui.Conversation(stdscr, purpled, account, purpled.name,
+    c = nuqql.ui.Conversation(nuqql.ui.stdscr, purpled, account, purpled.name,
                               ctype="backend")
     nuqql.ui.conversations.append(c)
     purpled.conversation = c
@@ -530,12 +528,12 @@ def initBackends(stdscr, list_win):
     new_buddy.status = "backend"
     new_buddy.alias = "based"
     # TODO: change it to nuqql.ui.list_win or something?
-    list_win.add(new_buddy)
-    list_win.redraw()
+    nuqql.ui.list_win.add(new_buddy)
+    nuqql.ui.list_win.redraw()
 
     # add conversation for purpled
     # TODO: change stdscr to nuqql.ui.stdscr or something?
-    c = nuqql.ui.Conversation(stdscr, based, account, based.name,
+    c = nuqql.ui.Conversation(nuqql.ui.stdscr, based, account, based.name,
                               ctype="backend")
     nuqql.ui.conversations.append(c)
     based.conversation = c

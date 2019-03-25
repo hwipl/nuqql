@@ -8,8 +8,16 @@ import curses
 
 import nuqql.backend
 
+# screen and main windows
+stdscr = None
+list_win = None
+log_win = None
+input_win = None
+max_y = 0
+max_x = 0
+
+
 # list of active conversations
-# TODO: does this even make sense?
 conversations = []
 
 # default keymap for special keys
@@ -570,8 +578,7 @@ class InputWin(Win):
         # self.log_win.add(now + " " + getShortName(self.account.name) + \
         #                  ": " + self.msg)
         now = datetime.datetime.now().strftime("%H:%M:%S")
-        log_msg = LogMessage(self.log_win, now, self.account, self.name, False,
-                             self.msg)
+        log_msg = LogMessage(now, self.account, self.name, False, self.msg)
         self.log_win.add(log_msg)
         # send message
         self.backend.sendClient(self.account.id, self.name, self.msg)
@@ -645,8 +652,7 @@ class MainInputWin(InputWin):
             return
 
         now = datetime.datetime.now().strftime("%H:%M:%S")
-        log_msg = LogMessage(self.log_win, now, self.account, self.name, False,
-                             self.msg)
+        log_msg = LogMessage(now, self.account, self.name, False, self.msg)
         self.log_win.add(log_msg)
 
         # send command message
@@ -665,9 +671,9 @@ class MainInputWin(InputWin):
 class LogMessage:
     """Class for log messages to be displayed in LogWins"""
 
-    def __init__(self, log_win, tstamp, account, buddy, inc, msg):
+    def __init__(self, tstamp, account, buddy, inc, msg):
         # associate this message with a LogWin
-        self.log_win = log_win
+        # self.log_win = log_win
 
         # timestamp
         self.tstamp = tstamp
@@ -704,16 +710,16 @@ def getAbsoluteSize(y_max, x_max, y_rel, x_rel):
     return y_abs, x_abs
 
 
-def resizeMainWindow(stdscr, list_win, log_win, input_win, max_y, max_x):
+def resizeMainWindow():
     max_y_new, max_x_new = stdscr.getmaxyx()
-    if max_y_new == max_y and max_x_new == max_x:
+    if max_y_new == nuqql.ui.max_y and max_x_new == nuqql.ui.max_x:
         # nothing has changed
-        return max_y, max_x
+        return
 
     # window has been resized
     # save new maxima
-    max_y = max_y_new
-    max_x = max_x_new
+    nuqql.ui.max_y = max_y_new
+    nuqql.ui.max_x = max_x_new
     list_win_y, list_win_x = getAbsoluteSize(max_y, max_x,
                                              list_win_y_per, list_win_x_per)
     log_win_y, log_win_x = getAbsoluteSize(max_y, max_x,
@@ -758,7 +764,7 @@ def getShortName(name):
     return name.split("@")[0]
 
 
-def createMainWindows(config, stdscr, max_y, max_x):
+def createMainWindows(config):
     # determine window sizes
     # TODO: add to conversation somehow? and/or add variables for the sizes?
     list_win_y, list_win_x = getAbsoluteSize(max_y, max_x,
@@ -803,3 +809,41 @@ def createMainWindows(config, stdscr, max_y, max_x):
     list_win.input_win = input_win
 
     return list_win, log_win, input_win
+
+
+def readInput():
+    """
+    Read user input and return it to caller
+    """
+
+    # try to get input from user (timeout set in init())
+    try:
+        ch = stdscr.get_wch()
+    except curses.error:
+        # no user input...
+        ch = None
+
+    return ch
+
+
+def init(config, stdscr):
+    """
+    Initialize UI
+    """
+
+    # save stdscr
+    nuqql.ui.stdscr = stdscr
+
+    # configuration
+    max_y, max_x = stdscr.getmaxyx()
+    nuqql.ui.max_y = max_y
+    nuqql.ui.max_x = max_x
+    stdscr.timeout(10)
+
+    # clear everything
+    stdscr.clear()
+    stdscr.refresh()
+
+    # create main windows
+    nuqql.ui.list_win, nuqql.ui.log_win, nuqql.ui.input_win = \
+        nuqql.ui.createMainWindows(config)

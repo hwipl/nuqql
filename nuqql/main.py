@@ -76,67 +76,55 @@ class Config:
 
 
 def main_loop(stdscr):
-    max_y, max_x = stdscr.getmaxyx()
-    stdscr.timeout(10)
-
-    stdscr.clear()
-    stdscr.refresh()
-
     # load config
     config = Config()
     config.readConfig()
 
-    # create main windows
-    list_win, log_win, input_win = nuqql.ui.createMainWindows(config, stdscr,
-                                                              max_y, max_x)
+    # initialize UI
+    nuqql.ui.init(config, stdscr)
 
     # init and start all backends
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
+    log_msg = nuqql.ui.LogMessage(now, None, "nuqql", True,
                                   "Start backends.")
-    log_win.add(log_msg)
-    nuqql.backend.initBackends(stdscr, list_win)
+    nuqql.ui.log_win.add(log_msg)
+    nuqql.backend.initBackends()
     for backend in nuqql.backend.backends.values():
         # start this backend's server
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
+        log_msg = nuqql.ui.LogMessage(now, None, "nuqql", True,
                                       "Start backend \"{0}\".".format(
                                           backend.name))
-        log_win.add(log_msg)
+        nuqql.ui.log_win.add(log_msg)
         backend.startServer()
 
         # start this backend's client
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
+        log_msg = nuqql.ui.LogMessage(now, None, "nuqql", True,
                                       "Start client.")
-        log_win.add(log_msg)
+        nuqql.ui.log_win.add(log_msg)
         backend.initClient()
 
         # collect accounts from this backend
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
+        log_msg = nuqql.ui.LogMessage(now, None, "nuqql", True,
                                       "Collecting accounts.")
-        log_win.add(log_msg)
+        nuqql.ui.log_win.add(log_msg)
         backend.accountsClient()
 
     # start main loop
     while True:
-        # wait for user input
-        try:
-            ch = stdscr.get_wch()
-        except curses.error:
-            # no user input...
-            ch = None
+        # # wait for user input
+        ch = nuqql.ui.readInput()
 
         # check size and redraw windows if necessary
-        max_y, max_x = nuqql.ui.resizeMainWindow(stdscr, list_win, log_win,
-                                                 input_win, max_y, max_x)
+        nuqql.ui.resizeMainWindow()
 
         # update buddies
-        nuqql.backend.updateBuddies(log_win)
+        nuqql.backend.updateBuddies()
 
         # handle network input
-        nuqql.backend.handleNetwork(list_win, log_win)
+        nuqql.backend.handleNetwork()
 
         # handle user input
         if ch is None:
@@ -153,18 +141,16 @@ def main_loop(stdscr):
                 break
         # if no conversation is active pass input to list window
         if not conv_active:
-            if input_win.active:
+            if nuqql.ui.input_win.active:
                 # input_win.processInput(ch, client)
-                input_win.processInput(ch)
-            elif list_win.active:
+                nuqql.ui.input_win.processInput(ch)
+            elif nuqql.ui.list_win.active:
                 # TODO: improve ctrl window handling?
-                input_win.redraw()
-                log_win.redraw()
-                list_win.processInput(ch)
+                nuqql.ui.input_win.redraw()
+                nuqql.ui.log_win.redraw()
+                nuqql.ui.list_win.processInput(ch)
             else:
                 # list window is also inactive -> user quit
-                # client.exitClient()
-                # server.stop()
                 nuqql.backend.stopBackends()
                 break
 
