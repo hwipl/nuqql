@@ -220,7 +220,7 @@ class Backend:
             msg = "Error parsing message: " + orig_msg
             return "parsing error", acc, acc_name, tstamp, sender, msg
 
-    def handleNetwork(self, conversation, list_win, log_win):
+    def handleNetwork(self, list_win, log_win):
         msg = self.readClient()
         if msg is None:
             return
@@ -269,7 +269,7 @@ class Backend:
                     break
 
         # look for an existing conversation and use it
-        for conv in conversation:
+        for conv in nuqql.ui.conversations:
             # TODO: use conv.backend etc?
             if conv.input_win.backend is self and \
                conv.input_win.account.id == acc and \
@@ -296,7 +296,7 @@ class Backend:
                                           buddy.account, buddy.name)
                 c.input_win.active = False
                 c.log_win.active = False
-                conversation.append(c)
+                nuqql.ui.conversations.append(c)
                 # c.log_win.add(tstamp + " " + sender + " --> " + msg)
                 # c.log_win.add(tstamp + " " + getShortName(sender) + \
                 #         ": " + msg)
@@ -455,14 +455,13 @@ def updateBuddies(log_win):
         backend.updateBuddies(log_win)
 
 
-def handleNetwork(conversation, list_win, log_win):
+def handleNetwork(list_win, log_win):
     """
     Helper for handling network events on all backends
     """
 
     for backend in backends.values():
-        backend.handleNetwork(conversation, list_win,
-                              backend.conversation.log_win)
+        backend.handleNetwork(list_win, backend.conversation.log_win)
 
 
 def initBackends(stdscr, list_win):
@@ -503,7 +502,7 @@ def initBackends(stdscr, list_win):
     # TODO: change stdscr to nuqql.ui.stdscr or something?
     c = nuqql.ui.Conversation(stdscr, purpled, account, purpled.name,
                               ctype="backend")
-    nuqql.ui.conversation.append(c)
+    nuqql.ui.conversations.append(c)
     purpled.conversation = c
 
     ###############
@@ -538,7 +537,7 @@ def initBackends(stdscr, list_win):
     # TODO: change stdscr to nuqql.ui.stdscr or something?
     c = nuqql.ui.Conversation(stdscr, based, account, based.name,
                               ctype="backend")
-    nuqql.ui.conversation.append(c)
+    nuqql.ui.conversations.append(c)
     based.conversation = c
 
 

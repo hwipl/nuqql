@@ -97,11 +97,6 @@ def main_loop(stdscr):
     log_win.add(log_msg)
     nuqql.backend.initBackends(stdscr, list_win)
     for backend in nuqql.backend.backends.values():
-        # start conversation with this backend
-        # c = nuqql.ui.Conversation(stdscr, backend, None, backend.name,
-        #                           ctype="backend")
-        # nuqql.ui.conversation.append(c)
-
         # start this backend's server
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_msg = nuqql.ui.LogMessage(log_win, now, None, "nuqql", True,
@@ -135,15 +130,13 @@ def main_loop(stdscr):
 
         # check size and redraw windows if necessary
         max_y, max_x = nuqql.ui.resizeMainWindow(stdscr, list_win, log_win,
-                                                 input_win,
-                                                 nuqql.ui.conversation, max_y,
-                                                 max_x)
+                                                 input_win, max_y, max_x)
 
         # update buddies
         nuqql.backend.updateBuddies(log_win)
 
         # handle network input
-        nuqql.backend.handleNetwork(nuqql.ui.conversation, list_win, log_win)
+        nuqql.backend.handleNetwork(list_win, log_win)
 
         # handle user input
         if ch is None:
@@ -152,7 +145,7 @@ def main_loop(stdscr):
 
         # pass user input to active conversation
         conv_active = False
-        for conv in nuqql.ui.conversation:
+        for conv in nuqql.ui.conversations:
             if conv.input_win.active:
                 # conv.input_win.processInput(ch, client)
                 conv.input_win.processInput(ch)

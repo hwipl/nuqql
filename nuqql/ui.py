@@ -10,7 +10,7 @@ import nuqql.backend
 
 # list of active conversations
 # TODO: does this even make sense?
-conversation = []
+conversations = []
 
 # default keymap for special keys
 default_keymap = {
@@ -402,7 +402,7 @@ class ListWin(Win):
             return
         elif ch == "\n":
             # if a conversation exists already, switch to it
-            for c in conversation:
+            for c in conversations:
                 if c.account == self.list[self.cur_y].account and\
                    c.name == self.list[self.cur_y].name:
                     c.input_win.active = True
@@ -415,7 +415,7 @@ class ListWin(Win):
             c = Conversation(self.superWin, self.list[self.cur_y].backend,
                              self.list[self.cur_y].account,
                              self.list[self.cur_y].name)
-            conversation.append(c)
+            conversations.append(c)
         # display changes in the pad
         self.redrawPad()
 
@@ -704,8 +704,7 @@ def getAbsoluteSize(y_max, x_max, y_rel, x_rel):
     return y_abs, x_abs
 
 
-def resizeMainWindow(stdscr, list_win, log_win, input_win, conversation,
-                     max_y, max_x):
+def resizeMainWindow(stdscr, list_win, log_win, input_win, max_y, max_x):
     max_y_new, max_x_new = stdscr.getmaxyx()
     if max_y_new == max_y and max_x_new == max_x:
         # nothing has changed
@@ -738,7 +737,7 @@ def resizeMainWindow(stdscr, list_win, log_win, input_win, conversation,
     input_win.redraw()
 
     # redraw conversation windows
-    for conv in conversation:
+    for conv in conversations:
         # resize and move conversation windows
         conv.log_win.resizeWin(log_win_y, log_win_x)
         conv.log_win.moveWin(0, list_win_x)
