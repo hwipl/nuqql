@@ -343,7 +343,7 @@ class Backend:
 
         # account specific message parsing
         for tmp_acc in self.accounts.values():
-            if tmp_acc.id == acc:
+            if tmp_acc.aid == acc:
                 if tmp_acc.type == "icq":
                     if sender[-1] == ":":
                         sender = sender[:-1]
@@ -359,7 +359,7 @@ class Backend:
         # look for an existing conversation and use it
         for conv in nuqql.ui.CONVERSATIONS:
             if conv.backend is self and \
-               conv.account.id == acc and \
+               conv.account.aid == acc and \
                conv.name == sender:
                 # log message
                 log_msg = nuqql.ui.LogMessage(tstamp, conv.name, msg)
@@ -373,7 +373,7 @@ class Backend:
         # TODO: can we add some helper functions?
         for buddy in nuqql.ui.LIST_WIN.list:
             if buddy.backend is self and \
-               buddy.account.id == acc and \
+               buddy.account.aid == acc and \
                buddy.name == sender:
                 # new conversation
                 conv = nuqql.ui.Conversation(buddy.backend, buddy.account,
@@ -413,32 +413,25 @@ class Backend:
             return
 
         # new account, add it
-        acc = Account()
-        acc.name = acc_user
-        acc.id = acc_id
-        acc.alias = acc_alias
-        acc.type = acc_prot
-        acc.status = acc_status
-        acc.buddies = []
-        acc.buddies_update = 0
+        acc = Account(acc_id, acc_prot, acc_user)
         self.accounts[acc.name] = acc
 
         # collect buddies from backend
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         text = "Collecting buddies for {0} account {1}: {2}.".format(
-            acc.type, acc.id, acc.name)
+            acc.type, acc.aid, acc.name)
         log_msg = nuqql.ui.LogMessage(now, "nuqql", text)
         self.conversation.log_win.add(log_msg)
         acc.buddies_update = time.time()
-        self.buddies_client(acc.id)
+        self.buddies_client(acc.aid)
 
         # collect messages from backend
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         text = "Collecting messages for {0} account {1}: {2}.".format(
-            acc.type, acc.id, acc.name)
+            acc.type, acc.aid, acc.name)
         log_msg = nuqql.ui.LogMessage(now, "nuqql", text)
         self.conversation.log_win.add(log_msg)
-        self.collect_client(acc.id)
+        self.collect_client(acc.aid)
 
     def handle_buddy_msg(self, msg):
         """
@@ -455,7 +448,7 @@ class Backend:
         # look for existing buddy
         for buddy in nuqql.ui.LIST_WIN.list:
             if buddy.backend is self and \
-               buddy.account.id == acc and \
+               buddy.account.aid == acc and \
                buddy.name == name:
                 old_status = buddy.status
                 old_alias = buddy.alias
@@ -466,7 +459,7 @@ class Backend:
                 return
         # new buddy
         for account in self.accounts.values():
-            if account.id == acc:
+            if account.aid == acc:
                 new_buddy = Buddy(self, account, name)
                 new_buddy.status = status
                 new_buddy.alias = alias
@@ -484,7 +477,7 @@ class Backend:
             if time.time() - acc.buddies_update <= BUDDY_UPDATE_TIMER:
                 continue
             acc.buddies_update = time.time()
-            self.buddies_client(acc.id)
+            self.buddies_client(acc.aid)
 
 
 ##################
@@ -496,7 +489,12 @@ class Account:
     Class for Accounts
     """
 
-    # TODO add __init__() etc.?
+    def __init__(self, aid, prot, user):
+        self.aid = aid
+        self.name = user
+        self.type = prot
+        self.buddies = []
+        self.buddies_update = 0
 
 
 class Buddy:
@@ -571,10 +569,7 @@ def init_backends():
     BACKENDS["purpled"] = purpled
 
     # pseudo account
-    account = Account()
-    account.name = "purpled"
-    account.id = "0"
-    account.buddies = []
+    account = Account("0", "nuqql", "purpled")
 
     # add pseudo buddy for purpled
     new_buddy = Buddy(purpled, account, "purpled")
@@ -605,10 +600,7 @@ def init_backends():
     BACKENDS["based"] = based
 
     # pseudo account
-    account = Account()
-    account.name = "based"
-    account.id = "1"
-    account.buddies = []
+    account = Account("1", "nuqql", "based")
 
     # add pseudo buddy for purpled
     new_buddy = Buddy(based, account, "based")

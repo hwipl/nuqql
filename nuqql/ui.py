@@ -401,8 +401,7 @@ class ListWin(Win):
         # for buddy in self.list[-(self.pad_y_max-1):]:
         # for buddy in self.list[:self.pad_y_max-1]:
         for buddy in self.list:
-            # msg = buddy.account.id + " " + buddy.name + "\n"
-            msg = buddy.account.id + " " + buddy.alias + "\n"
+            msg = buddy.account.aid + " " + buddy.alias + "\n"
             # add buddy status
             if buddy.status == "Offline":
                 msg = "[off] " + msg
@@ -523,7 +522,7 @@ class ListWin(Win):
 
         for buddy in self.list:
             if buddy.backend == backend and \
-               buddy.account.id == acc_id and \
+               buddy.account.aid == acc_id and \
                buddy.name == name:
                 buddy.notify = 1
         self.redraw_pad()
@@ -682,7 +681,7 @@ class InputWin(Win):
                              own=True)
         self.conversation.log_win.add(log_msg)
         # send message
-        self.conversation.backend.send_client(self.conversation.account.id,
+        self.conversation.backend.send_client(self.conversation.account.aid,
                                               self.conversation.name,
                                               self.msg)
         # reset input
@@ -896,10 +895,7 @@ def create_main_windows():
     #                                            INPUT_WIN_X_PER)
 
     # dummy account for main windows
-    nuqql_acc = nuqql.backend.Account()
-    nuqql_acc.name = "nuqql"
-    nuqql_acc.id = -1
-    nuqql_acc.buddies = []
+    nuqql_acc = nuqql.backend.Account("-1", "nuqql", "nuqql")
 
     # main screen
     # dummy conversation for main windows, creates log_win and input_win
