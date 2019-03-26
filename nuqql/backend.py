@@ -1,3 +1,7 @@
+"""
+Backend part of nuqql.
+"""
+
 ################
 # NETWORK PART #
 ################
@@ -9,9 +13,9 @@ import select
 import time
 import html
 
-import nuqql.ui
-
 from pathlib import Path
+
+import nuqql.ui
 
 # network buffer
 BUFFER_SIZE = 4096
@@ -20,7 +24,7 @@ BUFFER_SIZE = 4096
 BUDDY_UPDATE_TIMER = 5
 
 # dictionary for all active backends
-backends = {}
+BACKENDS = {}
 
 
 class Backend:
@@ -53,7 +57,11 @@ class Backend:
 
         # self.collect_acc = -1
 
-    def startServer(self):
+    def start_server(self):
+        """
+        Start the backend's server process
+        """
+
         # do not start a server process if backend is external
         if self.external:
             return
@@ -73,7 +81,11 @@ class Backend:
         # give it some time
         time.sleep(1)
 
-    def stopServer(self):
+    def stop_server(self):
+        """
+        Stop the backend's server process
+        """
+
         # do not stop anything if the backend is external
         if self.external:
             return
@@ -81,7 +93,11 @@ class Backend:
         # stop running server
         self.proc.terminate()
 
-    def initClient(self):
+    def init_client(self):
+        """
+        Start the backend's client
+        """
+
         # open sockets and connect
         if self.sock_af == socket.AF_INET:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -90,12 +106,24 @@ class Backend:
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             self.sock.connect(self.sock_file)
 
-    def exitClient(self):
+    def exit_client(self):
+        """
+        Stop the backend's client
+        """
+
         self.sock.close()
 
-    def readClient(self):
-        reads, writes, errs = select.select([self.sock, ], [],
-                                            [self.sock, ], 0)
+    def read_client(self):
+        """
+        Read from the client connection
+        """
+
+        reads, unused_writes, errs = select.select([self.sock, ], [],
+                                                   [self.sock, ], 0)
+        if self.sock in errs:
+            # something is wrong
+            return None
+
         if self.sock in reads:
             # read data from socket and add it to buffer
             data = self.sock.recv(BUFFER_SIZE)
@@ -113,14 +141,21 @@ class Backend:
         self.buffer = self.buffer[eom + 2:]
         return msg
 
-    def commandClient(self, cmd):
+    def command_client(self, cmd):
+        """
+        Send a command over the client connection
+        """
+
         # TODO: do more?
         msg = cmd + "\r\n"
         msg = msg.encode()
         self.sock.send(msg)
-        return
 
-    def sendClient(self, account, buddy, msg):
+    def send_client(self, account, buddy, msg):
+        """
+        Send a regular message over the client connection
+        """
+
         prefix = "account {0} send {1} ".format(account, buddy)
         msg = html.escape(msg)
         msg = "<br>".join(msg.split("\n"))
@@ -128,7 +163,12 @@ class Backend:
         msg = msg.encode()
         self.sock.send(msg)
 
-    def collectClient(self, account):
+    def collect_client(self, account):
+        """
+        Send "collect" message over the client connection,
+        which collects all messages received by the backend
+        """
+
         # collect all messages since time 0
         # TODO: only works as intended if we spawn our own purpled daemon at
         # nuqql's startup, FIXME?
@@ -137,28 +177,56 @@ class Backend:
         # self.collect_acc = account
         self.sock.send(msg)
 
-    def buddiesClient(self, account):
+    def buddies_client(self, account):
+        """
+        Send "buddies" message over the client connection,
+        which retrieves all buddies of the specified account from the backend
+        """
+
         msg = "account {0} buddies\r\n".format(account)
         msg = msg.encode()
         self.sock.send(msg)
 
-    def accountsClient(self):
+    def accounts_client(self):
+        """
+        Send "account" message over the client connection,
+        which retrieves all accounts from the backend
+        """
+
         msg = "account list\r\n"
         msg = msg.encode()
         self.sock.send(msg)
 
-    def parseErrorMsg(self, orig_msg):
-        # "error: %s\r\n"
+    def parse_error_msg(self, orig_msg):
+        """
+        Parse "error" message received from backend
+
+        Format:
+            "error: %s\r\n"
+        """
+
         error = orig_msg[7:]
         return "error", error
 
-    def parseInfoMsg(self, orig_msg):
-        # "info: %s\r\n"
+    def parse_info_msg(self, orig_msg):
+        """
+        Parse "info" message received from backend
+
+        Format:
+            "info: %s\r\n"
+        """
+
         info = orig_msg[6:]
         return "info", info
 
-    def parseAccountMsg(self, orig_msg):
-        # "account: %d %s %s %s [%s]\r\n"
+    def parse_account_msg(self, orig_msg):
+        """
+        Parse "account" message received from backend
+
+        Format:
+            "account: %d %s %s %s [%s]\r\n"
+        """
+
         orig_msg = orig_msg[9:]
         part = orig_msg.split(" ")
         acc_id = part[0]
@@ -168,11 +236,19 @@ class Backend:
         acc_status = part[4]    # ignore [ and ] for now
         return "account", acc_id, acc_alias, acc_prot, acc_user, acc_status
 
-    def parseCollectMsg(self, orig_msg):
-        # collect response and message have the same message format
-        return self.parseMessageMsg(orig_msg)
+    def parse_collect_msg(self, orig_msg):
+        """
+        Parse "collect" message received from backend
+        """
 
-    def parseMessageMsg(self, orig_msg):
+        # collect response and message have the same message format
+        return self.parse_message_msg(orig_msg)
+
+    def parse_message_msg(self, orig_msg):
+        """
+        Parse "message" message received from backend
+        """
+
         orig_msg = orig_msg[9:]
         part = orig_msg.split(" ")
         acc = part[0]
@@ -188,7 +264,11 @@ class Backend:
         tstamp = tstamp.strftime("%H:%M:%S")
         return "message", acc, acc_name, tstamp, sender, msg
 
-    def parseBuddyMsg(self, orig_msg):
+    def parse_buddy_msg(self, orig_msg):
+        """
+        Parse "buddy" message received from backend
+        """
+
         orig_msg = orig_msg[7:]
         # <acc> status: <Offline/Available> name: <name> alias: <alias>
         part = orig_msg.split(" ")
@@ -198,39 +278,48 @@ class Backend:
         alias = part[6]
         return "buddy", acc, status, name, alias
 
-    def parseMsg(self, orig_msg):
-        if orig_msg.startswith("message: "):
-            return self.parseMessageMsg(orig_msg)
-        elif orig_msg.startswith("collect: "):
-            return self.parseCollectMsg(orig_msg)
-        elif orig_msg.startswith("buddy: "):
-            return self.parseBuddyMsg(orig_msg)
-        elif orig_msg.startswith("account: "):
-            return self.parseAccountMsg(orig_msg)
-        elif orig_msg.startswith("info: "):
-            return self.parseInfoMsg(orig_msg)
-        elif orig_msg.startswith("error: "):
-            return self.parseErrorMsg(orig_msg)
-        else:
-            # TODO: improve/remove this error handling!
-            acc = -1
-            acc_name = "error"
-            tstamp = "never"
-            sender = "purpled"
-            msg = "Error parsing message: " + orig_msg
-            return "parsing error", acc, acc_name, tstamp, sender, msg
+    def parse_msg(self, orig_msg):
+        """
+        Parse message received from backend,
+        calls more specific parsing functions
+        """
 
-    def handleNetwork(self):
-        msg = self.readClient()
+        if orig_msg.startswith("message: "):
+            return self.parse_message_msg(orig_msg)
+        if orig_msg.startswith("collect: "):
+            return self.parse_collect_msg(orig_msg)
+        if orig_msg.startswith("buddy: "):
+            return self.parse_buddy_msg(orig_msg)
+        if orig_msg.startswith("account: "):
+            return self.parse_account_msg(orig_msg)
+        if orig_msg.startswith("info: "):
+            return self.parse_info_msg(orig_msg)
+        if orig_msg.startswith("error: "):
+            return self.parse_error_msg(orig_msg)
+
+        # TODO: improve/remove this error handling!
+        acc = "-1"
+        acc_name = "error"
+        tstamp = "never"
+        sender = "purpled"
+        msg = "Error parsing message: " + orig_msg
+        return "parsing error", acc, acc_name, tstamp, sender, msg
+
+    def handle_network(self):
+        """
+        Try to read from the client connection and handle messages.
+        """
+
+        msg = self.read_client()
         if msg is None:
             return
         # TODO: do not ignore account name
         # TODO: it's not even an acc_name, it's the name of the buddy? FIXME
-        msg = self.parseMsg(msg)
+        msg = self.parse_msg(msg)
         msg_type = msg[0]
 
         # handle info message or error message
-        if msg_type == "info" or msg_type == "error":
+        if msg_type in ("info", "error"):
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             text = msg_type + ": " + msg[1]
             log_msg = nuqql.ui.LogMessage(now, "nuqql", text)
@@ -239,21 +328,21 @@ class Backend:
 
         # handle account message
         if msg_type == "account":
-            self.handleAccountMsg(msg)
+            self.handle_account_msg(msg)
             return
 
         # handle buddy messages
         if msg_type == "buddy":
-            self.handleBuddyMsg(msg)
+            self.handle_buddy_msg(msg)
             return
 
         # handle normal messages and error messages
         # TODO: handle error messages somewhere else?
-        if msg_type == "message" or msg_type == "parsing error":
+        if msg_type in ("message", "parsing error"):
             (msg_type, acc, acc_name, tstamp, sender, msg) = msg
 
         # account specific message parsing
-        for tmp_acc_name, tmp_acc in self.accounts.items():
+        for tmp_acc in self.accounts.values():
             if tmp_acc.id == acc:
                 if tmp_acc.type == "icq":
                     if sender[-1] == ":":
@@ -268,7 +357,7 @@ class Backend:
                     break
 
         # look for an existing conversation and use it
-        for conv in nuqql.ui.conversations:
+        for conv in nuqql.ui.CONVERSATIONS:
             if conv.backend is self and \
                conv.account.id == acc and \
                conv.name == sender:
@@ -277,33 +366,33 @@ class Backend:
                 conv.log_win.add(log_msg)
                 # if window is not already active notify user
                 if not conv.input_win.active:
-                    nuqql.ui.list_win.notify(self, acc, sender)
+                    nuqql.ui.LIST_WIN.notify(self, acc, sender)
                 return
 
         # create a new conversation if buddy exists
         # TODO: can we add some helper functions?
-        for buddy in nuqql.ui.list_win.list:
+        for buddy in nuqql.ui.LIST_WIN.list:
             if buddy.backend is self and \
                buddy.account.id == acc and \
                buddy.name == sender:
                 # new conversation
-                c = nuqql.ui.Conversation(buddy.backend, buddy.account,
-                                          buddy.name)
-                c.input_win.active = False
-                c.log_win.active = False
-                nuqql.ui.conversations.append(c)
+                conv = nuqql.ui.Conversation(buddy.backend, buddy.account,
+                                             buddy.name)
+                conv.input_win.active = False
+                conv.log_win.active = False
+                nuqql.ui.CONVERSATIONS.append(conv)
                 # log message
-                log_msg = nuqql.ui.LogMessage(tstamp, c.name, msg)
-                c.log_win.add(log_msg)
+                log_msg = nuqql.ui.LogMessage(tstamp, conv.name, msg)
+                conv.log_win.add(log_msg)
                 # notify user
-                nuqql.ui.list_win.notify(self, acc, sender)
+                nuqql.ui.LIST_WIN.notify(self, acc, sender)
                 return
 
         # nothing found, log to main window
         log_msg = nuqql.ui.LogMessage(tstamp, sender, msg)
         self.conversation.log_win.add(log_msg)
 
-    def handleAccountMsg(self, msg):
+    def handle_account_msg(self, msg):
         """
         Handle Account message
         """
@@ -341,7 +430,7 @@ class Backend:
         log_msg = nuqql.ui.LogMessage(now, "nuqql", text)
         self.conversation.log_win.add(log_msg)
         acc.buddies_update = time.time()
-        self.buddiesClient(acc.id)
+        self.buddies_client(acc.id)
 
         # collect messages from backend
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -349,9 +438,9 @@ class Backend:
             acc.type, acc.id, acc.name)
         log_msg = nuqql.ui.LogMessage(now, "nuqql", text)
         self.conversation.log_win.add(log_msg)
-        self.collectClient(acc.id)
+        self.collect_client(acc.id)
 
-    def handleBuddyMsg(self, msg):
+    def handle_buddy_msg(self, msg):
         """
         Handle Buddy message
         """
@@ -364,7 +453,7 @@ class Backend:
             alias = name
 
         # look for existing buddy
-        for buddy in nuqql.ui.list_win.list:
+        for buddy in nuqql.ui.LIST_WIN.list:
             if buddy.backend is self and \
                buddy.account.id == acc and \
                buddy.name == name:
@@ -373,19 +462,19 @@ class Backend:
                 buddy.status = status
                 buddy.alias = alias
                 if old_status != status or old_alias != alias:
-                    nuqql.ui.list_win.redraw()
+                    nuqql.ui.LIST_WIN.redraw()
                 return
         # new buddy
-        for acc_name, account in self.accounts.items():
+        for account in self.accounts.values():
             if account.id == acc:
                 new_buddy = Buddy(self, account, name)
                 new_buddy.status = status
                 new_buddy.alias = alias
-                nuqql.ui.list_win.add(new_buddy)
-                nuqql.ui.list_win.redraw()
+                nuqql.ui.LIST_WIN.add(new_buddy)
+                nuqql.ui.LIST_WIN.redraw()
                 return
 
-    def updateBuddies(self):
+    def update_buddies(self):
         """
         Update buddies of this account
         """
@@ -395,7 +484,7 @@ class Backend:
             if time.time() - acc.buddies_update <= BUDDY_UPDATE_TIMER:
                 continue
             acc.buddies_update = time.time()
-            self.buddiesClient(acc.id)
+            self.buddies_client(acc.id)
 
 
 ##################
@@ -403,11 +492,18 @@ class Backend:
 ##################
 
 class Account:
+    """
+    Class for Accounts
+    """
+
     # TODO add __init__() etc.?
-    pass
 
 
 class Buddy:
+    """
+    Class for Buddies
+    """
+
     def __init__(self, backend, account, name):
         self.backend = backend
         self.account = account
@@ -422,9 +518,13 @@ class Buddy:
     #        return self.getKey().__cmp__(other.getKey())
 
     def __lt__(self, other):
-        return self.getKey() < other.getKey()
+        return self.get_key() < other.get_key()
 
-    def getKey(self):
+    def get_key(self):
+        """
+        Get key for comparison of Buddy instances
+        """
+
         return self.status + self.name
 
 
@@ -432,25 +532,25 @@ class Buddy:
 # HELPER FUNCTIONS #
 ####################
 
-def updateBuddies():
+def update_buddies():
     """
     Helper for updating buddies on all backends
     """
 
-    for backend in backends.values():
-        backend.updateBuddies()
+    for backend in BACKENDS.values():
+        backend.update_buddies()
 
 
-def handleNetwork():
+def handle_network():
     """
     Helper for handling network events on all backends
     """
 
-    for backend in backends.values():
-        backend.handleNetwork()
+    for backend in BACKENDS.values():
+        backend.handle_network()
 
 
-def initBackends():
+def init_backends():
     """
     Helper for starting all backends
     """
@@ -468,7 +568,7 @@ def initBackends():
     purpled = Backend("purpled", cmd=purpled_cmd, path=purpled_path,
                       sock_file=purpled_sockfile)
 
-    backends["purpled"] = purpled
+    BACKENDS["purpled"] = purpled
 
     # pseudo account
     account = Account()
@@ -481,13 +581,14 @@ def initBackends():
     new_buddy.status = "backend"
     new_buddy.alias = "purpled"
     # add it to list_win
-    nuqql.ui.list_win.add(new_buddy)
-    nuqql.ui.list_win.redraw()
+    nuqql.ui.LIST_WIN.add(new_buddy)
+    nuqql.ui.LIST_WIN.redraw()
 
     # add conversation for purpled
-    c = nuqql.ui.Conversation(purpled, account, purpled.name, ctype="backend")
-    nuqql.ui.conversations.append(c)
-    purpled.conversation = c
+    conv = nuqql.ui.Conversation(purpled, account, purpled.name,
+                                 ctype="backend")
+    nuqql.ui.CONVERSATIONS.append(conv)
+    purpled.conversation = conv
 
     ###############
     # nuqql-based #
@@ -501,7 +602,7 @@ def initBackends():
     based = Backend("based", cmd=based_cmd, path=based_path,
                     sock_file=based_sockfile)
 
-    backends["based"] = based
+    BACKENDS["based"] = based
 
     # pseudo account
     account = Account()
@@ -514,19 +615,20 @@ def initBackends():
     new_buddy.status = "backend"
     new_buddy.alias = "based"
     # add it to list_win
-    nuqql.ui.list_win.add(new_buddy)
-    nuqql.ui.list_win.redraw()
+    nuqql.ui.LIST_WIN.add(new_buddy)
+    nuqql.ui.LIST_WIN.redraw()
 
     # add conversation for purpled
-    c = nuqql.ui.Conversation(based, account, based.name, ctype="backend")
-    nuqql.ui.conversations.append(c)
-    based.conversation = c
+    conv = nuqql.ui.Conversation(based, account, based.name, ctype="backend")
+    nuqql.ui.CONVERSATIONS.append(conv)
+    based.conversation = conv
 
 
-def stopBackends():
+def stop_backends():
     """
     Helper for stopping all backends
     """
-    for backend in backends.values():
-        backend.exitClient()
-        backend.stopServer()
+
+    for backend in BACKENDS.values():
+        backend.exit_client()
+        backend.stop_server()

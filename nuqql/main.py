@@ -1,3 +1,7 @@
+"""
+Main part of nuqql.
+"""
+
 #############
 # Main Part #
 #############
@@ -16,6 +20,9 @@ import nuqql.ui
 ####################
 
 class Config:
+    """
+    Class for configuration.
+    """
     # TODO: decide where to put this and if it should stay like this
 
     def __init__(self, config_file="nuqql.conf"):
@@ -35,22 +42,46 @@ class Config:
         # accounts
         self.account = {}
 
-    def delAccount(self, account):
+    def del_account(self, account):
+        """
+        Delete an account
+        """
+
         del self.account[account.name]
 
-    def addKeymap(self, key, name):
+    def add_keymap(self, key, name):
+        """
+        Add a keymap.
+        """
+
         self.keymap[key] = name
 
-    def delKeymap(self, key):
+    def del_keymap(self, key):
+        """
+        Delete a keymap.
+        """
+
         del self.keymap[key]
 
-    def addKeybind(self, context, name, action):
+    def add_keybind(self, context, name, action):
+        """
+        Add a Keybind.
+        """
+
         self.keybind[context][name] = action
 
-    def delKeybind(self, context, name):
+    def del_keybind(self, context, name):
+        """
+        Delete a keybind.
+        """
+
         del self.keybind[context][name]
 
-    def readConfig(self):
+    def read_config(self):
+        """
+        Read config from file.
+        """
+
         self.config.read(self.config_file)
         for section in self.config.sections():
             if section == "list_win":
@@ -65,7 +96,11 @@ class Config:
                 # everything else is treated as account settings
                 pass
 
-    def writeConfig(self):
+    def write_config(self):
+        """
+        Write config to file.
+        """
+
         with open(self.config_file, "w") as configfile:
             self.config.write(configfile)
 
@@ -76,9 +111,13 @@ class Config:
 
 
 def main_loop(stdscr):
+    """
+    Main loop of nuqql.
+    """
+
     # load config
     config = Config()
-    config.readConfig()
+    config.read_config()
 
     # initialize UI
     nuqql.ui.init(stdscr)
@@ -86,74 +125,78 @@ def main_loop(stdscr):
     # init and start all backends
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_msg = nuqql.ui.LogMessage(now, "nuqql", "Start backends.")
-    nuqql.ui.log_win.add(log_msg)
-    nuqql.backend.initBackends()
-    for backend in nuqql.backend.backends.values():
+    nuqql.ui.LOG_WIN.add(log_msg)
+    nuqql.backend.init_backends()
+    for backend in nuqql.backend.BACKENDS.values():
         # start this backend's server
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_msg = nuqql.ui.LogMessage(now, "nuqql",
                                       "Start backend \"{0}\".".format(
                                           backend.name))
-        nuqql.ui.log_win.add(log_msg)
-        backend.startServer()
+        nuqql.ui.LOG_WIN.add(log_msg)
+        backend.start_server()
 
         # start this backend's client
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_msg = nuqql.ui.LogMessage(now, "nuqql", "Start client.")
-        nuqql.ui.log_win.add(log_msg)
-        backend.initClient()
+        nuqql.ui.LOG_WIN.add(log_msg)
+        backend.init_client()
 
         # collect accounts from this backend
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_msg = nuqql.ui.LogMessage(now, "nuqql", "Collecting accounts.")
-        nuqql.ui.log_win.add(log_msg)
-        backend.accountsClient()
+        nuqql.ui.LOG_WIN.add(log_msg)
+        backend.accounts_client()
 
     # start main loop
     while True:
-        # # wait for user input
-        ch = nuqql.ui.readInput()
+        # wait for user input and get timeout or character to process
+        char = nuqql.ui.read_input()
 
         # check size and redraw windows if necessary
-        nuqql.ui.resizeMainWindow()
+        nuqql.ui.resize_main_window()
 
         # update buddies
-        nuqql.backend.updateBuddies()
+        nuqql.backend.update_buddies()
 
         # handle network input
-        nuqql.backend.handleNetwork()
+        nuqql.backend.handle_network()
 
         # handle user input
-        if ch is None:
+        if char is None:
             # NO INPUT, keep waiting for input...
             continue
 
         # pass user input to active conversation
         conv_active = False
-        for conv in nuqql.ui.conversations:
+        for conv in nuqql.ui.CONVERSATIONS:
             if conv.input_win.active:
-                # conv.input_win.processInput(ch, client)
-                conv.input_win.processInput(ch)
+                conv.input_win.process_input(char)
                 conv_active = True
                 break
-        # if no conversation is active pass input to list window
+        # if no conversation is active pass input to command or list window
         if not conv_active:
-            if nuqql.ui.input_win.active:
-                # input_win.processInput(ch, client)
-                nuqql.ui.input_win.processInput(ch)
-            elif nuqql.ui.list_win.active:
+            if nuqql.ui.INPUT_WIN.active:
+                # command mode
+                nuqql.ui.INPUT_WIN.process_input(char)
+            elif nuqql.ui.LIST_WIN.active:
+                # list window navigation
                 # TODO: improve ctrl window handling?
-                nuqql.ui.input_win.redraw()
-                nuqql.ui.log_win.redraw()
-                nuqql.ui.list_win.processInput(ch)
+                nuqql.ui.INPUT_WIN.redraw()
+                nuqql.ui.LOG_WIN.redraw()
+                nuqql.ui.LIST_WIN.process_input(char)
             else:
                 # list window is also inactive -> user quit
-                nuqql.backend.stopBackends()
+                nuqql.backend.stop_backends()
                 break
 
 
 # main entry point
 def run():
+    """
+    Main entry point of nuqql
+    """
+
     # ignore SIGINT
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
