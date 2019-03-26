@@ -578,32 +578,35 @@ def parse_buddy_msg(orig_msg):
     return "buddy", acc, status, name, alias
 
 
+# dictionary for parsing functions, used by parse_msg()
+PARSE_FUNCTIONS = {
+    "message:": parse_message_msg,
+    "collect:": parse_collect_msg,
+    "buddy:": parse_buddy_msg,
+    "account:": parse_account_msg,
+    "into:": parse_info_msg,
+    "error:": parse_error_msg,
+}
+
+
 def parse_msg(orig_msg):
     """
     Parse message received from backend,
     calls more specific parsing functions
     """
 
-    if orig_msg.startswith("message: "):
-        return parse_message_msg(orig_msg)
-    if orig_msg.startswith("collect: "):
-        return parse_collect_msg(orig_msg)
-    if orig_msg.startswith("buddy: "):
-        return parse_buddy_msg(orig_msg)
-    if orig_msg.startswith("account: "):
-        return parse_account_msg(orig_msg)
-    if orig_msg.startswith("info: "):
-        return parse_info_msg(orig_msg)
-    if orig_msg.startswith("error: "):
-        return parse_error_msg(orig_msg)
-
-    # TODO: improve/remove this error handling!
-    acc = "-1"
-    acc_name = "error"
-    tstamp = "never"
-    sender = "purpled"
-    msg = "Error parsing message: " + orig_msg
-    return "parsing error", acc, acc_name, tstamp, sender, msg
+    # extract message type and then call respectice parsing function
+    msg_type = orig_msg.split(maxsplit=1)[0]
+    try:
+        return PARSE_FUNCTIONS[msg_type](orig_msg)
+    except KeyError:
+        # return this as parsing error
+        acc = "-1"
+        acc_name = "error"
+        tstamp = "never"
+        sender = "purpled"
+        msg = "Error parsing message: " + orig_msg
+        return "parsing error", acc, acc_name, tstamp, sender, msg
 
 
 ####################
