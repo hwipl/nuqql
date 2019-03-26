@@ -242,114 +242,6 @@ class Backend:
         if self.client:
             self.client.stop()
 
-    def parse_error_msg(self, orig_msg):
-        """
-        Parse "error" message received from backend
-
-        Format:
-            "error: %s\r\n"
-        """
-
-        error = orig_msg[7:]
-        return "error", error
-
-    def parse_info_msg(self, orig_msg):
-        """
-        Parse "info" message received from backend
-
-        Format:
-            "info: %s\r\n"
-        """
-
-        info = orig_msg[6:]
-        return "info", info
-
-    def parse_account_msg(self, orig_msg):
-        """
-        Parse "account" message received from backend
-
-        Format:
-            "account: %d %s %s %s [%s]\r\n"
-        """
-
-        orig_msg = orig_msg[9:]
-        part = orig_msg.split(" ")
-        acc_id = part[0]
-        acc_alias = part[1]
-        acc_prot = part[2].lower()
-        acc_user = part[3]
-        acc_status = part[4]    # ignore [ and ] for now
-        return "account", acc_id, acc_alias, acc_prot, acc_user, acc_status
-
-    def parse_collect_msg(self, orig_msg):
-        """
-        Parse "collect" message received from backend
-        """
-
-        # collect response and message have the same message format
-        return self.parse_message_msg(orig_msg)
-
-    def parse_message_msg(self, orig_msg):
-        """
-        Parse "message" message received from backend
-        """
-
-        orig_msg = orig_msg[9:]
-        part = orig_msg.split(" ")
-        acc = part[0]
-        acc_name = part[1]
-        tstamp = part[2]
-        sender = part[3]
-        msg = " ".join(part[4:])
-        msg = "\n".join(msg.split("<BR>"))
-        msg = html.unescape(msg)
-        tstamp = datetime.datetime.fromtimestamp(int(tstamp))
-        # tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
-        # TODO: move timestamp conversion to caller?
-        tstamp = tstamp.strftime("%H:%M:%S")
-        return "message", acc, acc_name, tstamp, sender, msg
-
-    def parse_buddy_msg(self, orig_msg):
-        """
-        Parse "buddy" message received from backend
-        """
-
-        orig_msg = orig_msg[7:]
-        # <acc> status: <Offline/Available> name: <name> alias: <alias>
-        part = orig_msg.split(" ")
-        acc = part[0]
-        status = part[2]
-        name = part[4]
-        alias = part[6]
-        return "buddy", acc, status, name, alias
-
-    def parse_msg(self, orig_msg):
-        """
-        Parse message received from backend,
-        calls more specific parsing functions
-        """
-
-        if orig_msg.startswith("message: "):
-            return self.parse_message_msg(orig_msg)
-        if orig_msg.startswith("collect: "):
-            return self.parse_collect_msg(orig_msg)
-        if orig_msg.startswith("buddy: "):
-            return self.parse_buddy_msg(orig_msg)
-        if orig_msg.startswith("account: "):
-            return self.parse_account_msg(orig_msg)
-        if orig_msg.startswith("info: "):
-            return self.parse_info_msg(orig_msg)
-        if orig_msg.startswith("error: "):
-            return self.parse_error_msg(orig_msg)
-
-        # TODO: improve/remove this error handling!
-        acc = "-1"
-        acc_name = "error"
-        tstamp = "never"
-        sender = "purpled"
-        msg = "Error parsing message: " + orig_msg
-        return "parsing error", acc, acc_name, tstamp, sender, msg
-
     def handle_network(self):
         """
         Try to read from the client connection and handle messages.
@@ -360,7 +252,7 @@ class Backend:
             return
         # TODO: do not ignore account name
         # TODO: it's not even an acc_name, it's the name of the buddy? FIXME
-        msg = self.parse_msg(msg)
+        msg = parse_msg(msg)
         msg_type = msg[0]
 
         # handle info message or error message
@@ -569,6 +461,125 @@ class Buddy:
         """
 
         return self.status + self.name
+
+
+#####################
+# Parsing functions #
+#####################
+
+def parse_error_msg(orig_msg):
+    """
+    Parse "error" message received from backend
+
+    Format:
+        "error: %s\r\n"
+    """
+
+    error = orig_msg[7:]
+    return "error", error
+
+
+def parse_info_msg(orig_msg):
+    """
+    Parse "info" message received from backend
+
+    Format:
+        "info: %s\r\n"
+    """
+
+    info = orig_msg[6:]
+    return "info", info
+
+
+def parse_account_msg(orig_msg):
+    """
+    Parse "account" message received from backend
+
+    Format:
+        "account: %d %s %s %s [%s]\r\n"
+    """
+
+    orig_msg = orig_msg[9:]
+    part = orig_msg.split(" ")
+    acc_id = part[0]
+    acc_alias = part[1]
+    acc_prot = part[2].lower()
+    acc_user = part[3]
+    acc_status = part[4]    # ignore [ and ] for now
+    return "account", acc_id, acc_alias, acc_prot, acc_user, acc_status
+
+
+def parse_collect_msg(orig_msg):
+    """
+    Parse "collect" message received from backend
+    """
+
+    # collect response and message have the same message format
+    return parse_message_msg(orig_msg)
+
+
+def parse_message_msg(orig_msg):
+    """
+    Parse "message" message received from backend
+    """
+
+    orig_msg = orig_msg[9:]
+    part = orig_msg.split(" ")
+    acc = part[0]
+    acc_name = part[1]
+    tstamp = part[2]
+    sender = part[3]
+    msg = " ".join(part[4:])
+    msg = "\n".join(msg.split("<BR>"))
+    msg = html.unescape(msg)
+    tstamp = datetime.datetime.fromtimestamp(int(tstamp))
+    # tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
+    # TODO: move timestamp conversion to caller?
+    tstamp = tstamp.strftime("%H:%M:%S")
+    return "message", acc, acc_name, tstamp, sender, msg
+
+
+def parse_buddy_msg(orig_msg):
+    """
+    Parse "buddy" message received from backend
+    """
+
+    orig_msg = orig_msg[7:]
+    # <acc> status: <Offline/Available> name: <name> alias: <alias>
+    part = orig_msg.split(" ")
+    acc = part[0]
+    status = part[2]
+    name = part[4]
+    alias = part[6]
+    return "buddy", acc, status, name, alias
+
+
+def parse_msg(orig_msg):
+    """
+    Parse message received from backend,
+    calls more specific parsing functions
+    """
+
+    if orig_msg.startswith("message: "):
+        return parse_message_msg(orig_msg)
+    if orig_msg.startswith("collect: "):
+        return parse_collect_msg(orig_msg)
+    if orig_msg.startswith("buddy: "):
+        return parse_buddy_msg(orig_msg)
+    if orig_msg.startswith("account: "):
+        return parse_account_msg(orig_msg)
+    if orig_msg.startswith("info: "):
+        return parse_info_msg(orig_msg)
+    if orig_msg.startswith("error: "):
+        return parse_error_msg(orig_msg)
+
+    # TODO: improve/remove this error handling!
+    acc = "-1"
+    acc_name = "error"
+    tstamp = "never"
+    sender = "purpled"
+    msg = "Error parsing message: " + orig_msg
+    return "parsing error", acc, acc_name, tstamp, sender, msg
 
 
 ####################
