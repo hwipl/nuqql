@@ -857,10 +857,10 @@ def resize_main_window():
     # redraw conversation windows
     for conv in CONVERSATIONS:
         # resize and move conversation windows
-        conv.log_win.resizeWin(log_win_y, log_win_x)
-        conv.log_win.moveWin(0, list_win_x)
-        conv.input_win.resizeWin(input_win_y, input_win_x)
-        conv.input_win.moveWin(MAX_Y - input_win_y, list_win_x)
+        conv.log_win.resize_win(log_win_y, log_win_x)
+        conv.log_win.move_win(0, list_win_x)
+        conv.input_win.resize_win(input_win_y, input_win_x)
+        conv.input_win.move_win(MAX_Y - input_win_y, list_win_x)
         # redraw active conversation windows
         if conv.input_win.active:
             conv.input_win.redraw()
