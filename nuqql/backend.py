@@ -247,40 +247,55 @@ class Backend:
         Try to read from the client connection and handle messages.
         """
 
+        # try to read message
         msg = self.client.read()
         if msg is None:
             return
-        # TODO: do not ignore account name
-        # TODO: it's not even an acc_name, it's the name of the buddy? FIXME
-        msg = parse_msg(msg)
-        msg_type = msg[0]
+
+        # parse it
+        parsed_msg = parse_msg(msg)
+        msg_type = parsed_msg[0]
 
         # handle info message or error message
         if msg_type in ("info", "error"):
             now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            text = msg_type + ": " + msg[1]
+            text = msg_type + ": " + parsed_msg[1]
             log_msg = nuqql.ui.LogMessage(now, "nuqql", text)
             self.conversation.log_win.add(log_msg)
             return
 
         # handle account message
         if msg_type == "account":
-            self.handle_account_msg(msg)
+            self.handle_account_msg(parsed_msg)
             return
 
         # handle buddy messages
         if msg_type == "buddy":
-            self.handle_buddy_msg(msg)
+            self.handle_buddy_msg(parsed_msg)
             return
 
         # handle normal messages and error messages
         # TODO: handle error messages somewhere else?
         if msg_type in ("message", "parsing error"):
-            (msg_type, acc, acc_name, tstamp, sender, msg) = msg
+            self.handle_message_msg(parsed_msg)
+
+    def handle_message_msg(self, parsed_msg):
+        """
+        Handle "message" message
+        """
+
+        # TODO: do not ignore account name
+        # TODO: it's not even an acc_name, it's the name of the buddy? FIXME
+        # msg_type = msg[0]
+        acc_id = parsed_msg[1]
+        # acc_name = msg[2]
+        tstamp = parsed_msg[3]
+        sender = parsed_msg[4]
+        msg = parsed_msg[5]
 
         # account specific message parsing
         for tmp_acc in self.accounts.values():
-            if tmp_acc.aid == acc:
+            if tmp_acc.aid == acc_id:
                 if tmp_acc.type == "icq":
                     if sender[-1] == ":":
                         sender = sender[:-1]
@@ -296,21 +311,21 @@ class Backend:
         # look for an existing conversation and use it
         for conv in nuqql.ui.CONVERSATIONS:
             if conv.backend is self and \
-               conv.account.aid == acc and \
+               conv.account.aid == acc_id and \
                conv.name == sender:
                 # log message
                 log_msg = nuqql.ui.LogMessage(tstamp, conv.name, msg)
                 conv.log_win.add(log_msg)
                 # if window is not already active notify user
                 if not conv.input_win.active:
-                    nuqql.ui.LIST_WIN.notify(self, acc, sender)
+                    nuqql.ui.LIST_WIN.notify(self, acc_id, sender)
                 return
 
         # create a new conversation if buddy exists
         # TODO: can we add some helper functions?
         for buddy in nuqql.ui.LIST_WIN.list:
             if buddy.backend is self and \
-               buddy.account.aid == acc and \
+               buddy.account.aid == acc_id and \
                buddy.name == sender:
                 # new conversation
                 conv = nuqql.ui.Conversation(buddy.backend, buddy.account,
@@ -322,20 +337,25 @@ class Backend:
                 log_msg = nuqql.ui.LogMessage(tstamp, conv.name, msg)
                 conv.log_win.add(log_msg)
                 # notify user
-                nuqql.ui.LIST_WIN.notify(self, acc, sender)
+                nuqql.ui.LIST_WIN.notify(self, acc_id, sender)
                 return
 
         # nothing found, log to main window
         log_msg = nuqql.ui.LogMessage(tstamp, sender, msg)
         self.conversation.log_win.add(log_msg)
 
-    def handle_account_msg(self, msg):
+    def handle_account_msg(self, parsed_msg):
         """
         Handle Account message
         """
 
         # "account", acc_id, acc_alias, acc_prot, acc_user, acc_status
-        (msg_type, acc_id, acc_alias, acc_prot, acc_user, acc_status) = msg
+        # msg_type = parsed_msg[0]
+        acc_id = parsed_msg[1]
+        acc_alias = parsed_msg[2]
+        acc_prot = parsed_msg[3]
+        acc_user = parsed_msg[4]
+        acc_status = parsed_msg[5]
 
         # output account
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -370,13 +390,17 @@ class Backend:
         self.conversation.log_win.add(log_msg)
         self.client.send_collect(acc.aid)
 
-    def handle_buddy_msg(self, msg):
+    def handle_buddy_msg(self, parsed_msg):
         """
         Handle Buddy message
         """
 
         # get message parts
-        (msg_type, acc, status, name, alias) = msg
+        # msg_type = parsed_msg[0]
+        acc_id = parsed_msg[1]
+        status = parsed_msg[2]
+        name = parsed_msg[3]
+        alias = parsed_msg[4]
 
         # if there is no alias, just use name
         if alias == "":
@@ -385,7 +409,7 @@ class Backend:
         # look for existing buddy
         for buddy in nuqql.ui.LIST_WIN.list:
             if buddy.backend is self and \
-               buddy.account.aid == acc and \
+               buddy.account.aid == acc_id and \
                buddy.name == name:
                 old_status = buddy.status
                 old_alias = buddy.alias
@@ -396,7 +420,7 @@ class Backend:
                 return
         # new buddy
         for account in self.accounts.values():
-            if account.aid == acc:
+            if account.aid == acc_id:
                 new_buddy = Buddy(self, account, name)
                 new_buddy.status = status
                 new_buddy.alias = alias
