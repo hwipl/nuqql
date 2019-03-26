@@ -275,77 +275,77 @@ class Win:
         self.pos_x = pos_x
         self.win.mvwin(self.pos_y, self.pos_x)
 
-    def go_back(self):
+    def go_back(self, *args):
         """
         User input: go back
         """
 
         # implemented in sub classes
 
-    def cursor_right(self):
+    def cursor_right(self, *args):
         """
         User input: cursor right
         """
 
         # implemented in sub classes
 
-    def cursor_left(self):
+    def cursor_left(self, *args):
         """
         User input: cursor left
         """
 
         # implemented in sub classes
 
-    def cursor_down(self):
+    def cursor_down(self, *args):
         """
         User input: cursor down
         """
 
         # implemented in sub classes
 
-    def cursor_up(self):
+    def cursor_up(self, *args):
         """
         User input: cursor up
         """
 
         # implemented in sub classes
 
-    def send_msg(self):
+    def send_msg(self, *args):
         """
         User input: send message
         """
 
         # implemented in sub classes
 
-    def delete_char(self):
+    def delete_char(self, *args):
         """
         User input: delete character
         """
 
         # implemented in sub classes
 
-    def cursor_msg_start(self):
+    def cursor_msg_start(self, *args):
         """
         User input: move cursor to message start
         """
 
         # implemented in sub classes
 
-    def cursor_msg_end(self):
+    def cursor_msg_end(self, *args):
         """
         User input: move cursor to message end
         """
 
         # implemented in sub classes
 
-    def cursor_line_start(self):
+    def cursor_line_start(self, *args):
         """
         User input: move cursor to line start
         """
 
         # implemented in sub classes
 
-    def cursor_line_end(self):
+    def cursor_line_end(self, *args):
         """
         User input: move cursor to line end
         """
@@ -462,13 +462,13 @@ class ListWin(Win):
         buddy = self.list[coord_y]
         buddy.hilight = val
 
-    def cursor_up(self):
+    def cursor_up(self, *args):
         if self.cur_y > 0:
             self.pad.move(self.cur_y - 1, self.cur_x)
             self.highlight(self.cur_y, False)
             self.highlight(self.cur_y - 1, True)
 
-    def cursor_down(self):
+    def cursor_down(self, *args):
         if self.cur_y < self.pad_y_max and self.cur_y < len(self.list) - 1:
             self.pad.move(self.cur_y + 1, self.cur_x)
             self.highlight(self.cur_y, False)
@@ -632,43 +632,48 @@ class InputWin(Win):
         if self.cur_y < self.pad_y:
             self.pad_y = self.cur_y
 
-    def cursor_up(self, segment):
+    def cursor_up(self, *args):
+        segment = args[0]
         if self.cur_y > 0:
             self.pad.move(self.cur_y - 1,
                           min(self.cur_x, len(segment[self.cur_y - 1])))
 
-    def cursor_down(self, segment):
+    def cursor_down(self, *args):
+        segment = args[0]
         if self.cur_y < self.pad_y_max and self.cur_y < len(segment) - 1:
             self.pad.move(self.cur_y + 1,
                           min(self.cur_x, len(segment[self.cur_y + 1])))
 
-    def cursor_left(self, segment):
+    def cursor_left(self, *args):
         if self.cur_x > 0:
             self.pad.move(self.cur_y, self.cur_x - 1)
 
-    def cursor_right(self, segment):
+    def cursor_right(self, *args):
+        segment = args[0]
         if self.cur_x < self.pad_x_max and \
            self.cur_x < len(segment[self.cur_y]):
             self.pad.move(self.cur_y, self.cur_x + 1)
 
-    def cursor_line_start(self, segment):
+    def cursor_line_start(self, *args):
         if self.cur_x > 0:
             self.pad.move(self.cur_y, 0)
 
-    def cursor_line_end(self, segment):
+    def cursor_line_end(self, *args):
+        segment = args[0]
         if self.cur_x < self.pad_x_max and \
            self.cur_x < len(segment[self.cur_y]):
             self.pad.move(self.cur_y, len(segment[self.cur_y]))
 
-    def cursor_msg_start(self, segment):
+    def cursor_msg_start(self, *args):
         if self.cur_y > 0 or self.cur_x > 0:
             self.pad.move(0, 0)
 
-    def cursor_msg_end(self, segment):
+    def cursor_msg_end(self, *args):
+        segment = args[0]
         if self.cur_y < len(segment) - 1 or self.cur_x < len(segment[-1]):
             self.pad.move(len(segment) - 1, len(segment[-1]))
 
-    def send_msg(self, segment):
+    def send_msg(self, *args):
         # do not send empty messages
         if self.msg == "":
             return
@@ -687,7 +692,8 @@ class InputWin(Win):
         self.msg = ""
         self.pad.clear()
 
-    def delete_char(self, segment):
+    def delete_char(self, *args):
+        segment = args[0]
         if self.cur_x > 0:
             # delete charater within a line
             segment[self.cur_y] = segment[self.cur_y][:self.cur_x - 1] +\
@@ -708,7 +714,7 @@ class InputWin(Win):
         elif self.cur_y > 0:
             self.pad.move(self.cur_y - 1, old_prev_len)
 
-    def go_back(self, segment):
+    def go_back(self, *args):
         self.active = False
         self.conversation.log_win.active = False
 
@@ -729,7 +735,7 @@ class InputWin(Win):
             func(segment)
         else:
             # insert new character into segments
-            if type(char) is not str:
+            if not isinstance(char, str):
                 return
             segment[self.cur_y] = segment[self.cur_y][:self.cur_x] + char +\
                 segment[self.cur_y][self.cur_x:]
@@ -755,7 +761,7 @@ class MainInputWin(InputWin):
     Class for Command Input Windows
     """
 
-    def send_msg(self, segment):
+    def send_msg(self, *args):
         # do not send empty messages
         if self.msg == "":
             return
