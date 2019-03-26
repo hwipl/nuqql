@@ -126,27 +126,27 @@ def main_loop(stdscr):
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_msg = nuqql.ui.LogMessage(now, "nuqql", "Start backends.")
     nuqql.ui.LOG_WIN.add(log_msg)
-    nuqql.backend.init_backends()
+    nuqql.backend.start_backends()
     for backend in nuqql.backend.BACKENDS.values():
         # start this backend's server
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        log_msg = nuqql.ui.LogMessage(now, "nuqql",
-                                      "Start backend \"{0}\".".format(
-                                          backend.name))
-        nuqql.ui.LOG_WIN.add(log_msg)
-        backend.start_server()
+        # now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # log_msg = nuqql.ui.LogMessage(now, "nuqql",
+        #                               "Start backend \"{0}\".".format(
+        #                                   backend.name))
+        # nuqql.ui.LOG_WIN.add(log_msg)
+        # backend.start_server()
 
         # start this backend's client
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        log_msg = nuqql.ui.LogMessage(now, "nuqql", "Start client.")
-        nuqql.ui.LOG_WIN.add(log_msg)
-        backend.init_client()
+        # now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # log_msg = nuqql.ui.LogMessage(now, "nuqql", "Start client.")
+        # nuqql.ui.LOG_WIN.add(log_msg)
+        # backend.init_client()
 
         # collect accounts from this backend
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_msg = nuqql.ui.LogMessage(now, "nuqql", "Collecting accounts.")
         nuqql.ui.LOG_WIN.add(log_msg)
-        backend.accounts_client()
+        backend.client.send_accounts()
 
     # start main loop
     while True:

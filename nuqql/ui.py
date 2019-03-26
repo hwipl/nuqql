@@ -681,9 +681,8 @@ class InputWin(Win):
                              own=True)
         self.conversation.log_win.add(log_msg)
         # send message
-        self.conversation.backend.send_client(self.conversation.account.aid,
-                                              self.conversation.name,
-                                              self.msg)
+        self.conversation.backend.client.send_msg(
+            self.conversation.account.aid, self.conversation.name, self.msg)
         # reset input
         self.msg = ""
         self.pad.clear()
@@ -768,7 +767,7 @@ class MainInputWin(InputWin):
 
         # send command message
         if self.conversation.backend is not None:
-            self.conversation.backend.command_client(self.msg)
+            self.conversation.backend.client.send_command(self.msg)
 
         # reset input
         self.msg = ""

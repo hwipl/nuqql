@@ -27,44 +27,21 @@ BUDDY_UPDATE_TIMER = 5
 BACKENDS = {}
 
 
-class Backend:
+class BackendServer:
     """
-    Class for backends. Allows starting server processes and connecting to
-    (self-started or externally started) servers
+    Class for a backend's server process
     """
 
-    def __init__(self, name, external=False, cmd="", path="",
-                 af=socket.AF_UNIX, ip="127.0.0.1", port=32000, sock_file=""):
-        # backend
-        self.name = name
-        self.accounts = {}
-        # conversation for communication with the backend. TODO: check
-        self.conversation = None
-
+    def __init__(self, cmd="", path=""):
         # server
-        self.external = external
         self.proc = None
         self.server_path = path
         self.server_cmd = cmd
 
-        # client
-        self.sock = None
-        self.sock_af = af
-        self.sock_file = sock_file
-        self.ip = ip
-        self.port = port
-        self.buffer = ""
-
-        # self.collect_acc = -1
-
-    def start_server(self):
+    def start(self):
         """
         Start the backend's server process
         """
-
-        # do not start a server process if backend is external
-        if self.external:
-            return
 
         # make sure server's working directory exists
         Path(self.server_path).mkdir(parents=True, exist_ok=True)
@@ -81,19 +58,32 @@ class Backend:
         # give it some time
         time.sleep(1)
 
-    def stop_server(self):
+    def stop(self):
         """
         Stop the backend's server process
         """
 
-        # do not stop anything if the backend is external
-        if self.external:
-            return
-
         # stop running server
         self.proc.terminate()
 
-    def init_client(self):
+
+class BackendClient:
+    """
+    Class for a backend's client connection to a
+    local or remote backend server process
+    """
+
+    def __init__(self, sock_af=socket.AF_UNIX, ip_addr="127.0.0.1", port=32000,
+                 sock_file=""):
+        # client
+        self.sock = None
+        self.sock_af = sock_af
+        self.sock_file = sock_file
+        self.ip_addr = ip_addr
+        self.port = port
+        self.buffer = ""
+
+    def start(self):
         """
         Start the backend's client
         """
@@ -101,19 +91,19 @@ class Backend:
         # open sockets and connect
         if self.sock_af == socket.AF_INET:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.connect((self.ip, self.port))
+            self.sock.connect((self.ip_addr, self.port))
         elif self.sock_af == socket.AF_UNIX:
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             self.sock.connect(self.sock_file)
 
-    def exit_client(self):
+    def stop(self):
         """
         Stop the backend's client
         """
 
         self.sock.close()
 
-    def read_client(self):
+    def read(self):
         """
         Read from the client connection
         """
@@ -141,7 +131,7 @@ class Backend:
         self.buffer = self.buffer[eom + 2:]
         return msg
 
-    def command_client(self, cmd):
+    def send_command(self, cmd):
         """
         Send a command over the client connection
         """
@@ -151,7 +141,7 @@ class Backend:
         msg = msg.encode()
         self.sock.send(msg)
 
-    def send_client(self, account, buddy, msg):
+    def send_msg(self, account, buddy, msg):
         """
         Send a regular message over the client connection
         """
@@ -163,7 +153,7 @@ class Backend:
         msg = msg.encode()
         self.sock.send(msg)
 
-    def collect_client(self, account):
+    def send_collect(self, account):
         """
         Send "collect" message over the client connection,
         which collects all messages received by the backend
@@ -177,7 +167,7 @@ class Backend:
         # self.collect_acc = account
         self.sock.send(msg)
 
-    def buddies_client(self, account):
+    def send_buddies(self, account):
         """
         Send "buddies" message over the client connection,
         which retrieves all buddies of the specified account from the backend
@@ -187,15 +177,70 @@ class Backend:
         msg = msg.encode()
         self.sock.send(msg)
 
-    def accounts_client(self):
+    def send_accounts(self):
         """
-        Send "account" message over the client connection,
+        Send "account list" message over the client connection,
         which retrieves all accounts from the backend
         """
 
         msg = "account list\r\n"
         msg = msg.encode()
         self.sock.send(msg)
+
+
+class Backend:
+    """
+    Class for backends. Allows starting server processes and connecting to
+    (self-started or externally started) servers
+    """
+
+    def __init__(self, name):
+        # backend
+        self.name = name
+        self.accounts = {}
+        # conversation for communication with the backend. TODO: check
+        self.conversation = None
+
+        # server
+        self.server = None
+
+        # client
+        self.client = None
+
+        # self.collect_acc = -1
+
+    def start_server(self, cmd, path):
+        """
+        Add a server to this backend and start it
+        """
+
+        self.server = BackendServer(cmd, path)
+        self.server.start()
+
+    def stop_server(self):
+        """
+        Stop the server of this backend
+        """
+
+        if self.server:
+            self.server.stop()
+
+    def start_client(self, sock_af=socket.AF_UNIX, ip_addr="127.0.0.1",
+                     port=32000, sock_file=""):
+        """
+        Add a client to this backend and start it
+        """
+
+        self.client = BackendClient(sock_af, ip_addr, port, sock_file)
+        self.client.start()
+
+    def stop_client(self):
+        """
+        Stop the client of this backend
+        """
+
+        if self.client:
+            self.client.stop()
 
     def parse_error_msg(self, orig_msg):
         """
@@ -310,7 +355,7 @@ class Backend:
         Try to read from the client connection and handle messages.
         """
 
-        msg = self.read_client()
+        msg = self.client.read()
         if msg is None:
             return
         # TODO: do not ignore account name
@@ -423,7 +468,7 @@ class Backend:
         log_msg = nuqql.ui.LogMessage(now, "nuqql", text)
         self.conversation.log_win.add(log_msg)
         acc.buddies_update = time.time()
-        self.buddies_client(acc.aid)
+        self.client.send_buddies(acc.aid)
 
         # collect messages from backend
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -431,7 +476,7 @@ class Backend:
             acc.type, acc.aid, acc.name)
         log_msg = nuqql.ui.LogMessage(now, "nuqql", text)
         self.conversation.log_win.add(log_msg)
-        self.collect_client(acc.aid)
+        self.client.send_collect(acc.aid)
 
     def handle_buddy_msg(self, msg):
         """
@@ -442,7 +487,7 @@ class Backend:
         (msg_type, acc, status, name, alias) = msg
 
         # if there is no alias, just use name
-        if len(alias) == 0:
+        if alias == "":
             alias = name
 
         # look for existing buddy
@@ -477,7 +522,7 @@ class Backend:
             if time.time() - acc.buddies_update <= BUDDY_UPDATE_TIMER:
                 continue
             acc.buddies_update = time.time()
-            self.buddies_client(acc.aid)
+            self.client.send_buddies(acc.aid)
 
 
 ##################
@@ -548,7 +593,7 @@ def handle_network():
         backend.handle_network()
 
 
-def init_backends():
+def start_backends():
     """
     Helper for starting all backends
     """
@@ -563,8 +608,9 @@ def init_backends():
     purpled_cmd = "purpled -u -w" + purpled_path
     purpled_sockfile = purpled_path + "/purpled.sock"
 
-    purpled = Backend("purpled", cmd=purpled_cmd, path=purpled_path,
-                      sock_file=purpled_sockfile)
+    purpled = Backend("purpled")
+    purpled.start_server(cmd=purpled_cmd, path=purpled_path)
+    purpled.start_client(sock_file=purpled_sockfile)
 
     BACKENDS["purpled"] = purpled
 
@@ -594,8 +640,9 @@ def init_backends():
         based_path)
     based_sockfile = based_path + "/based.sock"
 
-    based = Backend("based", cmd=based_cmd, path=based_path,
-                    sock_file=based_sockfile)
+    based = Backend("based")
+    based.start_server(cmd=based_cmd, path=based_path)
+    based.start_client(sock_file=based_sockfile)
 
     BACKENDS["based"] = based
 
@@ -622,5 +669,5 @@ def stop_backends():
     """
 
     for backend in BACKENDS.values():
-        backend.exit_client()
+        backend.stop_client()
         backend.stop_server()
