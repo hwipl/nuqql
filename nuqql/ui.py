@@ -919,6 +919,74 @@ def create_main_windows():
     nuqql.ui.INPUT_WIN = nuqql_conv.input_win
 
 
+def handle_message(backend, acc_id, tstamp, sender, msg):
+    """
+    Handle message from backend
+    """
+
+    # look for an existing conversation and use it
+    for conv in CONVERSATIONS:
+        if conv.backend is backend and \
+           conv.account.aid == acc_id and \
+           conv.name == sender:
+            # log message
+            conv.log(conv.name, msg, tstamp=tstamp)
+            # if window is not already active notify user
+            if not conv.input_win.active:
+                LIST_WIN.notify(backend, acc_id, sender)
+            return
+
+    # create a new conversation if buddy exists
+    # TODO: can we add some helper functions?
+    for buddy in LIST_WIN.list:
+        if buddy.backend is backend and \
+           buddy.account.aid == acc_id and \
+           buddy.name == sender:
+            # new conversation
+            conv = Conversation(buddy.backend, buddy.account, buddy.name)
+            conv.input_win.active = False
+            conv.log_win.active = False
+            CONVERSATIONS.append(conv)
+            # log message
+            conv.log(conv.name, msg, tstamp=tstamp)
+            # notify user
+            LIST_WIN.notify(backend, acc_id, sender)
+            return
+
+    # nothing found, log to main window
+    backend.conversation.log(sender, msg, tstamp=tstamp)
+
+
+def update_buddy(backend, acc_id, name, alias, status):
+    """
+    Update buddy in UI
+    """
+
+    # look for existing buddy
+    for buddy in nuqql.ui.LIST_WIN.list:
+        if buddy.backend is backend and \
+           buddy.account.aid == acc_id and \
+           buddy.name == name:
+            old_status = buddy.status
+            old_alias = buddy.alias
+            buddy.status = status
+            buddy.alias = alias
+            if old_status != status or old_alias != alias:
+                nuqql.ui.LIST_WIN.redraw()
+            return True
+
+    return False
+
+
+def add_buddy(buddy):
+    """
+    Add a new buddy to UI
+    """
+
+    LIST_WIN.add(buddy)
+    LIST_WIN.redraw()
+
+
 def read_input():
     """
     Read user input and return it to caller

@@ -308,38 +308,8 @@ class Backend:
                     sender = sender.split("/")[0]
                     break
 
-        # look for an existing conversation and use it
-        for conv in nuqql.ui.CONVERSATIONS:
-            if conv.backend is self and \
-               conv.account.aid == acc_id and \
-               conv.name == sender:
-                # log message
-                conv.log(conv.name, msg, tstamp=tstamp)
-                # if window is not already active notify user
-                if not conv.input_win.active:
-                    nuqql.ui.LIST_WIN.notify(self, acc_id, sender)
-                return
-
-        # create a new conversation if buddy exists
-        # TODO: can we add some helper functions?
-        for buddy in nuqql.ui.LIST_WIN.list:
-            if buddy.backend is self and \
-               buddy.account.aid == acc_id and \
-               buddy.name == sender:
-                # new conversation
-                conv = nuqql.ui.Conversation(buddy.backend, buddy.account,
-                                             buddy.name)
-                conv.input_win.active = False
-                conv.log_win.active = False
-                nuqql.ui.CONVERSATIONS.append(conv)
-                # log message
-                conv.log(conv.name, msg, tstamp=tstamp)
-                # notify user
-                nuqql.ui.LIST_WIN.notify(self, acc_id, sender)
-                return
-
-        # nothing found, log to main window
-        self.conversation.log(sender, msg, tstamp=tstamp)
+        # let ui handle the message
+        nuqql.ui.handle_message(self, acc_id, tstamp, sender, msg)
 
     def handle_account_msg(self, parsed_msg):
         """
@@ -397,26 +367,17 @@ class Backend:
         if alias == "":
             alias = name
 
-        # look for existing buddy
-        for buddy in nuqql.ui.LIST_WIN.list:
-            if buddy.backend is self and \
-               buddy.account.aid == acc_id and \
-               buddy.name == name:
-                old_status = buddy.status
-                old_alias = buddy.alias
-                buddy.status = status
-                buddy.alias = alias
-                if old_status != status or old_alias != alias:
-                    nuqql.ui.LIST_WIN.redraw()
-                return
+        # handle buddy update in ui
+        if nuqql.ui.update_buddy(self, acc_id, name, alias, status):
+            return
+
         # new buddy
         for account in self.accounts.values():
             if account.aid == acc_id:
                 new_buddy = Buddy(self, account, name)
                 new_buddy.status = status
                 new_buddy.alias = alias
-                nuqql.ui.LIST_WIN.add(new_buddy)
-                nuqql.ui.LIST_WIN.redraw()
+                nuqql.ui.add_buddy(new_buddy)
                 return
 
     def update_buddies(self):
@@ -657,8 +618,7 @@ def start_purpled():
     new_buddy.status = "backend"
     new_buddy.alias = "purpled"
     # add it to list_win
-    nuqql.ui.LIST_WIN.add(new_buddy)
-    nuqql.ui.LIST_WIN.redraw()
+    nuqql.ui.add_buddy(new_buddy)
 
     # add conversation for purpled
     conv = nuqql.ui.Conversation(purpled, account, purpled.name,
@@ -710,8 +670,7 @@ def start_based():
     new_buddy.status = "backend"
     new_buddy.alias = "based"
     # add it to list_win
-    nuqql.ui.LIST_WIN.add(new_buddy)
-    nuqql.ui.LIST_WIN.redraw()
+    nuqql.ui.add_buddy(new_buddy)
 
     # add conversation
     conv = nuqql.ui.Conversation(based, account, based.name, ctype="backend")
