@@ -828,15 +828,17 @@ def resize_main_window():
     Resize main window
     """
 
+    global MAX_Y, MAX_X
+
     max_y_new, max_x_new = STDSCR.getmaxyx()
-    if max_y_new == nuqql.ui.MAX_Y and max_x_new == nuqql.ui.MAX_X:
+    if max_y_new == MAX_Y and max_x_new == MAX_X:
         # nothing has changed
         return MAX_Y, MAX_X
 
     # window has been resized
     # save new maxima
-    nuqql.ui.MAX_Y = max_y_new
-    nuqql.ui.MAX_X = max_x_new
+    MAX_Y = max_y_new
+    MAX_X = max_x_new
     list_win_y, list_win_x = get_absolute_size(MAX_Y, MAX_X,
                                                LIST_WIN_Y_PER, LIST_WIN_X_PER)
     log_win_y, log_win_x = get_absolute_size(MAX_Y, MAX_X,
@@ -890,6 +892,8 @@ def create_main_windows():
     Create main UI windows
     """
 
+    global LIST_WIN, LOG_WIN, INPUT_WIN
+
     # dummy account for main windows
     nuqql_acc = nuqql.backend.Account("cmd", "nuqql", "nuqql")
 
@@ -909,9 +913,9 @@ def create_main_windows():
     nuqql_conv.list_win.redraw()
 
     # save windows
-    nuqql.ui.LIST_WIN = nuqql_conv.list_win
-    nuqql.ui.LOG_WIN = nuqql_conv.log_win
-    nuqql.ui.INPUT_WIN = nuqql_conv.input_win
+    LIST_WIN = nuqql_conv.list_win
+    LOG_WIN = nuqql_conv.log_win
+    INPUT_WIN = nuqql_conv.input_win
 
 
 def handle_message(backend, acc_id, tstamp, sender, msg):
@@ -958,7 +962,7 @@ def update_buddy(backend, acc_id, name, alias, status):
     """
 
     # look for existing buddy
-    for buddy in nuqql.ui.LIST_WIN.list:
+    for buddy in LIST_WIN.list:
         if buddy.backend is backend and \
            buddy.account.aid == acc_id and \
            buddy.name == name:
@@ -967,7 +971,7 @@ def update_buddy(backend, acc_id, name, alias, status):
             buddy.status = status
             buddy.alias = alias
             if old_status != status or old_alias != alias:
-                nuqql.ui.LIST_WIN.redraw()
+                LIST_WIN.redraw()
             return True
 
     return False
@@ -1036,13 +1040,15 @@ def start(stdscr, func):
     Start UI and run provided function
     """
 
+    global STDSCR, MAX_Y, MAX_X
+
     # save stdscr
-    nuqql.ui.STDSCR = stdscr
+    STDSCR = stdscr
 
     # configuration
     max_y, max_x = stdscr.getmaxyx()
-    nuqql.ui.MAX_Y = max_y
-    nuqql.ui.MAX_X = max_x
+    MAX_Y = max_y
+    MAX_X = max_x
     stdscr.timeout(10)
 
     # clear everything
