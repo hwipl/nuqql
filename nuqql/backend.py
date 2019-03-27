@@ -10,8 +10,10 @@ import subprocess
 import datetime
 import socket
 import select
+import shutil
 import time
 import html
+import os
 
 from pathlib import Path
 
@@ -631,19 +633,25 @@ def handle_network():
         backend.handle_network()
 
 
-def start_backends():
+def start_purpled():
     """
-    Helper for starting all backends
+    Helper for starting the "purpled" backend
     """
 
-    # TODO: cleanup this mess? ;D
+    # check if purpled exists in path
+    exe = shutil.which("purpled", path=os.getcwd())
+    if exe is None:
+        exe = shutil.which("purpled")
+    if exe is None:
+        # does not exist, stop here
+        return
 
     ###########
     # purpled #
     ###########
 
     purpled_path = str(Path.home()) + "/.config/nuqql/backend/purpled"
-    purpled_cmd = "purpled -u -w" + purpled_path
+    purpled_cmd = "{0} -u -w{1}".format(exe, purpled_path)
     purpled_sockfile = purpled_path + "/purpled.sock"
 
     purpled = Backend("purpled")
@@ -669,13 +677,27 @@ def start_backends():
     nuqql.ui.CONVERSATIONS.append(conv)
     purpled.conversation = conv
 
+
+def start_based():
+    """
+    Helper for starting the "based" backend
+    """
+
+    # check if purpled exists in path
+    exe = shutil.which("based.py", path=os.getcwd())
+    if exe is None:
+        exe = shutil.which("based.py")
+    if exe is None:
+        # does not exist, stop here
+        return
+
     ###############
     # nuqql-based #
     ###############
 
     based_path = str(Path.home()) + "/.config/nuqql/backend/based"
-    based_cmd = "./based.py --af unix --dir {0} --sockfile based.sock".format(
-        based_path)
+    based_cmd = "{0} --af unix --dir {1} --sockfile based.sock".format(
+        exe, based_path)
     based_sockfile = based_path + "/based.sock"
 
     based = Backend("based")
@@ -699,6 +721,15 @@ def start_backends():
     conv = nuqql.ui.Conversation(based, account, based.name, ctype="backend")
     nuqql.ui.CONVERSATIONS.append(conv)
     based.conversation = conv
+
+
+def start_backends():
+    """
+    Helper for starting all backends
+    """
+
+    start_purpled()
+    start_based()
 
 
 def stop_backends():
