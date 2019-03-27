@@ -6,7 +6,6 @@ Main part of nuqql.
 # Main Part #
 #############
 
-import configparser
 import datetime
 import curses
 import signal
@@ -15,109 +14,14 @@ import nuqql.backend
 import nuqql.ui
 
 
-####################
-# CONFIG FILE PART #
-####################
-
-class Config:
-    """
-    Class for configuration.
-    """
-    # TODO: decide where to put this and if it should stay like this
-
-    def __init__(self, config_file="nuqql.conf"):
-        # init parser for config file
-        self.config = configparser.ConfigParser()
-        self.config_file = config_file
-
-        # key mapping/binding
-        self.keymap = {}
-        self.keybind = {}
-
-        # init keybinds
-        self.keybind["list_win"] = {}
-        self.keybind["input_win"] = {}
-        self.keybind["log_win"] = {}
-
-        # accounts
-        self.account = {}
-
-    def del_account(self, account):
-        """
-        Delete an account
-        """
-
-        del self.account[account.name]
-
-    def add_keymap(self, key, name):
-        """
-        Add a keymap.
-        """
-
-        self.keymap[key] = name
-
-    def del_keymap(self, key):
-        """
-        Delete a keymap.
-        """
-
-        del self.keymap[key]
-
-    def add_keybind(self, context, name, action):
-        """
-        Add a Keybind.
-        """
-
-        self.keybind[context][name] = action
-
-    def del_keybind(self, context, name):
-        """
-        Delete a keybind.
-        """
-
-        del self.keybind[context][name]
-
-    def read_config(self):
-        """
-        Read config from file.
-        """
-
-        self.config.read(self.config_file)
-        for section in self.config.sections():
-            if section == "list_win":
-                pass
-            elif section == "log_win":
-                pass
-            elif section == "input_win":
-                pass
-            elif section == "purpled":
-                pass
-            else:
-                # everything else is treated as account settings
-                pass
-
-    def write_config(self):
-        """
-        Write config to file.
-        """
-
-        with open(self.config_file, "w") as configfile:
-            self.config.write(configfile)
-
-
 ###############
 # MAIN (LOOP) #
 ###############
-
 
 def main_loop(stdscr):
     """
     Main loop of nuqql.
     """
-
-    # load config
-    config = Config()
-    config.read_config()
 
     # initialize UI
     nuqql.ui.init(stdscr)
