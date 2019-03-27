@@ -504,11 +504,6 @@ class ListWin(Win):
         elif char == "q":
             self.active = False
             return  # Exit the while loop
-        elif char == ":":
-            # switch to command mode
-            self.conversation.input_win.active = True
-            self.conversation.log_win.active = True
-            return
         elif char == "\n":
             # if a conversation exists already, switch to it
             for conv in CONVERSATIONS:
