@@ -536,7 +536,7 @@ PARSE_FUNCTIONS = {
     "collect:": parse_collect_msg,
     "buddy:": parse_buddy_msg,
     "account:": parse_account_msg,
-    "into:": parse_info_msg,
+    "info:": parse_info_msg,
     "error:": parse_error_msg,
 }
 
