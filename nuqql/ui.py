@@ -101,29 +101,32 @@ class Conversation:
                                                      INPUT_WIN_X_PER)
 
         # create windows
-        # TODO: unify this?
         if self.type == "buddy":
             # standard chat windows
-            self.log_win = LogWin(self, 0, list_win_x, log_win_y, log_win_x,
-                                  log_win_y - 2, log_win_x - 2,
-                                  "Chat log with " + name)
-            self.input_win = InputWin(self, max_y - input_win_y, list_win_x,
-                                      input_win_y, input_win_x, 2000, 2000,
-                                      "Message to " + name)
-        if self.type == "nuqql" or \
-           self.type == "backend":
+            log_title = "Chat log with {0}".format(name)
+            input_title = "Message to {0}".format(name)
+        else:
+            # type: "nuqql" or "backend"
             # command windows for nuqql and backends
-            self.log_win = LogWin(self, 0, list_win_x, log_win_y, log_win_x,
-                                  log_win_y - 2, log_win_x - 2,
-                                  "Command log of " + name)
-            self.input_win = MainInputWin(self, max_y - input_win_y,
-                                          list_win_x, input_win_y, input_win_x,
-                                          2000, 2000, "Command to " + name)
-            # do not start as active...
+            log_title = "Command log of {0}".format(name)
+            input_title = "Command to {0}".format(name)
+
+        self.log_win = LogWin(self, 0, list_win_x, log_win_y, log_win_x,
+                              log_win_y - 2, log_win_x - 2, log_title)
+        self.input_win = InputWin(self, max_y - input_win_y, list_win_x,
+                                  input_win_y, input_win_x, 2000, 2000,
+                                  input_title)
+
+        if self.type == "backend":
+            # do not start as active
             self.input_win.active = False
-            # # ...nuqql's own input_win should be active though
-            # if self.type == "nuqql":
-            #     self.input_win.active = True
+
+        if self.type == "nuqql":
+            # nuqql itself needs a list window for buddy list
+            self.list_win = ListWin(self, 0, 0, list_win_y, list_win_x,
+                                    list_win_y - 2, 128, "Buddy List")
+            # do not start as active
+            self.input_win.active = False
 
         # draw windows
         self.log_win.redraw()
@@ -677,17 +680,24 @@ class InputWin(Win):
         # do not send empty messages
         if self.msg == "":
             return
-        # now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        # self.log_win.add(now + " " + self.name + " <-- " + self.msg)
-        # self.log_win.add(now + " " + getShortName(self.account.name) + \
-        #                  ": " + self.msg)
+
+        # log message
         now = datetime.datetime.now().strftime("%H:%M:%S")
         log_msg = LogMessage(now, self.conversation.account.name, self.msg,
                              own=True)
         self.conversation.log_win.add(log_msg)
-        # send message
-        self.conversation.backend.client.send_msg(
-            self.conversation.account.aid, self.conversation.name, self.msg)
+
+        # depending on conversation type send a message or a command
+        if self.conversation.type == "buddy":
+            # send message
+            self.conversation.backend.client.send_msg(
+                self.conversation.account.aid, self.conversation.name,
+                self.msg)
+        else:
+            # send command message
+            if self.conversation.backend is not None:
+                self.conversation.backend.client.send_command(self.msg)
+
         # reset input
         self.msg = ""
         self.pad.clear()
@@ -754,30 +764,6 @@ class InputWin(Win):
                 self.pad.move(self.cur_y, self.cur_x + 1)
         # display changes in the pad
         self.redraw_pad()
-
-
-class MainInputWin(InputWin):
-    """
-    Class for Command Input Windows
-    """
-
-    def send_msg(self, *args):
-        # do not send empty messages
-        if self.msg == "":
-            return
-
-        now = datetime.datetime.now().strftime("%H:%M:%S")
-        log_msg = LogMessage(now, self.conversation.account.name, self.msg,
-                             own=True)
-        self.conversation.log_win.add(log_msg)
-
-        # send command message
-        if self.conversation.backend is not None:
-            self.conversation.backend.client.send_command(self.msg)
-
-        # reset input
-        self.msg = ""
-        self.pad.clear()
 
 
 ##################
@@ -889,32 +875,26 @@ def create_main_windows():
     Create main UI windows
     """
 
-    # determine window sizes
-    # TODO: add to conversation somehow? and/or add variables for the sizes?
-    list_win_y, list_win_x = get_absolute_size(MAX_Y, MAX_X,
-                                               LIST_WIN_Y_PER, LIST_WIN_X_PER)
-    # log_win_y, log_win_x = getAbsoluteSize(MAX_Y, MAX_X,
-    #                                        LOG_WIN_Y_PER, LOG_WIN_X_PER)
-    # input_win_y, input_win_x = getAbsoluteSize(MAX_Y, MAX_X,
-    #                                            INPUT_WIN_Y_PER,
-    #                                            INPUT_WIN_X_PER)
-
     # dummy account for main windows
-    nuqql_acc = nuqql.backend.Account("-1", "nuqql", "nuqql")
+    nuqql_acc = nuqql.backend.Account("cmd", "nuqql", "nuqql")
 
     # main screen
     # dummy conversation for main windows, creates log_win and input_win
     nuqql_conv = Conversation(None, nuqql_acc, "nuqql", ctype="nuqql")
-    # user does not start in command mode, so set input_win inactive
-    nuqql_conv.input_win.active = False
+    CONVERSATIONS.append(nuqql_conv)
 
-    # list window for buddy list
-    list_win = ListWin(nuqql_conv, 0, 0, list_win_y, list_win_x,
-                       list_win_y - 2, 128, "Buddy List")
-    list_win.redraw()
+    # dummy buddy for main windows
+    nuqql_buddy = nuqql.backend.Buddy(None, nuqql_acc, "nuqql")
+    nuqql_buddy.status = "nuqql"
+    nuqql_buddy.alias = "win"
+    # add dummy buddy to list_win
+    nuqql_conv.list_win.add(nuqql_buddy)
+
+    # draw list
+    nuqql_conv.list_win.redraw()
 
     # save windows
-    nuqql.ui.LIST_WIN = list_win
+    nuqql.ui.LIST_WIN = nuqql_conv.list_win
     nuqql.ui.LOG_WIN = nuqql_conv.log_win
     nuqql.ui.INPUT_WIN = nuqql_conv.input_win
 
@@ -932,6 +912,41 @@ def read_input():
         wch = None
 
     return wch
+
+
+def handle_input():
+    """
+    Read and handle user input
+    """
+
+    # check size and redraw windows if necessary
+    resize_main_window()
+
+    # wait for user input and get timeout or character to process
+    char = read_input()
+
+    # handle user input
+    if char is None:
+        # NO INPUT, keep waiting for input..
+        return True
+
+    # pass user input to active conversation
+    for conv in CONVERSATIONS:
+        if conv.input_win.active:
+            conv.input_win.process_input(char)
+            return True
+
+    # if no conversation is active pass input to command or list window
+    if LIST_WIN.active:
+        # list window navigation
+        INPUT_WIN.redraw()
+        LOG_WIN.redraw()
+        LIST_WIN.process_input(char)
+        return True
+
+    # list window is also inactive -> user quit
+    nuqql.backend.stop_backends()
+    return False
 
 
 def init(stdscr):
