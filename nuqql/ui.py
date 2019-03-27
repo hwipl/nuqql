@@ -1028,7 +1028,6 @@ def handle_input():
         return True
 
     # list window is also inactive -> user quit
-    nuqql.backend.stop_backends()
     return False
 
 

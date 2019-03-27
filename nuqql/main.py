@@ -33,6 +33,9 @@ def main_loop():
         # handle network input
         nuqql.backend.handle_network()
 
+    # shut down
+    nuqql.backend.stop_backends()
+
 
 # main entry point
 def run():
