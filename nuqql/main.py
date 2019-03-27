@@ -7,7 +7,6 @@ Main part of nuqql.
 #############
 
 import datetime
-import curses
 import signal
 
 import nuqql.backend
@@ -18,13 +17,10 @@ import nuqql.ui
 # MAIN (LOOP) #
 ###############
 
-def main_loop(stdscr):
+def main_loop():
     """
     Main loop of nuqql.
     """
-
-    # initialize UI
-    nuqql.ui.init(stdscr)
 
     # init and start all backends
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -58,4 +54,5 @@ def run():
     # ignore SIGINT
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-    curses.wrapper(main_loop)
+    # initialize ui and run main_loop
+    nuqql.ui.init(main_loop)

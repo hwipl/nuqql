@@ -949,9 +949,9 @@ def handle_input():
     return False
 
 
-def init(stdscr):
+def start(stdscr, func):
     """
-    Initialize UI
+    Start UI and run provided function
     """
 
     # save stdscr
@@ -969,3 +969,14 @@ def init(stdscr):
 
     # create main windows
     create_main_windows()
+
+    # run function provided by caller
+    func()
+
+
+def init(func):
+    """
+    Initialize UI
+    """
+
+    curses.wrapper(start, func)
