@@ -260,10 +260,8 @@ class Backend:
 
         # handle info message or error message
         if msg_type in ("info", "error"):
-            now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             text = msg_type + ": " + parsed_msg[1]
-            log_msg = nuqql.ui.LogMessage(now, "nuqql", text)
-            self.conversation.log_win.add(log_msg)
+            self.conversation.log("nuqql", text)
             return
 
         # handle account message
@@ -316,8 +314,7 @@ class Backend:
                conv.account.aid == acc_id and \
                conv.name == sender:
                 # log message
-                log_msg = nuqql.ui.LogMessage(tstamp, conv.name, msg)
-                conv.log_win.add(log_msg)
+                conv.log(conv.name, msg, tstamp=tstamp)
                 # if window is not already active notify user
                 if not conv.input_win.active:
                     nuqql.ui.LIST_WIN.notify(self, acc_id, sender)
@@ -336,15 +333,13 @@ class Backend:
                 conv.log_win.active = False
                 nuqql.ui.CONVERSATIONS.append(conv)
                 # log message
-                log_msg = nuqql.ui.LogMessage(tstamp, conv.name, msg)
-                conv.log_win.add(log_msg)
+                conv.log(conv.name, msg, tstamp=tstamp)
                 # notify user
                 nuqql.ui.LIST_WIN.notify(self, acc_id, sender)
                 return
 
         # nothing found, log to main window
-        log_msg = nuqql.ui.LogMessage(tstamp, sender, msg)
-        self.conversation.log_win.add(log_msg)
+        self.conversation.log(sender, msg, tstamp=tstamp)
 
     def handle_account_msg(self, parsed_msg):
         """
@@ -360,12 +355,10 @@ class Backend:
         acc_status = parsed_msg[5]
 
         # output account
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         text = "account {0} ({1}) {2} {3} {4}.".format(acc_id, acc_alias,
                                                        acc_prot, acc_user,
                                                        acc_status)
-        log_msg = nuqql.ui.LogMessage(now, "nuqql", text)
-        self.conversation.log_win.add(log_msg)
+        self.conversation.log("nuqql", text)
 
         # do not add account if it already exists
         if acc_user in self.accounts:
@@ -376,20 +369,16 @@ class Backend:
         self.accounts[acc.name] = acc
 
         # collect buddies from backend
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         text = "Collecting buddies for {0} account {1}: {2}.".format(
             acc.type, acc.aid, acc.name)
-        log_msg = nuqql.ui.LogMessage(now, "nuqql", text)
-        self.conversation.log_win.add(log_msg)
+        self.conversation.log("nuqql", text)
         acc.buddies_update = time.time()
         self.client.send_buddies(acc.aid)
 
         # collect messages from backend
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         text = "Collecting messages for {0} account {1}: {2}.".format(
             acc.type, acc.aid, acc.name)
-        log_msg = nuqql.ui.LogMessage(now, "nuqql", text)
-        self.conversation.log_win.add(log_msg)
+        self.conversation.log("nuqql", text)
         self.client.send_collect(acc.aid)
 
     def handle_buddy_msg(self, parsed_msg):
@@ -681,10 +670,8 @@ def start_purpled():
     purpled.client.send_accounts()
 
     # log it
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_msg = nuqql.ui.LogMessage(
-        now, "nuqql", "Collecting accounts for \"{0}\".".format(purpled.name))
-    nuqql.ui.LOG_WIN.add(log_msg)
+    log_msg = "Collecting accounts for \"{0}\".".format(purpled.name)
+    nuqql.ui.log_main_window(log_msg)
 
 
 def start_based():
@@ -735,10 +722,8 @@ def start_based():
     based.client.send_accounts()
 
     # log it
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_msg = nuqql.ui.LogMessage(
-        now, "nuqql", "Collecting accounts for \"{0}\".".format(based.name))
-    nuqql.ui.LOG_WIN.add(log_msg)
+    log_msg = "Collecting accounts for \"{0}\".".format(based.name)
+    nuqql.ui.log_main_window(log_msg)
 
 
 def start_backends():

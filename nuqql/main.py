@@ -6,7 +6,6 @@ Main part of nuqql.
 # Main Part #
 #############
 
-import datetime
 import signal
 
 import nuqql.backend
@@ -23,9 +22,7 @@ def main_loop():
     """
 
     # init and start all backends
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_msg = nuqql.ui.LogMessage(now, "nuqql", "Start backends.")
-    nuqql.ui.LOG_WIN.add(log_msg)
+    nuqql.ui.log_main_window("Start backends.")
     nuqql.backend.start_backends()
 
     # loop as long as user does not quit

@@ -132,6 +132,16 @@ class Conversation:
         self.log_win.redraw()
         self.input_win.redraw()
 
+    def log(self, sender, msg, tstamp=None):
+        """
+        Log message to conversation's log window
+        """
+
+        if tstamp is None:
+            tstamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_msg = LogMessage(tstamp, sender, msg)
+        self.log_win.add(log_msg)
+
 
 class Win:
     """
@@ -797,6 +807,16 @@ class LogMessage:
 ####################
 # HELPER FUNCTIONS #
 ####################
+
+def log_main_window(msg):
+    """
+    Log message to main windows
+    """
+
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_msg = LogMessage(now, "nuqql", msg)
+    LOG_WIN.add(log_msg)
+
 
 def get_absolute_size(y_max, x_max, y_rel, x_rel):
     """
