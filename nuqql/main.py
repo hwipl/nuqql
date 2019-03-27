@@ -27,14 +27,6 @@ def main_loop():
     log_msg = nuqql.ui.LogMessage(now, "nuqql", "Start backends.")
     nuqql.ui.LOG_WIN.add(log_msg)
     nuqql.backend.start_backends()
-    for backend in nuqql.backend.BACKENDS.values():
-        # collect accounts from this backend
-        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        log_msg = nuqql.ui.LogMessage(
-            now, "nuqql", "Collecting accounts for \"{0}\".".format(
-                backend.name))
-        nuqql.ui.LOG_WIN.add(log_msg)
-        backend.client.send_accounts()
 
     # loop as long as user does not quit
     while nuqql.ui.handle_input():

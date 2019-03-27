@@ -677,6 +677,15 @@ def start_purpled():
     nuqql.ui.CONVERSATIONS.append(conv)
     purpled.conversation = conv
 
+    # request accounts from backend
+    purpled.client.send_accounts()
+
+    # log it
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_msg = nuqql.ui.LogMessage(
+        now, "nuqql", "Collecting accounts for \"{0}\".".format(purpled.name))
+    nuqql.ui.LOG_WIN.add(log_msg)
+
 
 def start_based():
     """
@@ -709,7 +718,7 @@ def start_based():
     # pseudo account
     account = Account("1", "nuqql", "based")
 
-    # add pseudo buddy for purpled
+    # add pseudo buddy
     new_buddy = Buddy(based, account, "based")
     new_buddy.status = "backend"
     new_buddy.alias = "based"
@@ -717,10 +726,19 @@ def start_based():
     nuqql.ui.LIST_WIN.add(new_buddy)
     nuqql.ui.LIST_WIN.redraw()
 
-    # add conversation for purpled
+    # add conversation
     conv = nuqql.ui.Conversation(based, account, based.name, ctype="backend")
     nuqql.ui.CONVERSATIONS.append(conv)
     based.conversation = conv
+
+    # request accounts from backend
+    based.client.send_accounts()
+
+    # log it
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_msg = nuqql.ui.LogMessage(
+        now, "nuqql", "Collecting accounts for \"{0}\".".format(based.name))
+    nuqql.ui.LOG_WIN.add(log_msg)
 
 
 def start_backends():
