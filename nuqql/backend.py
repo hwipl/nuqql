@@ -367,30 +367,21 @@ class Backend:
         if alias == "":
             alias = name
 
-        # handle buddy update in ui
-        if nuqql.ui.update_buddy(self, acc_id, name, alias, status):
-            return
-
-        # new buddy
+        # handle buddy update
         for account in self.accounts.values():
             if account.aid == acc_id:
-                new_buddy = Buddy(self, account, name)
-                new_buddy.status = status
-                new_buddy.alias = alias
-                nuqql.ui.add_buddy(new_buddy)
+                account.update_buddy(self, name, alias, status)
                 return
 
     def update_buddies(self):
         """
         Update buddies of this account
         """
+
         # update buddies
         for acc in self.accounts.values():
-            # update only once every BUDDY_UPDATE_TIMER seconds
-            if time.time() - acc.buddies_update <= BUDDY_UPDATE_TIMER:
-                continue
-            acc.buddies_update = time.time()
-            self.client.send_buddies(acc.aid)
+            if acc.update_buddies():
+                self.client.send_buddies(acc.aid)
 
 
 ##################
@@ -409,6 +400,55 @@ class Account:
         self.buddies = []
         self.buddies_update = 0
 
+    def update_buddies(self):
+        """
+        Update the buddy list of this account.
+        Return True if an update is pending, False otherwise.
+        """
+
+        # update only once every BUDDY_UPDATE_TIMER seconds
+        if time.time() - self.buddies_update <= BUDDY_UPDATE_TIMER:
+            return False
+        self.buddies_update = time.time()
+
+        # remove buddies, that have not been updated for a while
+        # TODO: tell ui, buddy does not exist any more
+        self.buddies = [buddy for buddy in self.buddies if buddy.updated]
+
+        # set update pending in buddy
+        for buddy in self.buddies:
+            buddy.updated = False
+
+        return True
+
+    def update_buddy(self, backend, name, alias, status):
+        """
+        Update a single buddy of this account. Could be a new buddy.
+        """
+
+        # look for existing buddy
+        for buddy in self.buddies:
+            if buddy.name == name:
+                buddy.updated = True
+                buddy.alias = alias
+                buddy.status = status
+
+                # tell ui about the update
+                nuqql.ui.update_buddy(backend, self.aid, buddy.name,
+                                      buddy.alias, buddy.status)
+
+                # found existing buddy; stop here
+                return
+
+        # new buddy
+        new_buddy = Buddy(backend, self, name)
+        new_buddy.alias = alias
+        new_buddy.status = status
+        self.buddies.append(new_buddy)
+
+        # tell ui there is a new buddy
+        nuqql.ui.add_buddy(new_buddy)
+
 
 class Buddy:
     """
@@ -423,6 +463,7 @@ class Buddy:
         self.status = "Offline"
         self.hilight = False
         self.notify = False
+        self.updated = True
 
     # def __cmp__(self, other):
     #    if hasattr(other, 'getKey'):
