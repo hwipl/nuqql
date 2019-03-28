@@ -15,8 +15,6 @@ STDSCR = None
 LIST_WIN = None
 LOG_WIN = None
 INPUT_WIN = None
-MAX_Y = 0
-MAX_X = 0
 
 
 # list of active conversations
@@ -858,53 +856,38 @@ def resize_main_window():
     Resize main window
     """
 
-    global MAX_Y, MAX_X
-
-    max_y_new, max_x_new = STDSCR.getmaxyx()
-    if max_y_new == MAX_Y and max_x_new == MAX_X:
-        # nothing has changed
-        return MAX_Y, MAX_X
-
-    # window has been resized
-    # save new maxima
-    MAX_Y = max_y_new
-    MAX_X = max_x_new
-    list_win_y, list_win_x = get_absolute_size(MAX_Y, MAX_X,
+    # get new maxima
+    max_y, max_x = STDSCR.getmaxyx()
+    list_win_y, list_win_x = get_absolute_size(max_y, max_x,
                                                LIST_WIN_Y_PER, LIST_WIN_X_PER)
-    log_win_y, log_win_x = get_absolute_size(MAX_Y, MAX_X,
+    log_win_y, log_win_x = get_absolute_size(max_y, max_x,
                                              LOG_WIN_Y_PER, LOG_WIN_X_PER)
-    input_win_y, input_win_x = get_absolute_size(MAX_Y, MAX_X,
+    input_win_y, input_win_x = get_absolute_size(max_y, max_x,
                                                  INPUT_WIN_Y_PER,
                                                  INPUT_WIN_X_PER)
-
-    # resize and move main windows
-    LIST_WIN.resize_win(list_win_y, list_win_x)
-    LOG_WIN.resize_win(log_win_y, log_win_x)
-    LOG_WIN.move_win(0, list_win_x)
-    INPUT_WIN.resize_win(input_win_y, input_win_x)
-    INPUT_WIN.move_win(MAX_Y - input_win_y, list_win_x)
 
     # redraw main windows
     STDSCR.clear()
     STDSCR.refresh()
-    LIST_WIN.redraw()
-    LOG_WIN.redraw()
-    INPUT_WIN.redraw()
 
     # redraw conversation windows
     for conv in CONVERSATIONS:
         # resize and move conversation windows
-        conv.log_win.resize_win(log_win_y, log_win_x)
-        conv.log_win.move_win(0, list_win_x)
-        conv.input_win.resize_win(input_win_y, input_win_x)
-        conv.input_win.move_win(MAX_Y - input_win_y, list_win_x)
+        if conv.list_win:
+            conv.list_win.resize_win(list_win_y, list_win_x)
+        if conv.log_win:
+            conv.log_win.resize_win(log_win_y, log_win_x)
+            conv.log_win.move_win(0, list_win_x)
+        if conv.input_win:
+            conv.input_win.resize_win(input_win_y, input_win_x)
+            conv.input_win.move_win(max_y - input_win_y, list_win_x)
         # redraw active conversation windows
-        if conv.input_win.active:
-            conv.input_win.redraw()
-        if conv.log_win.active:
+        if conv.list_win and conv.list_win.active:
+            conv.list_win.redraw()
+        if conv.log_win and conv.log_win.active:
             conv.log_win.redraw()
-
-    return MAX_Y, MAX_X
+        if conv.input_win and conv.input_win.active:
+            conv.input_win.redraw()
 
 
 def get_short_name(name):
@@ -1036,15 +1019,17 @@ def handle_input():
     Read and handle user input
     """
 
-    # check size and redraw windows if necessary
-    resize_main_window()
-
     # wait for user input and get timeout or character to process
     char = read_input()
 
     # handle user input
     if char is None:
         # NO INPUT, keep waiting for input..
+        return True
+
+    # if terminal resized, resize and redraw active windows
+    if char == curses.KEY_RESIZE:
+        resize_main_window()
         return True
 
     # pass user input to active conversation
@@ -1070,15 +1055,12 @@ def start(stdscr, func):
     Start UI and run provided function
     """
 
-    global STDSCR, MAX_Y, MAX_X
+    global STDSCR
 
     # save stdscr
     STDSCR = stdscr
 
     # configuration
-    max_y, max_x = stdscr.getmaxyx()
-    MAX_Y = max_y
-    MAX_X = max_x
     stdscr.timeout(10)
 
     # clear everything
