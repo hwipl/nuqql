@@ -10,8 +10,6 @@ import curses
 import curses.ascii
 import datetime
 
-import nuqql.backend
-
 # screen and main windows
 STDSCR = None
 LIST_WIN = None
@@ -83,13 +81,32 @@ class Conversation:
     """
 
     def __init__(self, backend, account, name, ctype="buddy"):
-        max_y, max_x = STDSCR.getmaxyx()
         self.name = name
         self.backend = backend
         self.account = account
         self.type = ctype
+        self.peers = []
+        self.list_win = None
+        self.log_win = None
+        self.input_win = None
+        self.notification = 0
+
+    def activate(self):
+        """
+        Activate windows of conversation
+        """
+
+        # check log_win to determine, if windows are already created
+        if self.log_win is not None:
+            self.input_win.active = True
+            self.input_win.redraw()
+            self.log_win.active = True
+            self.log_win.redraw()
+            self.clear_notifications()
+            return
 
         # determine window sizes
+        max_y, max_x = STDSCR.getmaxyx()
         list_win_y, list_win_x = get_absolute_size(max_y, max_x,
                                                    LIST_WIN_Y_PER,
                                                    LIST_WIN_X_PER)
@@ -103,13 +120,13 @@ class Conversation:
         # create windows
         if self.type == "buddy":
             # standard chat windows
-            log_title = "Chat log with {0}".format(name)
-            input_title = "Message to {0}".format(name)
+            log_title = "Chat log with {0}".format(self.name)
+            input_title = "Message to {0}".format(self.name)
         else:
             # type: "nuqql" or "backend"
             # command windows for nuqql and backends
-            log_title = "Command log of {0}".format(name)
-            input_title = "Command to {0}".format(name)
+            log_title = "Command log of {0}".format(self.name)
+            input_title = "Command to {0}".format(self.name)
 
         self.log_win = LogWin(self, 0, list_win_x, log_win_y, log_win_x,
                               log_win_y - 2, log_win_x - 2, log_title)
@@ -125,12 +142,42 @@ class Conversation:
             # nuqql itself needs a list window for buddy list
             self.list_win = ListWin(self, 0, 0, list_win_y, list_win_x,
                                     list_win_y - 2, 128, "Buddy List")
+            # set list to conversations
+            self.list_win.list = CONVERSATIONS
             # do not start as active
             self.input_win.active = False
 
         # draw windows
         self.log_win.redraw()
         self.input_win.redraw()
+
+    def get_name(self):
+        """
+        Get the name of the conversation, depending on type
+        """
+        if self.type == "buddy":
+            peer = self.peers[0]
+            # msg = buddy.account.aid + " " + buddy.alias + "\n"
+            # # add buddy status
+            # if buddy.status == "Offline":
+            #     msg = "[off] " + msg
+            # elif buddy.status == "Available":
+            #     msg = "[on] " + msg
+            # else:
+            #     msg = "[{0}] ".format(buddy.status) + msg
+            # add notifications
+            if self.notification > 0:
+                notify = "# "
+            else:
+                notify = ""
+            return "{0}[{1}] {2}".format(notify, peer.status, peer.alias)
+        if self.type == "backend":
+            return "{{backend}} {0}".format(self.name)
+        if self.type == "nuqql":
+            return "{nuqql}"
+
+        # this should not be reached
+        return "<unknown>"
 
     def log(self, sender, msg, tstamp=None):
         """
@@ -140,7 +187,31 @@ class Conversation:
         if tstamp is None:
             tstamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_msg = LogMessage(tstamp, sender, msg)
+        # if window does not exist, activate it. TODO: log to conv?
+        if not self.log_win:
+            self.activate()
         self.log_win.add(log_msg)
+
+    def notify(self):
+        """
+        Notify this conversation about new messages
+        """
+
+        self.notification = 1
+        if self.list_win:
+            self.list_win.redraw_pad()
+
+    def clear_notifications(self):
+        """
+        Clear notifications of buddy
+        """
+
+        self.notification = 0
+        if self.list_win:
+            self.list_win.redraw_pad()
+
+    def __lt__(self, other):
+        return self.get_name() < other.get_name()
 
 
 class Win:
@@ -413,24 +484,14 @@ class ListWin(Win):
         self.pad_y_max = self.win_y_max - 2     # reset minimum size of pad
         # for buddy in self.list[-(self.pad_y_max-1):]:
         # for buddy in self.list[:self.pad_y_max-1]:
-        for buddy in self.list:
-            msg = buddy.account.aid + " " + buddy.alias + "\n"
-            # add buddy status
-            if buddy.status == "Offline":
-                msg = "[off] " + msg
-            elif buddy.status == "Available":
-                msg = "[on] " + msg
+        for index, conv in enumerate(self.list):
+            name = conv.get_name() + "\n"
+            if index == self.cur_y:
+                # pointer is on conversation, highlight it in list
+                self.pad.addstr(name, curses.A_REVERSE)
             else:
-                msg = "[{0}] ".format(buddy.status) + msg
-            # add notifications
-            if buddy.notify > 0:
-                msg = "# " + msg
-            if buddy.hilight:
-                # highlight buddy in list
-                self.pad.addstr(msg, curses.A_REVERSE)
-            else:
-                # just show buddy in list
-                self.pad.addstr(msg)
+                # just show the conversation in list
+                self.pad.addstr(name)
 
             # resize pad for more buddies
             self.pad_y_max += 1
@@ -505,42 +566,9 @@ class ListWin(Win):
             self.active = False
             return  # Exit the while loop
         elif char == "\n":
-            # if a conversation exists already, switch to it
-            for conv in CONVERSATIONS:
-                if conv.account == self.list[self.cur_y].account and\
-                   conv.name == self.list[self.cur_y].name:
-                    conv.input_win.active = True
-                    conv.input_win.redraw()
-                    conv.log_win.active = True
-                    conv.log_win.redraw()
-                    self.clear_notifications(self.list[self.cur_y])
-                    return
-            # new conversation
-            conv = Conversation(self.list[self.cur_y].backend,
-                                self.list[self.cur_y].account,
-                                self.list[self.cur_y].name)
-            CONVERSATIONS.append(conv)
+            # activate conversation
+            self.list[self.cur_y].activate()
         # display changes in the pad
-        self.redraw_pad()
-
-    def notify(self, backend, acc_id, name):
-        """
-        Notify user about buddy activity
-        """
-
-        for buddy in self.list:
-            if buddy.backend == backend and \
-               buddy.account.aid == acc_id and \
-               buddy.name == name:
-                buddy.notify = 1
-        self.redraw_pad()
-
-    def clear_notifications(self, buddy):
-        """
-        Clear notifications of buddy
-        """
-
-        buddy.notify = 0
         self.redraw_pad()
 
 
@@ -688,7 +716,9 @@ class InputWin(Win):
 
         # log message
         now = datetime.datetime.now().strftime("%H:%M:%S")
-        log_msg = LogMessage(now, self.conversation.account.name, self.msg,
+        # log_msg = LogMessage(now, self.conversation.account.name, self.msg,
+        # TODO: add conversation -> own name function? just use "You"?
+        log_msg = LogMessage(now, self.conversation.name, self.msg,
                              own=True)
         self.conversation.log_win.add(log_msg)
 
@@ -894,20 +924,11 @@ def create_main_windows():
 
     global LIST_WIN, LOG_WIN, INPUT_WIN
 
-    # dummy account for main windows
-    nuqql_acc = nuqql.backend.Account("cmd", "nuqql", "nuqql")
-
     # main screen
     # dummy conversation for main windows, creates log_win and input_win
-    nuqql_conv = Conversation(None, nuqql_acc, "nuqql", ctype="nuqql")
+    nuqql_conv = Conversation(None, None, "nuqql", ctype="nuqql")
+    nuqql_conv.activate()
     CONVERSATIONS.append(nuqql_conv)
-
-    # dummy buddy for main windows
-    nuqql_buddy = nuqql.backend.Buddy(None, nuqql_acc, "nuqql")
-    nuqql_buddy.status = "nuqql"
-    nuqql_buddy.alias = "win"
-    # add dummy buddy to list_win
-    nuqql_conv.list_win.add(nuqql_buddy)
 
     # draw list
     nuqql_conv.list_win.redraw()
@@ -926,31 +947,33 @@ def handle_message(backend, acc_id, tstamp, sender, msg):
     # look for an existing conversation and use it
     for conv in CONVERSATIONS:
         if conv.backend is backend and \
-           conv.account.aid == acc_id and \
+           conv.account and conv.account.aid == acc_id and \
            conv.name == sender:
             # log message
             conv.log(conv.name, msg, tstamp=tstamp)
             # if window is not already active notify user
             if not conv.input_win.active:
-                LIST_WIN.notify(backend, acc_id, sender)
+                conv.notify()
             return
 
-    # create a new conversation if buddy exists
-    # TODO: can we add some helper functions?
-    for buddy in LIST_WIN.list:
-        if buddy.backend is backend and \
-           buddy.account.aid == acc_id and \
-           buddy.name == sender:
-            # new conversation
-            conv = Conversation(buddy.backend, buddy.account, buddy.name)
-            conv.input_win.active = False
-            conv.log_win.active = False
-            CONVERSATIONS.append(conv)
-            # log message
-            conv.log(conv.name, msg, tstamp=tstamp)
-            # notify user
-            LIST_WIN.notify(backend, acc_id, sender)
-            return
+    # TODO: clean up? handle messages from unknown peer?
+    # for buddy in LIST_WIN.list:
+    #     if buddy.backend is backend and \
+    #        buddy.account.aid == acc_id and \
+    #        buddy.name == sender:
+    #         # new conversation
+    #         # conv = Conversation(buddy.backend, buddy.account, buddy.name)
+    #         conv = Conversation(buddy.name)
+    #         conv.peers.append(buddy)
+    #         conv.activate()
+    #         conv.input_win.active = False
+    #         conv.log_win.active = False
+    #         CONVERSATIONS.append(conv)
+    #         # log message
+    #         conv.log(conv.name, msg, tstamp=tstamp)
+    #         # notify user
+    #         LIST_WIN.notify(backend, acc_id, sender)
+    #         return
 
     # nothing found, log to main window
     backend.conversation.log(sender, msg, tstamp=tstamp)
@@ -962,7 +985,11 @@ def update_buddy(backend, acc_id, name, alias, status):
     """
 
     # look for existing buddy
-    for buddy in LIST_WIN.list:
+    for conv in LIST_WIN.list:
+        if conv.type != "buddy":
+            continue
+
+        buddy = conv.peers[0]
         if buddy.backend is backend and \
            buddy.account.aid == acc_id and \
            buddy.name == name:
@@ -982,7 +1009,10 @@ def add_buddy(buddy):
     Add a new buddy to UI
     """
 
-    LIST_WIN.add(buddy)
+    # add a new conversation for the new buddy
+    conv = Conversation(buddy.backend, buddy.account, buddy.name)
+    conv.peers.append(buddy)
+    LIST_WIN.add(conv)
     LIST_WIN.redraw()
 
 
@@ -1019,7 +1049,7 @@ def handle_input():
 
     # pass user input to active conversation
     for conv in CONVERSATIONS:
-        if conv.input_win.active:
+        if conv.input_win and conv.input_win.active:
             conv.input_win.process_input(char)
             return True
 

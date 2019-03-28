@@ -651,19 +651,9 @@ def start_purpled():
 
     BACKENDS["purpled"] = purpled
 
-    # pseudo account
-    account = Account("0", "nuqql", "purpled")
-
-    # add pseudo buddy for purpled
-    new_buddy = Buddy(purpled, account, "purpled")
-    new_buddy.status = "backend"
-    new_buddy.alias = "purpled"
-    # add it to list_win
-    nuqql.ui.add_buddy(new_buddy)
-
     # add conversation for purpled
-    conv = nuqql.ui.Conversation(purpled, account, purpled.name,
-                                 ctype="backend")
+    conv = nuqql.ui.Conversation(purpled, None, purpled.name, ctype="backend")
+    conv.activate()
     nuqql.ui.CONVERSATIONS.append(conv)
     purpled.conversation = conv
 
@@ -703,18 +693,9 @@ def start_based():
 
     BACKENDS["based"] = based
 
-    # pseudo account
-    account = Account("1", "nuqql", "based")
-
-    # add pseudo buddy
-    new_buddy = Buddy(based, account, "based")
-    new_buddy.status = "backend"
-    new_buddy.alias = "based"
-    # add it to list_win
-    nuqql.ui.add_buddy(new_buddy)
-
     # add conversation
-    conv = nuqql.ui.Conversation(based, account, based.name, ctype="backend")
+    conv = nuqql.ui.Conversation(based, None, based.name, ctype="backend")
+    conv.activate()
     nuqql.ui.CONVERSATIONS.append(conv)
     based.conversation = conv
 
