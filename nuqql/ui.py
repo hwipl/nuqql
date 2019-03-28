@@ -155,26 +155,25 @@ class Conversation:
         """
         Get the name of the conversation, depending on type
         """
+
+        # check if there are pending notifications
+        if self.notification > 0:
+            notify = "# "
+        else:
+            notify = ""
+
+        # is it a buddy?
         if self.type == "buddy":
             peer = self.peers[0]
-            # msg = buddy.account.aid + " " + buddy.alias + "\n"
-            # # add buddy status
-            # if buddy.status == "Offline":
-            #     msg = "[off] " + msg
-            # elif buddy.status == "Available":
-            #     msg = "[on] " + msg
-            # else:
-            #     msg = "[{0}] ".format(buddy.status) + msg
-            # add notifications
-            if self.notification > 0:
-                notify = "# "
-            else:
-                notify = ""
             return "{0}[{1}] {2}".format(notify, peer.status, peer.alias)
+
+        # is it a backend?
         if self.type == "backend":
-            return "{{backend}} {0}".format(self.name)
+            return "{0}{{backend}} {1}".format(notify, self.name)
+
+        # is it nuqql itself?
         if self.type == "nuqql":
-            return "{nuqql}"
+            return "{0}{{nuqql}}".format(notify)
 
         # this should not be reached
         return "<unknown>"
@@ -211,6 +210,7 @@ class Conversation:
             self.list_win.redraw_pad()
 
     def __lt__(self, other):
+        # sort based on get_name output
         return self.get_name() < other.get_name()
 
 

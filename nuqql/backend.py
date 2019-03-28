@@ -429,9 +429,7 @@ class Account:
         # look for existing buddy
         for buddy in self.buddies:
             if buddy.name == name:
-                buddy.updated = True
-                buddy.alias = alias
-                buddy.status = status
+                buddy.update(status, alias)
 
                 # tell ui about the update
                 nuqql.ui.update_buddy(backend, self.aid, buddy.name,
@@ -442,8 +440,7 @@ class Account:
 
         # new buddy
         new_buddy = Buddy(backend, self, name)
-        new_buddy.alias = alias
-        new_buddy.status = status
+        new_buddy.update(status, alias)
         self.buddies.append(new_buddy)
 
         # tell ui there is a new buddy
@@ -460,24 +457,34 @@ class Buddy:
         self.account = account
         self.name = name
         self.alias = name
-        self.status = "Offline"
-        self.hilight = False
-        self.notify = False
+        self.status = "off"     # use short status name
         self.updated = True
 
-    # def __cmp__(self, other):
-    #    if hasattr(other, 'getKey'):
-    #        return self.getKey().__cmp__(other.getKey())
+    # dictionary for mapping status names to shorter version
+    status_map = {
+        "Offline": "off",
+        "Available": "on",
+        "Away": "afk",
+    }
 
-    def __lt__(self, other):
-        return self.get_key() < other.get_key()
-
-    def get_key(self):
+    def set_status(self, status):
         """
-        Get key for comparison of Buddy instances
+        Set status of buddy; convert status to something shorter
         """
 
-        return self.status + self.name
+        try:
+            self.status = Buddy.status_map[status]
+        except KeyError:
+            self.status = status
+
+    def update(self, status, alias):
+        """
+        Update Buddy
+        """
+
+        self.updated = True
+        self.set_status(status)
+        self.alias = alias
 
 
 #####################
