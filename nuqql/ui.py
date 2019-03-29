@@ -208,8 +208,46 @@ class Conversation:
             self.list_win.redraw_pad()
 
     def __lt__(self, other):
-        # sort based on get_name output
-        return self.get_name() < other.get_name()
+        # sort based on get_key output
+        return self.get_key() < other.get_key()
+
+    # status to sorting key mapping
+    status_key = {
+        "on": 0,
+        "afk": 1,
+        "off": 2,
+    }
+
+    def get_key(self):
+        """
+        Get a key for sorting this conversation
+        """
+
+        # defaults
+        sort_notify = 0 - self.notification
+        sort_type = 0
+        sort_status = 0
+        sort_name = self.name
+
+        # is it a buddy?
+        if self.type == "buddy":
+            peer = self.peers[0]
+            try:
+                sort_status = self.status_key[peer.status]
+            except KeyError:
+                sort_status = len(self.status_key) + 1
+            sort_name = peer.alias
+
+        # is it a backend?
+        if self.type == "backend":
+            sort_type = 1
+
+        # is it nuqql itself?
+        if self.type == "nuqql":
+            sort_type = 2
+
+        # return tuple of sort keys
+        return sort_notify, sort_type, sort_status, sort_name
 
 
 class Win:
