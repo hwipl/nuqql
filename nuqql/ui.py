@@ -11,11 +11,7 @@ import curses.ascii
 import datetime
 
 # screen and main windows
-STDSCR = None
-LIST_WIN = None
-LOG_WIN = None
-INPUT_WIN = None
-
+MAIN_WINS = {}
 
 # list of active conversations
 CONVERSATIONS = []
@@ -84,10 +80,12 @@ class Conversation:
         self.account = account
         self.type = ctype
         self.peers = []
-        self.list_win = LIST_WIN
         self.log_win = None
         self.input_win = None
+        self.list_win = None
         self.notification = 0
+        if ctype == "buddy":
+            self.list_win = MAIN_WINS["list"]
 
     def activate(self):
         """
@@ -104,7 +102,7 @@ class Conversation:
             return
 
         # determine window sizes
-        max_y, max_x = STDSCR.getmaxyx()
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
         list_win_y, list_win_x = get_absolute_size(max_y, max_x,
                                                    LIST_WIN_Y_PER,
                                                    LIST_WIN_X_PER)
@@ -876,7 +874,7 @@ def log_main_window(msg):
 
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_msg = LogMessage(now, "nuqql", msg)
-    LOG_WIN.add(log_msg)
+    MAIN_WINS["log"].add(log_msg)
 
 
 def get_absolute_size(y_max, x_max, y_rel, x_rel):
@@ -894,8 +892,11 @@ def resize_main_window():
     Resize main window
     """
 
+    # get main win
+    screen = MAIN_WINS["screen"]
+
     # get new maxima
-    max_y, max_x = STDSCR.getmaxyx()
+    max_y, max_x = screen.getmaxyx()
     list_win_y, list_win_x = get_absolute_size(max_y, max_x,
                                                LIST_WIN_Y_PER, LIST_WIN_X_PER)
     log_win_y, log_win_x = get_absolute_size(max_y, max_x,
@@ -905,8 +906,8 @@ def resize_main_window():
                                                  INPUT_WIN_X_PER)
 
     # redraw main windows
-    STDSCR.clear()
-    STDSCR.refresh()
+    screen.clear()
+    screen.refresh()
 
     # redraw conversation windows
     for conv in CONVERSATIONS:
@@ -943,8 +944,6 @@ def create_main_windows():
     Create main UI windows
     """
 
-    global LIST_WIN, LOG_WIN, INPUT_WIN
-
     # main screen
     # dummy conversation for main windows, creates log_win and input_win
     nuqql_conv = Conversation(None, None, "nuqql", ctype="nuqql")
@@ -955,9 +954,9 @@ def create_main_windows():
     nuqql_conv.list_win.redraw()
 
     # save windows
-    LIST_WIN = nuqql_conv.list_win
-    LOG_WIN = nuqql_conv.log_win
-    INPUT_WIN = nuqql_conv.input_win
+    MAIN_WINS["list"] = nuqql_conv.list_win
+    MAIN_WINS["log"] = nuqql_conv.log_win
+    MAIN_WINS["input"] = nuqql_conv.input_win
 
 
 def handle_message(backend, acc_id, tstamp, sender, msg):
@@ -1034,7 +1033,7 @@ def read_input():
 
     # try to get input from user (timeout set in init())
     try:
-        wch = STDSCR.get_wch()
+        wch = MAIN_WINS["screen"].get_wch()
     except curses.error:
         # no user input...
         wch = None
@@ -1066,12 +1065,12 @@ def handle_input():
             conv.input_win.process_input(char)
             return True
 
-    # if no conversation is active pass input to command or list window
-    if LIST_WIN.active:
+    # if no conversation is active pass input to active list window
+    if MAIN_WINS["list"].active:
         # list window navigation
-        INPUT_WIN.redraw()
-        LOG_WIN.redraw()
-        LIST_WIN.process_input(char)
+        MAIN_WINS["input"].redraw()
+        MAIN_WINS["log"].redraw()
+        MAIN_WINS["list"].process_input(char)
         return True
 
     # list window is also inactive -> user quit
@@ -1083,10 +1082,8 @@ def start(stdscr, func):
     Start UI and run provided function
     """
 
-    global STDSCR
-
     # save stdscr
-    STDSCR = stdscr
+    MAIN_WINS["screen"] = stdscr
 
     # configuration
     stdscr.timeout(10)
