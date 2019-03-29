@@ -138,7 +138,6 @@ class BackendClient:
         Send a command over the client connection
         """
 
-        # TODO: do more?
         msg = cmd + "\r\n"
         msg = msg.encode()
         self.sock.send(msg)
@@ -200,7 +199,7 @@ class Backend:
         # backend
         self.name = name
         self.accounts = {}
-        # conversation for communication with the backend. TODO: check
+        # conversation for communication with the backend.
         self.conversation = None
 
         # server
@@ -284,8 +283,8 @@ class Backend:
         Handle "message" message
         """
 
-        # TODO: do not ignore account name
-        # TODO: it's not even an acc_name, it's the name of the buddy? FIXME
+        # TODO: do not ignore account name; it's not even an acc_name,
+        # it's the name of the buddy? FIXME
         # msg_type = msg[0]
         acc_id = parsed_msg[1]
         # acc_name = msg[2]

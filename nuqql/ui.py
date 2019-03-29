@@ -622,7 +622,7 @@ class LogWin(Win):
         # dump log messages and resize pad according to new lines added
         for msg in self.list[-(self.pad_y_max-1):]:
             # current pad dimensions for resize later
-            old_y, old_x = self.pad.getyx()
+            old_y, unused_x = self.pad.getyx()
 
             # define colors for own and buddy's messages
             # TODO: move all color definitions to config part?
@@ -657,7 +657,7 @@ class LogWin(Win):
             self.pad.addstr(msg.read())
 
             # resize pad
-            new_y, new_x = self.pad.getyx()
+            new_y, unused_x = self.pad.getyx()
             self.pad_y_max += new_y - old_y
             self.pad.resize(self.pad_y_max, self.pad_x_max)
 
@@ -862,8 +862,7 @@ class LogMessage:
         Convert name to a shorter version
         """
 
-        # TODO: improve?
-        # Save short name in account and buddy instead?
+        # TODO: improve? Save short name in account and buddy instead?
         return self.sender.split("@")[0]
 
     def read(self):
