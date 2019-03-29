@@ -654,12 +654,7 @@ class LogWin(Win):
                     self.pad.attron(curses.color_pair(4) | curses.A_BOLD)
 
             # output message
-            self.pad.addstr(msg.tstamp + " ")
-            self.pad.addstr(get_short_name(msg.sender) + ": ")
-            self.pad.addstr(msg.msg + "\n")
-
-            # message has now been read
-            msg.is_read = True
+            self.pad.addstr(msg.read())
 
             # resize pad
             new_y, new_x = self.pad.getyx()
@@ -862,6 +857,29 @@ class LogMessage:
         # has message been read?
         self.is_read = False
 
+    def get_short_sender(self):
+        """
+        Convert name to a shorter version
+        """
+
+        # TODO: improve?
+        # Save short name in account and buddy instead?
+        return self.sender.split("@")[0]
+
+    def read(self):
+        """
+        Format and return log message; mark it as read
+        """
+
+        # format message
+        msg = "{0} {1}: {2}\n".format(self.tstamp, self.get_short_sender(),
+                                      self.msg)
+
+        # message has now been read
+        self.is_read = True
+
+        return msg
+
 
 ####################
 # HELPER FUNCTIONS #
@@ -929,16 +947,6 @@ def resize_main_window():
             conv.input_win.redraw()
 
 
-def get_short_name(name):
-    """
-    Convert name to a shorter version
-    """
-
-    # TODO: move that somewhere? Improve it?
-    # Save short name in account and buddy instead?
-    return name.split("@")[0]
-
-
 def create_main_windows():
     """
     Create main UI windows
@@ -975,25 +983,6 @@ def handle_message(backend, acc_id, tstamp, sender, msg):
             if not conv.input_win.active:
                 conv.notify()
             return
-
-    # TODO: clean up? handle messages from unknown peer?
-    # for buddy in LIST_WIN.list:
-    #     if buddy.backend is backend and \
-    #        buddy.account.aid == acc_id and \
-    #        buddy.name == sender:
-    #         # new conversation
-    #         # conv = Conversation(buddy.backend, buddy.account, buddy.name)
-    #         conv = Conversation(buddy.name)
-    #         conv.peers.append(buddy)
-    #         conv.activate()
-    #         conv.input_win.active = False
-    #         conv.log_win.active = False
-    #         CONVERSATIONS.append(conv)
-    #         # log message
-    #         conv.log(conv.name, msg, tstamp=tstamp)
-    #         # notify user
-    #         LIST_WIN.notify(backend, acc_id, sender)
-    #         return
 
     # nothing found, log to main window
     backend.conversation.log(sender, msg, tstamp=tstamp)
