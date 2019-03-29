@@ -84,7 +84,7 @@ class Conversation:
         self.account = account
         self.type = ctype
         self.peers = []
-        self.list_win = None
+        self.list_win = LIST_WIN
         self.log_win = None
         self.input_win = None
         self.notification = 0
@@ -1000,29 +1000,19 @@ def handle_message(backend, acc_id, tstamp, sender, msg):
     backend.conversation.log(sender, msg, tstamp=tstamp)
 
 
-def update_buddy(backend, acc_id, name, alias, status):
+def update_buddy(buddy):
     """
     Update buddy in UI
     """
 
     # look for existing buddy
-    for conv in LIST_WIN.list:
+    for conv in CONVERSATIONS:
         if conv.type != "buddy":
             continue
 
-        buddy = conv.peers[0]
-        if buddy.backend is backend and \
-           buddy.account.aid == acc_id and \
-           buddy.name == name:
-            old_status = buddy.status
-            old_alias = buddy.alias
-            buddy.status = status
-            buddy.alias = alias
-            if old_status != status or old_alias != alias:
-                LIST_WIN.redraw()
-            return True
-
-    return False
+        conv_buddy = conv.peers[0]
+        if conv_buddy is buddy:
+            conv.list_win.redraw()
 
 
 def add_buddy(buddy):
@@ -1033,8 +1023,8 @@ def add_buddy(buddy):
     # add a new conversation for the new buddy
     conv = Conversation(buddy.backend, buddy.account, buddy.name)
     conv.peers.append(buddy)
-    LIST_WIN.add(conv)
-    LIST_WIN.redraw()
+    conv.list_win.add(conv)
+    conv.list_win.redraw()
 
 
 def read_input():

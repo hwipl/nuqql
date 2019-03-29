@@ -429,11 +429,9 @@ class Account:
         # look for existing buddy
         for buddy in self.buddies:
             if buddy.name == name:
-                buddy.update(status, alias)
-
-                # tell ui about the update
-                nuqql.ui.update_buddy(backend, self.aid, buddy.name,
-                                      buddy.alias, buddy.status)
+                if buddy.update(status, alias):
+                    # tell ui about the update
+                    nuqql.ui.update_buddy(buddy)
 
                 # found existing buddy; stop here
                 return
@@ -482,9 +480,21 @@ class Buddy:
         Update Buddy
         """
 
+        # save old status and alias to check if buddy has changed
+        old_status = self.status
+        old_alias = self.alias
+
+        # set new values
         self.updated = True
         self.set_status(status)
         self.alias = alias
+
+        # check if buddy has changed
+        if old_status != self.status or old_alias != self.alias:
+            return True
+
+        # has not changed
+        return False
 
 
 #####################
