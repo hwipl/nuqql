@@ -139,7 +139,7 @@ class Conversation:
         if self.type == "nuqql":
             # nuqql itself needs a list window for buddy list
             self.list_win = ListWin(self, 0, 0, list_win_y, list_win_x,
-                                    list_win_y - 2, 128, "Buddy List")
+                                    list_win_y - 2, 128, "Conversation List")
             # set list to conversations
             self.list_win.list = CONVERSATIONS
             # do not start as active
