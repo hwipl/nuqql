@@ -631,6 +631,42 @@ def handle_network():
         backend.handle_network()
 
 
+def start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
+                  backend_sockfile):
+    """
+    Helper for starting a backend
+    """
+
+    # check if backend exists in path
+    exe = shutil.which(backend_exe, path=os.getcwd())
+    if exe is None:
+        exe = shutil.which(backend_exe)
+    if exe is None:
+        # does not exist, stop here
+        return
+
+    backend_cmd = backend_cmd_fmt.format(exe, backend_path)
+
+    backend = Backend(backend_name)
+    backend.start_server(cmd=backend_cmd, path=backend_path)
+    backend.start_client(sock_file=backend_sockfile)
+
+    BACKENDS[backend_name] = backend
+
+    # add conversation
+    conv = nuqql.ui.Conversation(backend, None, backend.name, ctype="backend")
+    conv.activate()
+    nuqql.ui.CONVERSATIONS.append(conv)
+    backend.conversation = conv
+
+    # request accounts from backend
+    backend.client.send_accounts()
+
+    # log it
+    log_msg = "Collecting accounts for \"{0}\".".format(backend.name)
+    nuqql.ui.log_main_window(log_msg)
+
+
 def start_purpled():
     """
     Helper for starting the "purpled" backend
@@ -648,28 +684,14 @@ def start_purpled():
     # purpled #
     ###########
 
-    purpled_path = str(Path.home()) + "/.config/nuqql/backend/purpled"
-    purpled_cmd = "{0} -u -w{1}".format(exe, purpled_path)
-    purpled_sockfile = purpled_path + "/purpled.sock"
+    backend_name = "purpled"
+    backend_exe = "purpled"
+    backend_path = str(Path.home()) + "/.config/nuqql/backend/purpled"
+    backend_cmd_fmt = "{0} -u -w{1}"
+    backend_sockfile = backend_path + "/purpled.sock"
 
-    purpled = Backend("purpled")
-    purpled.start_server(cmd=purpled_cmd, path=purpled_path)
-    purpled.start_client(sock_file=purpled_sockfile)
-
-    BACKENDS["purpled"] = purpled
-
-    # add conversation for purpled
-    conv = nuqql.ui.Conversation(purpled, None, purpled.name, ctype="backend")
-    conv.activate()
-    nuqql.ui.CONVERSATIONS.append(conv)
-    purpled.conversation = conv
-
-    # request accounts from backend
-    purpled.client.send_accounts()
-
-    # log it
-    log_msg = "Collecting accounts for \"{0}\".".format(purpled.name)
-    nuqql.ui.log_main_window(log_msg)
+    start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
+                  backend_sockfile)
 
 
 def start_based():
@@ -677,41 +699,18 @@ def start_based():
     Helper for starting the "based" backend
     """
 
-    # check if purpled exists in path
-    exe = shutil.which("based.py", path=os.getcwd())
-    if exe is None:
-        exe = shutil.which("based.py")
-    if exe is None:
-        # does not exist, stop here
-        return
-
     ###############
     # nuqql-based #
     ###############
 
-    based_path = str(Path.home()) + "/.config/nuqql/backend/based"
-    based_cmd = "{0} --af unix --dir {1} --sockfile based.sock".format(
-        exe, based_path)
-    based_sockfile = based_path + "/based.sock"
+    backend_name = "based"
+    backend_exe = "based.py"
+    backend_path = str(Path.home()) + "/.config/nuqql/backend/based"
+    backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile based.sock"
+    backend_sockfile = backend_path + "/based.sock"
 
-    based = Backend("based")
-    based.start_server(cmd=based_cmd, path=based_path)
-    based.start_client(sock_file=based_sockfile)
-
-    BACKENDS["based"] = based
-
-    # add conversation
-    conv = nuqql.ui.Conversation(based, None, based.name, ctype="backend")
-    conv.activate()
-    nuqql.ui.CONVERSATIONS.append(conv)
-    based.conversation = conv
-
-    # request accounts from backend
-    based.client.send_accounts()
-
-    # log it
-    log_msg = "Collecting accounts for \"{0}\".".format(based.name)
-    nuqql.ui.log_main_window(log_msg)
+    start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
+                  backend_sockfile)
 
 
 def start_backends():
