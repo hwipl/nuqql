@@ -10,63 +10,13 @@ import curses
 import curses.ascii
 import datetime
 
+import nuqql.config
+
 # screen and main windows
 MAIN_WINS = {}
 
 # list of active conversations
 CONVERSATIONS = []
-
-# default keymap for special keys
-DEFAULT_KEYMAP = {
-    chr(curses.ascii.ESC):  "KEY_ESC",
-    curses.KEY_RIGHT:       "KEY_RIGHT",
-    curses.KEY_LEFT:        "KEY_LEFT",
-    curses.KEY_DOWN:        "KEY_DOWN",
-    curses.KEY_UP:          "KEY_UP",
-    curses.ascii.ctrl("x"): "KEY_CTRL_X",
-    chr(curses.ascii.DEL):  "KEY_DEL",
-    curses.KEY_DC:          "KEY_DEL",
-    curses.KEY_HOME:        "KEY_HOME",
-    curses.KEY_END:         "KEY_END",
-    curses.KEY_PPAGE:       "KEY_PAGE_UP",
-    curses.KEY_NPAGE:       "KEY_PAGE_DOWN",
-}
-
-# default key bindings for input windows
-DEFAULT_INPUT_WIN_KEYBINDS = {
-    "KEY_ESC":          "GO_BACK",
-    "KEY_RIGHT":        "CURSOR_RIGHT",
-    "KEY_LEFT":         "CURSOR_LEFT",
-    "KEY_DOWN":         "CURSOR_DOWN",
-    "KEY_UP":           "CURSOR_UP",
-    "KEY_CTRL_X":       "SEND_MSG",
-    "KEY_DEL":          "DEL_CHAR",
-    "KEY_HOME":         "CURSOR_MSG_START",
-    "KEY_END":          "CURSOR_MSG_END",
-    "KEY_PAGE_UP":      "CURSOR_LINE_START",
-    "KEY_PAGE_DOWN":    "CURSOR_LINE_END",
-}
-
-# default key bindings for log windows
-# TODO: not used so far... do it?
-DEFAULT_LOG_WIN_KEYBINDS = DEFAULT_INPUT_WIN_KEYBINDS
-
-# default key bindings for list window (Buddy List)
-DEFAULT_LIST_WIN_KEYBINDS = DEFAULT_INPUT_WIN_KEYBINDS
-# default_list_win_keybinds = {
-#   ...
-#    #"q"             : "GO_BACK", # TODO: do we want something like that?
-#    #"\n"            : "DO_SOMETHING", # TODO: do we want something like that?
-#   ...
-# }
-
-# window x and y sizes in percent
-LIST_WIN_Y_PER = 1
-LIST_WIN_X_PER = 0.2
-LOG_WIN_Y_PER = 0.8
-LOG_WIN_X_PER = 0.8
-INPUT_WIN_Y_PER = 0.2
-INPUT_WIN_X_PER = 0.8
 
 
 class Conversation:
@@ -101,18 +51,6 @@ class Conversation:
             self.clear_notifications()
             return
 
-        # determine window sizes
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        list_win_y, list_win_x = get_absolute_size(max_y, max_x,
-                                                   LIST_WIN_Y_PER,
-                                                   LIST_WIN_X_PER)
-        log_win_y, log_win_x = get_absolute_size(max_y, max_x,
-                                                 LOG_WIN_Y_PER,
-                                                 LOG_WIN_X_PER)
-        input_win_y, input_win_x = get_absolute_size(max_y, max_x,
-                                                     INPUT_WIN_Y_PER,
-                                                     INPUT_WIN_X_PER)
-
         # create windows
         if self.type == "buddy":
             # standard chat windows
@@ -124,11 +62,10 @@ class Conversation:
             log_title = "Command log of {0}".format(self.name)
             input_title = "Command to {0}".format(self.name)
 
-        self.log_win = LogWin(self, 0, list_win_x, log_win_y, log_win_x,
-                              log_win_y - 2, log_win_x - 2, log_title)
-        self.input_win = InputWin(self, max_y - input_win_y, list_win_x,
-                                  input_win_y, input_win_x, 2000, 2000,
-                                  input_title)
+        log_config = nuqql.config.get("log_win")
+        self.log_win = LogWin(log_config, self, log_title)
+        input_config = nuqql.config.get("input_win")
+        self.input_win = InputWin(input_config, self, input_title)
 
         if self.type == "backend":
             # do not start as active
@@ -136,8 +73,8 @@ class Conversation:
 
         if self.type == "nuqql":
             # nuqql itself needs a list window for buddy list
-            self.list_win = ListWin(self, 0, 0, list_win_y, list_win_x,
-                                    list_win_y - 2, 128, "Conversation List")
+            list_config = nuqql.config.get("list_win")
+            self.list_win = ListWin(list_config, self, "Conversation list")
             # set list to conversations
             self.list_win.list = CONVERSATIONS
             # do not start as active
@@ -253,25 +190,25 @@ class Win:
     Base class for Windows
     """
 
-    def __init__(self, conversation, pos_y, pos_x, win_y_max, win_x_max,
-                 pad_y_max, pad_x_max, title):
+    def __init__(self, config, conversation, title):
+        # configuration
+        self.config = config
+
         # is window active?
         self.active = True
-        self.pos_y = pos_y
-        self.pos_x = pos_x
+
+        # get window properties
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        size_y, size_x = self.config.get_size(max_y, max_x)
+        pos_y, pos_x = self.config.get_pos(max_y, max_x)
 
         # new window
-        self.win_y_max = win_y_max
-        self.win_x_max = win_x_max
-        self.win = curses.newwin(self.win_y_max, self.win_x_max,
-                                 self.pos_y, self.pos_x)
+        self.win = curses.newwin(size_y, size_x, pos_y, pos_x)
 
         # new pad
-        self.pad_x_max = pad_x_max
-        self.pad_y_max = pad_y_max
         self.pad_y = 0
         self.pad_x = 0
-        self.pad = curses.newpad(self.pad_y_max, self.pad_x_max)
+        self.pad = curses.newpad(max_y, max_x)
 
         # cursor positions
         self.cur_y = 0
@@ -284,9 +221,6 @@ class Win:
         self.list = []
 
         # keymaps/bindings
-        self.keymap = DEFAULT_KEYMAP
-        self.keybind = {}
-        self.init_keybinds()
         self.keyfunc = {}
         self.init_keyfunc()
 
@@ -294,7 +228,7 @@ class Win:
         self.conversation = conversation
 
         # window title
-        # TODO: use name instead?
+        # TODO: use conversation.name instead?
         self.title = " " + title + " "
 
     def redraw_win(self):
@@ -312,7 +246,9 @@ class Win:
         self.win.border()
 
         # window title
-        max_title_len = min(len(self.title), self.win_x_max - 3)
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        unused_size_y, size_x = self.config.get_size(max_y, max_x)
+        max_title_len = min(len(self.title), size_x - 3)
         title = self.title[:max_title_len]
         if title != "":
             title = title[:-1] + " "
@@ -328,12 +264,16 @@ class Win:
         Move the pad
         """
 
-        if self.cur_x >= self.win_x_max - 2:
-            self.pad_x = self.cur_x - (self.win_x_max - 2)
+        # get sizes
+        size_y, size_x = self.win.getmaxyx()
+
+        # move
+        if self.cur_x >= size_x - 2:
+            self.pad_x = self.cur_x - (size_x - 2)
         if self.cur_x < self.pad_x:
             self.pad_x = self.pad_x - self.cur_x
-        if self.cur_y >= self.win_y_max - 2:
-            self.pad_y = self.cur_y - (self.win_y_max - 2)
+        if self.cur_y >= size_y - 2:
+            self.pad_y = self.cur_y - (size_y - 2)
         if self.cur_y < self.pad_y:
             self.pad_y = self.pad_y - self.cur_y
 
@@ -342,14 +282,20 @@ class Win:
         Check borders
         """
 
+        # get sizes
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        size_y, size_x = self.config.get_size(max_y, max_x)
+        pad_y_max, pad_x_max = self.pad.getmaxyx()
+
+        # check
         if self.pad_x < 0:
             self.pad_x = 0
-        if self.pad_x > self.pad_x_max - self.win_x_max:
-            self.pad_x = self.pad_x_max - self.win_x_max
+        if self.pad_x > pad_x_max - size_x - 2:
+            self.pad_x = pad_x_max - size_x - 2
         if self.pad_y < 0:
             self.pad_y = 0
-        if self.pad_y > self.pad_y_max - self.win_y_max:
-            self.pad_y = self.pad_y_max - self.win_y_max
+        if self.pad_y > pad_y_max - size_y - 2:
+            self.pad_y = pad_y_max - size_y - 2
 
     def redraw_pad(self):
         """
@@ -380,18 +326,15 @@ class Win:
         Resize window
         """
 
-        self.win_y_max = win_y_max
-        self.win_x_max = win_x_max
-        self.win.resize(self.win_y_max, self.win_x_max)
+        # TODO: change function parameters?
+        self.win.resize(win_y_max, win_x_max)
 
     def move_win(self, pos_y, pos_x):
         """
         Move window
         """
 
-        self.pos_y = pos_y
-        self.pos_x = pos_x
-        self.win.mvwin(self.pos_y, self.pos_x)
+        self.win.mvwin(pos_y, pos_x)
 
     def go_back(self, *args):
         """
@@ -470,13 +413,6 @@ class Win:
 
         # implemented in sub classes
 
-    def init_keybinds(self):
-        """
-        Initialize key bindings
-        """
-
-        # implemented in sub classes
-
     def init_keyfunc(self):
         """
         Initialize key to function mapping
@@ -507,19 +443,31 @@ class ListWin(Win):
         Redraw pad in window
         """
 
+        # screen/pad properties
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        size_y, size_x = self.config.get_size(max_y, max_x)
+        pad_max_y, unused_pad_max_x = self.pad.getmaxyx()
         self.cur_y, self.cur_x = self.pad.getyx()
         self.pad.clear()
+
         # set colors
         curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
         self.pad.attron(curses.color_pair(2))
+
         # sort list
         self.list.sort()
-        # dump log messages and resize pad according to new lines added
-        self.pad_y_max = self.win_y_max - 2     # reset minimum size of pad
-        # for buddy in self.list[-(self.pad_y_max-1):]:
-        # for buddy in self.list[:self.pad_y_max-1]:
+
+        # make sure all names fit into pad
+        if len(self.list) > pad_max_y:
+            self.pad.resize(len(self.list), size_x - 2)
+
+        # print names in list window
         for index, conv in enumerate(self.list):
-            name = conv.get_name() + "\n"
+            # get name of element; cut if it's too long
+            name = conv.get_name()
+            name = name[:size_x-2] + "\n"
+
+            # print name
             if index == self.cur_y:
                 # pointer is on conversation, highlight it in list
                 self.pad.addstr(name, curses.A_REVERSE)
@@ -527,63 +475,32 @@ class ListWin(Win):
                 # just show the conversation in list
                 self.pad.addstr(name)
 
-            # resize pad for more buddies
-            self.pad_y_max += 1
-            self.pad.resize(self.pad_y_max, self.pad_x_max)
         # reset colors
         self.pad.attroff(curses.color_pair(2))
 
         # move cursor back to original position
         self.pad.move(self.cur_y, self.cur_x)
+
         # check if visible part of pad needs to be moved and display it
         self.move_pad()
         self.check_borders()
+        pos_y, pos_x = self.config.get_pos(max_y, max_x)
         self.pad.refresh(self.pad_y, self.pad_x,
-                         self.pos_y + 1, self.pos_x + 1,
-                         self.pos_y + self.win_y_max - 2,
-                         self.pos_x + self.win_x_max - 2)
-
-    def move_pad(self):
-        """
-        Move pad
-        """
-
-        # TODO: re-check all that moving stuff
-        self.cur_y, self.cur_x = self.pad.getyx()
-        if self.cur_x >= self.win_x_max - 2:
-            # TODO: change -3 to -2 somehow? then use super class function
-            self.pad_x = self.cur_x - (self.win_x_max - 3)
-        if self.cur_x < self.pad_x:
-            self.pad_x = self.cur_x
-        # TODO: change -3 to -2 somehow? then use super class function
-        if self.cur_y >= self.win_y_max - 3:
-            # TODO: change -3 to -2 somehow? then use super class function
-            self.pad_y = self.cur_y - (self.win_y_max - 3)
-        elif self.cur_y < self.pad_y:
-            self.pad_y = self.cur_y
-
-    def highlight(self, coord_y, val):
-        """
-        Highlight entry in internal list
-        """
-
-        buddy = self.list[coord_y]
-        buddy.hilight = val
+                         pos_y + 1, pos_x + 1,
+                         pos_y + size_y - 2,
+                         pos_x + size_x - 2)
 
     def cursor_up(self, *args):
         if self.cur_y > 0:
             self.pad.move(self.cur_y - 1, self.cur_x)
-            self.highlight(self.cur_y, False)
-            self.highlight(self.cur_y - 1, True)
 
     def cursor_down(self, *args):
-        if self.cur_y < self.pad_y_max and self.cur_y < len(self.list) - 1:
-            self.pad.move(self.cur_y + 1, self.cur_x)
-            self.highlight(self.cur_y, False)
-            self.highlight(self.cur_y + 1, True)
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        size_y, unused_size_x = self.config.get_size(max_y, max_x)
 
-    def init_keybinds(self):
-        self.keybind = DEFAULT_LIST_WIN_KEYBINDS
+        # if self.cur_y < self.pad_y_max and self.cur_y < len(self.list) - 1:
+        if self.cur_y < size_y - 2 and self.cur_y < len(self.list) - 1:
+            self.pad.move(self.cur_y + 1, self.cur_x)
 
     def process_input(self, char):
         """
@@ -593,8 +510,8 @@ class ListWin(Win):
         self.cur_y, self.cur_x = self.pad.getyx()
 
         # look for special key mappings in keymap or process as text
-        if char in self.keymap:
-            func = self.keyfunc[self.keybind[self.keymap[char]]]
+        if char in self.config.keymap:
+            func = self.keyfunc[self.config.keybinds[self.config.keymap[char]]]
             func()
         elif char == "q":
             self.active = False
@@ -612,15 +529,20 @@ class LogWin(Win):
     """
 
     def redraw_pad(self):
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        size_y, size_x = self.config.get_size(max_y, max_x)
+        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        pad_y_max, pad_x_max = self.pad.getmaxyx()
+
         self.pad.clear()
         # if window was resized, resize pad x size according to new window size
         # TODO: do the same thing for y size and ensure a minimal pad y size?
-        if self.pad_x_max != self.win_x_max - 2:
-            self.pad_x_max = self.win_x_max - 2
-            self.pad.resize(self.pad_y_max, self.pad_x_max)
+        if pad_x_max != size_x - 2:
+            pad_x_max = size_x - 2
+            self.pad.resize(pad_y_max, pad_x_max)
 
         # dump log messages and resize pad according to new lines added
-        for msg in self.list[-(self.pad_y_max-1):]:
+        for msg in self.list[-(pad_y_max-1):]:
             # current pad dimensions for resize later
             old_y, unused_x = self.pad.getyx()
 
@@ -658,17 +580,17 @@ class LogWin(Win):
 
             # resize pad
             new_y, unused_x = self.pad.getyx()
-            self.pad_y_max += new_y - old_y
-            self.pad.resize(self.pad_y_max, self.pad_x_max)
+            pad_y_max += new_y - old_y
+            self.pad.resize(pad_y_max, pad_x_max)
 
         # check if visible part of pad needs to be moved and display it
         self.cur_y, self.cur_x = self.pad.getyx()
         self.move_pad()
         self.check_borders()
         self.pad.refresh(self.pad_y, self.pad_x,
-                         self.pos_y + 1, self.pos_x + 1,
-                         self.pos_y + self.win_y_max - 2,
-                         self.pos_x + self.win_x_max - 2)
+                         pos_y + 1, pos_x + 1,
+                         pos_y + size_y - 2,
+                         pos_x + size_x - 2)
 
 
 class InputWin(Win):
@@ -677,25 +599,17 @@ class InputWin(Win):
     """
 
     def redraw_pad(self):
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        size_y, size_x = self.config.get_size(max_y, max_x)
+        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        # pad_y_max, pad_x_max = self.pad.getmaxyx()
+
         self.move_pad()
         self.check_borders()
         self.pad.refresh(self.pad_y, self.pad_x,
-                         self.pos_y + 1, self.pos_x + 1,
-                         self.pos_y + self.win_y_max - 2,
-                         self.pos_x + self.win_x_max - 2)
-
-    def move_pad(self):
-        self.cur_y, self.cur_x = self.pad.getyx()
-        if self.cur_x >= self.win_x_max - 2:
-            # TODO: change -3 to -2 somehow? then use super class function
-            self.pad_x = self.cur_x - (self.win_x_max - 3)
-        if self.cur_x < self.pad_x:
-            self.pad_x = self.cur_x
-        if self.cur_y >= self.win_y_max - 2:
-            # TODO: change -3 to -2 somehow? then use super class function
-            self.pad_y = self.cur_y - (self.win_y_max - 3)
-        if self.cur_y < self.pad_y:
-            self.pad_y = self.cur_y
+                         pos_y + 1, pos_x + 1,
+                         pos_y + size_y - 2,
+                         pos_x + size_x - 2)
 
     def cursor_up(self, *args):
         segment = args[0]
@@ -704,8 +618,11 @@ class InputWin(Win):
                           min(self.cur_x, len(segment[self.cur_y - 1])))
 
     def cursor_down(self, *args):
+        # pad properties
+        pad_y_max, unused_pad_x_max = self.pad.getmaxyx()
+
         segment = args[0]
-        if self.cur_y < self.pad_y_max and self.cur_y < len(segment) - 1:
+        if self.cur_y < pad_y_max and self.cur_y < len(segment) - 1:
             self.pad.move(self.cur_y + 1,
                           min(self.cur_x, len(segment[self.cur_y + 1])))
 
@@ -714,8 +631,11 @@ class InputWin(Win):
             self.pad.move(self.cur_y, self.cur_x - 1)
 
     def cursor_right(self, *args):
+        # pad properties
+        unused_pad_y_max, pad_x_max = self.pad.getmaxyx()
+
         segment = args[0]
-        if self.cur_x < self.pad_x_max and \
+        if self.cur_x < pad_x_max and \
            self.cur_x < len(segment[self.cur_y]):
             self.pad.move(self.cur_y, self.cur_x + 1)
 
@@ -724,8 +644,11 @@ class InputWin(Win):
             self.pad.move(self.cur_y, 0)
 
     def cursor_line_end(self, *args):
+        # pad properties
+        unused_pad_y_max, pad_x_max = self.pad.getmaxyx()
+
         segment = args[0]
-        if self.cur_x < self.pad_x_max and \
+        if self.cur_x < pad_x_max and \
            self.cur_x < len(segment[self.cur_y]):
             self.pad.move(self.cur_y, len(segment[self.cur_y]))
 
@@ -792,9 +715,6 @@ class InputWin(Win):
         self.active = False
         self.conversation.log_win.active = False
 
-    def init_keybinds(self):
-        self.keybind = DEFAULT_INPUT_WIN_KEYBINDS
-
     def process_input(self, char):
         """
         Process user input (character)
@@ -804,8 +724,8 @@ class InputWin(Win):
         self.cur_y, self.cur_x = self.pad.getyx()
 
         # look for special key mappings in keymap or process as text
-        if char in self.keymap:
-            func = self.keyfunc[self.keybind[self.keymap[char]]]
+        if char in self.config.keymap:
+            func = self.keyfunc[self.config.keybinds[self.config.keymap[char]]]
             func(segment)
         else:
             # insert new character into segments
@@ -914,13 +834,6 @@ def resize_main_window():
 
     # get new maxima
     max_y, max_x = screen.getmaxyx()
-    list_win_y, list_win_x = get_absolute_size(max_y, max_x,
-                                               LIST_WIN_Y_PER, LIST_WIN_X_PER)
-    log_win_y, log_win_x = get_absolute_size(max_y, max_x,
-                                             LOG_WIN_Y_PER, LOG_WIN_X_PER)
-    input_win_y, input_win_x = get_absolute_size(max_y, max_x,
-                                                 INPUT_WIN_Y_PER,
-                                                 INPUT_WIN_X_PER)
 
     # redraw main windows
     screen.clear()
@@ -930,13 +843,18 @@ def resize_main_window():
     for conv in CONVERSATIONS:
         # resize and move conversation windows
         if conv.list_win:
-            conv.list_win.resize_win(list_win_y, list_win_x)
+            size_y, size_x = conv.list_win.config.get_size(max_y, max_x)
+            conv.list_win.resize_win(size_y, size_x)
         if conv.log_win:
-            conv.log_win.resize_win(log_win_y, log_win_x)
-            conv.log_win.move_win(0, list_win_x)
+            size_y, size_x = conv.log_win.config.get_size(max_y, max_x)
+            conv.log_win.resize_win(size_y, size_x)
+            pos_y, pos_x = conv.log_win.config.get_pos(max_y, max_x)
+            conv.log_win.move_win(pos_y, pos_x)
         if conv.input_win:
-            conv.input_win.resize_win(input_win_y, input_win_x)
-            conv.input_win.move_win(max_y - input_win_y, list_win_x)
+            size_y, size_x = conv.input_win.config.get_size(max_y, max_x)
+            conv.input_win.resize_win(size_y, size_x)
+            pos_y, pos_x = conv.input_win.config.get_pos(max_y, max_x)
+            conv.input_win.move_win(pos_y, pos_x)
         # redraw active conversation windows
         if conv.list_win and conv.list_win.active:
             conv.list_win.redraw()
@@ -1079,6 +997,9 @@ def start(stdscr, func):
     # clear everything
     stdscr.clear()
     stdscr.refresh()
+
+    # make sure window config is loaded
+    nuqql.config.init_win()
 
     # create main windows
     create_main_windows()
