@@ -208,7 +208,7 @@ class Win:
         # new pad
         self.pad_y = 0
         self.pad_x = 0
-        self.pad = curses.newpad(max_y, max_x)
+        self.pad = curses.newpad(max_y - 2, max_x - 2)
 
         # cursor positions
         self.cur_y = 0
@@ -236,6 +236,9 @@ class Win:
         Redraw entire window
         """
 
+        # screen/window properties
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        unused_win_size_y, win_size_x = self.config.get_size(max_y, max_x)
         self.win.clear()
 
         # color settings on
@@ -246,9 +249,7 @@ class Win:
         self.win.border()
 
         # window title
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        unused_size_y, size_x = self.config.get_size(max_y, max_x)
-        max_title_len = min(len(self.title), size_x - 3)
+        max_title_len = min(len(self.title), win_size_x - 3)
         title = self.title[:max_title_len]
         if title != "":
             title = title[:-1] + " "
@@ -264,18 +265,27 @@ class Win:
         Move the pad
         """
 
-        # get sizes
-        size_y, size_x = self.win.getmaxyx()
+        # get window size
+        win_size_y, win_size_x = self.win.getmaxyx()
 
-        # move
-        if self.cur_x >= size_x - 2:
-            self.pad_x = self.cur_x - (size_x - 2)
+        # get current cursor positions
+        self.cur_y, self.cur_x = self.pad.getyx()
+
+        # move pad right, if cursor leaves window area on the right
+        if self.cur_x > self.pad_x + (win_size_x - 3):
+            self.pad_x = self.cur_x - (win_size_x - 3)
+
+        # move pad left, if cursor leaves current pad position on the left
         if self.cur_x < self.pad_x:
-            self.pad_x = self.pad_x - self.cur_x
-        if self.cur_y >= size_y - 2:
-            self.pad_y = self.cur_y - (size_y - 2)
+            self.pad_x = self.cur_x
+
+        # move pad down, if cursor leaves window area at the bottom
+        if self.cur_y > self.pad_y + (win_size_y - 3):
+            self.pad_y = self.cur_y - (win_size_y - 3)
+
+        # move pad up, if cursor leaves current pad position at the top
         if self.cur_y < self.pad_y:
-            self.pad_y = self.pad_y - self.cur_y
+            self.pad_y = self.cur_y
 
     def check_borders(self):
         """
@@ -283,19 +293,24 @@ class Win:
         """
 
         # get sizes
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        size_y, size_x = self.config.get_size(max_y, max_x)
-        pad_y_max, pad_x_max = self.pad.getmaxyx()
+        win_size_y, win_size_x = self.win.getmaxyx()
+        pad_size_y, pad_size_x = self.pad.getmaxyx()
 
-        # check
+        # do not move visible area too far to the left
         if self.pad_x < 0:
             self.pad_x = 0
-        if self.pad_x > pad_x_max - size_x - 2:
-            self.pad_x = pad_x_max - size_x - 2
+
+        # do not move visible area too far to the right
+        if self.pad_x + (win_size_x - 3) > pad_size_x:
+            self.pad_x = pad_size_x - (win_size_x - 3)
+
+        # do not move visible area too far up
         if self.pad_y < 0:
             self.pad_y = 0
-        if self.pad_y > pad_y_max - size_y - 2:
-            self.pad_y = pad_y_max - size_y - 2
+
+        # do not move visible area too far down
+        if self.pad_y + (win_size_y - 3) > pad_size_y:
+            self.pad_y = pad_size_y - (win_size_y - 3)
 
     def redraw_pad(self):
         """
@@ -445,8 +460,9 @@ class ListWin(Win):
 
         # screen/pad properties
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        size_y, size_x = self.config.get_size(max_y, max_x)
-        pad_max_y, unused_pad_max_x = self.pad.getmaxyx()
+        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        win_size_y, win_size_x = self.win.getmaxyx()
+        pad_size_y, pad_size_x = self.pad.getmaxyx()
         self.cur_y, self.cur_x = self.pad.getyx()
         self.pad.clear()
 
@@ -458,18 +474,18 @@ class ListWin(Win):
         self.list.sort()
 
         # make sure all names fit into pad
-        if len(self.list) > pad_max_y:
-            self.pad.resize(len(self.list), size_x - 2)
+        if len(self.list) > pad_size_y - 1:
+            self.pad.resize(len(self.list) + 1, pad_size_x)
 
         # print names in list window
         for index, conv in enumerate(self.list):
             # get name of element; cut if it's too long
             name = conv.get_name()
-            name = name[:size_x-2] + "\n"
+            name = name[:pad_size_x-1] + "\n"
 
             # print name
             if index == self.cur_y:
-                # pointer is on conversation, highlight it in list
+                # cursor is on conversation, highlight it in list
                 self.pad.addstr(name, curses.A_REVERSE)
             else:
                 # just show the conversation in list
@@ -484,22 +500,19 @@ class ListWin(Win):
         # check if visible part of pad needs to be moved and display it
         self.move_pad()
         self.check_borders()
-        pos_y, pos_x = self.config.get_pos(max_y, max_x)
         self.pad.refresh(self.pad_y, self.pad_x,
                          pos_y + 1, pos_x + 1,
-                         pos_y + size_y - 2,
-                         pos_x + size_x - 2)
+                         pos_y + win_size_y - 2,
+                         pos_x + win_size_x - 2)
 
     def cursor_up(self, *args):
+        # move cursor up until first entry in list
         if self.cur_y > 0:
             self.pad.move(self.cur_y - 1, self.cur_x)
 
     def cursor_down(self, *args):
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        size_y, unused_size_x = self.config.get_size(max_y, max_x)
-
-        # if self.cur_y < self.pad_y_max and self.cur_y < len(self.list) - 1:
-        if self.cur_y < size_y - 2 and self.cur_y < len(self.list) - 1:
+        # move cursor down until end of list
+        if self.cur_y < len(self.list) - 1:
             self.pad.move(self.cur_y + 1, self.cur_x)
 
     def process_input(self, char):
@@ -529,20 +542,21 @@ class LogWin(Win):
     """
 
     def redraw_pad(self):
+        # screen/pad properties
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        size_y, size_x = self.config.get_size(max_y, max_x)
         pos_y, pos_x = self.config.get_pos(max_y, max_x)
-        pad_y_max, pad_x_max = self.pad.getmaxyx()
+        win_size_y, win_size_x = self.win.getmaxyx()
+        pad_size_y, pad_size_x = self.pad.getmaxyx()
 
         self.pad.clear()
         # if window was resized, resize pad x size according to new window size
         # TODO: do the same thing for y size and ensure a minimal pad y size?
-        if pad_x_max != size_x - 2:
-            pad_x_max = size_x - 2
-            self.pad.resize(pad_y_max, pad_x_max)
+        if pad_size_x != win_size_x - 2:
+            pad_size_x = win_size_x - 2
+            self.pad.resize(pad_size_y, pad_size_x)
 
         # dump log messages and resize pad according to new lines added
-        for msg in self.list[-(pad_y_max-1):]:
+        for msg in self.list[-(pad_size_y-1):]:
             # current pad dimensions for resize later
             old_y, unused_x = self.pad.getyx()
 
@@ -580,8 +594,8 @@ class LogWin(Win):
 
             # resize pad
             new_y, unused_x = self.pad.getyx()
-            pad_y_max += new_y - old_y
-            self.pad.resize(pad_y_max, pad_x_max)
+            pad_size_y += new_y - old_y
+            self.pad.resize(pad_size_y, pad_size_x)
 
         # check if visible part of pad needs to be moved and display it
         self.cur_y, self.cur_x = self.pad.getyx()
@@ -589,8 +603,8 @@ class LogWin(Win):
         self.check_borders()
         self.pad.refresh(self.pad_y, self.pad_x,
                          pos_y + 1, pos_x + 1,
-                         pos_y + size_y - 2,
-                         pos_x + size_x - 2)
+                         pos_y + win_size_y - 2,
+                         pos_x + win_size_x - 2)
 
 
 class InputWin(Win):
@@ -600,16 +614,15 @@ class InputWin(Win):
 
     def redraw_pad(self):
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        size_y, size_x = self.config.get_size(max_y, max_x)
         pos_y, pos_x = self.config.get_pos(max_y, max_x)
-        # pad_y_max, pad_x_max = self.pad.getmaxyx()
+        win_size_y, win_size_x = self.config.get_size(max_y, max_x)
 
         self.move_pad()
         self.check_borders()
         self.pad.refresh(self.pad_y, self.pad_x,
                          pos_y + 1, pos_x + 1,
-                         pos_y + size_y - 2,
-                         pos_x + size_x - 2)
+                         pos_y + win_size_y - 2,
+                         pos_x + win_size_x - 2)
 
     def cursor_up(self, *args):
         segment = args[0]
@@ -720,30 +733,36 @@ class InputWin(Win):
         Process user input (character)
         """
 
-        segment = self.msg.split("\n")
+        segments = self.msg.split("\n")
         self.cur_y, self.cur_x = self.pad.getyx()
+        pad_size_y, pad_size_x = self.pad.getmaxyx()
 
         # look for special key mappings in keymap or process as text
         if char in self.config.keymap:
             func = self.keyfunc[self.config.keybinds[self.config.keymap[char]]]
-            func(segment)
+            func(segments)
         else:
             # insert new character into segments
             if not isinstance(char, str):
                 return
-            segment[self.cur_y] = segment[self.cur_y][:self.cur_x] + char +\
-                segment[self.cur_y][self.cur_x:]
+            # make sure new char fits in the pad
+            if len(segments) == pad_size_y - 1 and char == "\n":
+                return
+            if len(segments[self.cur_y]) == pad_size_x - 2 and char != "\n":
+                return
+
+            segments[self.cur_y] = segments[self.cur_y][:self.cur_x] + char +\
+                segments[self.cur_y][self.cur_x:]
             # reconstruct orginal message for output in pad
-            self.msg = "\n".join(segment)
+            self.msg = "\n".join(segments)
             # reconstruct segments in case newline character was entered
-            segment = self.msg.split("\n")
+            segments = self.msg.split("\n")
             # output new message in pad
             self.pad.erase()
             self.pad.addstr(self.msg)
             # move cursor to new position
             if char == "\n":
-                self.pad.move(self.cur_y + 1,
-                              min(self.cur_x, len(segment[self.cur_y + 1])))
+                self.pad.move(self.cur_y + 1, 0)
             else:
                 self.pad.move(self.cur_y, self.cur_x + 1)
         # display changes in the pad
