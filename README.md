@@ -1,25 +1,77 @@
 # nuqql
 
-nuqql is a command line instant messenger inspired by
+*nuqql* is a command line instant messenger inspired by
 [centericq](http://thekonst.net/centericq/) and
-[centerim](http://www.centerim.org) written in Python and using ncurses.
+[centerim](http://www.centerim.org) written in Python and using *ncurses*.
 
-Currently, nuqql requires [purpled](https://github.com/hwipl/purpled) as
-a back-end. purpled is a daemon that uses libpurple and allows nuqql to
+Currently, *nuqql* requires [purpled](https://github.com/hwipl/purpled) as a
+back-end. *purpled* is a daemon that uses *libpurple* and allows *nuqql* to
 connect to multiple chat networks.
+
+
+## Usage
+
+After the setup steps (see the "Setup" section), you can start and use *nuqql*
+as described in the following.
+
+### Run
+
+Run *nuqql* with `./nuqql.py`.
+
+### Overview
+
+The layout of *nuqql* is as follows:
+
+```
++--------------+----------------+
+|              |                |
+|              |                |
+|              |                |
+|              |   Log Window   |
+|              |                |
+| List Window  |                |
+|              |                |
+|              +----------------+
+|              |                |
+|              |  Input Window  |
+|              |                |
++--------------+----------------+
+```
+
+* List Window: shows the Conversation List
+* Log Window: shows the Log of the current Conversation
+* Input Window: shows the user's input of the current Conversation
+
+The Conversation List shows your buddies and special conversations for your
+back-end commands and nuqql commands. Buddies are shown with their status (on,
+afk, off) and their name, e.g., `[on] buddy@jabber.org`. Back-end and the nuqql
+command conversations are shown with `{` and `}` around them, e.g., `{nuqql}`.
+
+### Controls
+
+Basic controls of *nuqql* are:
+
+* Navigate the Conversation List with the arrow keys `UP` and `DOWN`
+* Press `ENTER` on a conversation to open it
+* In a conversation:
+  * Enter your message/command
+  * Send message/command with `CTRL-X`
+  * Leave conversation with the `ESC` key
+* Exit *nuqql* with the `q` key when you are in no conversation
+
 
 ## Setup
 
-The basic setup of nuqql consists of installing purpled and adding your instant
-messaging accounts.
+The basic setup of *nuqql* consists of installing a back-end (purpled) and
+adding your instant messaging accounts to it.
 
 ### Installing purpled
 
-nuqql needs purpled to connect to chat networks. If you have not done already,
-install purpled with the following steps:
+*nuqql* needs purpled to connect to chat networks. If you have not done
+already, install purpled with the following steps:
 
 * Download [purpled](https://github.com/hwipl/purpled)
-* Build and install purpled with:
+* Build and install *purpled* with:
   * `meson builddir`
   * `ninja -C builddir install`
 
@@ -28,13 +80,14 @@ install purpled with the following steps:
 ### Adding purpled accounts
 
 If you have not done already, you need to add your instant messaging accounts
-in purpled (see also the purpled documentation). You can do this from nuqql
+in purpled (see also the purpled documentation). You can do this from *nuqql*
 with the following steps:
 
-* Start nuqql.
-* Enter the command window with the `:` key (in the command window, send the
-  following commands to purpled with the `CTRL-X` key combination).
-* Add your accounts in the command window:
+* Start *nuqql*.
+* Enter the conversation with the purpled back-end by pressing the `ENTER` key
+  on the `{purpled}` entry in the Conversation List.
+* Add your accounts (note: send the following commands to purpled with the
+  `CTRL-X` key combination):
   * for example, you can add a jabber account with this command:
     `account add xmpp user@jabber-server.com users_password`
 * List your accounts with the command: `account list`
@@ -42,33 +95,27 @@ with the following steps:
   example, with this command: `account 0 send user_name@server.com`. Note: `0`
   is the account ID as shown with `account list`.
 
-## Usage
-
-After the previous setup steps, you should finally be able to use nuqql.
-
-### Run
-
-Run nuqql with `./nuqql.py`.
-
-### Controls
-
-Basic controls of nuqql are:
-
-* Navigate the buddy list with the arrow keys `UP` and `DOWN`
-* Press `ENTER` on a buddy to start a conversation with it
-* In a conversation:
-  * Send message with `CTRL-X`
-  * Leave conversation with the `ESC` key
-* Exit nuqql with the `q` key when you are in no conversation
-* Enter a special conversation named the command window with the `:` key when
-  you are in no conversation
-
 ### Hacky stuff/additional tools
 
-If certain keys do not work, nuqql-keys.py is a tool that might help you to set
-up or reconfigure the keymaps within the nuqql code.
+If certain keys do not work, `nuqql-keys.py` is a tool that might help you to
+set up or reconfigure the keymaps within the nuqql code.
+
+
+## Development
+
+Most of the development happens in the *devel* branch. When a new version of
+*nuqql* is released, the *devel* code is merged into the *master* branch. So,
+if you want to try the latest code, check out the *devel* branch, otherwise
+just use *master*.
 
 ## Changes
+
+* devel
+  * Rename Buddy List to Conversation List
+  * Introduce multiple backend support
+    * Each backend is listed as conversation in the Conversation List
+  * nuqql command window is now also a conversation in the Conversation List
+  * Coding style fixes and code reorganization
 * v0.2:
   * Make nuqql configuration easier:
     * Look for purpled in $PATH
