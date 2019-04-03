@@ -14,6 +14,7 @@ import shutil
 import time
 import html
 import os
+import re
 
 from pathlib import Path
 
@@ -459,9 +460,9 @@ class Buddy:
 
     # dictionary for mapping status names to shorter version
     status_map = {
-        "Offline": "off",
-        "Available": "on",
-        "Away": "afk",
+        "offline": "off",
+        "available": "on",
+        "away": "afk",
     }
 
     def set_status(self, status):
@@ -470,7 +471,7 @@ class Buddy:
         """
 
         try:
-            self.status = Buddy.status_map[status]
+            self.status = Buddy.status_map[status.lower()]
         except KeyError:
             self.status = status
 
@@ -563,7 +564,8 @@ def parse_message_msg(orig_msg):
     tstamp = part[2]
     sender = part[3]
     msg = " ".join(part[4:])
-    msg = "\n".join(msg.split("<BR>"))
+    # msg = "\n".join(msg.split("<BR>"))
+    msg = "\n".join(re.split("<br>", msg, flags=re.IGNORECASE))
     msg = html.unescape(msg)
     tstamp = datetime.datetime.fromtimestamp(int(tstamp))
     # tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
@@ -722,6 +724,25 @@ def start_based():
                   backend_sockfile)
 
 
+def start_slixmppd():
+    """
+    Helper for starting the "slixmppd" backend
+    """
+
+    ##################
+    # nuqql-slixmppd #
+    ##################
+
+    backend_name = "slixmppd"
+    backend_exe = "slixmppd.py"
+    backend_path = str(Path.home()) + "/.config/nuqql/backend/slixmppd"
+    backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile slixmppd.sock"
+    backend_sockfile = backend_path + "/slixmppd.sock"
+
+    start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
+                  backend_sockfile)
+
+
 def start_backends():
     """
     Helper for starting all backends
@@ -729,6 +750,7 @@ def start_backends():
 
     start_purpled()
     start_based()
+    start_slixmppd()
 
 
 def stop_backends():
