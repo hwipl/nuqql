@@ -150,7 +150,7 @@ class BackendClient:
 
         prefix = "account {0} send {1} ".format(account, buddy)
         msg = html.escape(msg)
-        msg = "<br>".join(msg.split("\n"))
+        msg = "<br/>".join(msg.split("\n"))
         msg = prefix + msg + "\r\n"
         msg = msg.encode()
         self.sock.send(msg)
@@ -565,7 +565,7 @@ def parse_message_msg(orig_msg):
     sender = part[3]
     msg = " ".join(part[4:])
     # msg = "\n".join(msg.split("<BR>"))
-    msg = "\n".join(re.split("<br>", msg, flags=re.IGNORECASE))
+    msg = "\n".join(re.split("<br/>", msg, flags=re.IGNORECASE))
     msg = html.unescape(msg)
     tstamp = datetime.datetime.fromtimestamp(int(tstamp))
     # tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
