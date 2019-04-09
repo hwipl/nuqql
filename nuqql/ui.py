@@ -47,11 +47,25 @@ class Conversation:
         if self.log_win is not None:
             self.input_win.active = True
             self.input_win.redraw()
-            self.log_win.active = True
+            self.log_win.active = False
             self.log_win.redraw()
             self.clear_notifications()
             return
 
+    def has_windows(self):
+        """
+        Check if conversation has already created its windows
+        """
+
+        if self.log_win:
+            return True
+
+        return False
+
+    def create_windows(self):
+        """
+        Create windows for this conversation
+        """
         # create windows
         if self.type == "buddy":
             # standard chat windows
@@ -68,22 +82,14 @@ class Conversation:
         input_config = nuqql.config.get("input_win")
         self.input_win = InputWin(input_config, self, input_title)
 
-        if self.type == "backend":
-            # do not start as active
-            self.input_win.active = False
-
         if self.type == "nuqql":
             # nuqql itself needs a list window for buddy list
             list_config = nuqql.config.get("list_win")
             self.list_win = ListWin(list_config, self, "Conversation list")
             # set list to conversations
             self.list_win.list = CONVERSATIONS
-            # do not start as active
-            self.input_win.active = False
-
-        # draw windows
-        self.log_win.redraw()
-        self.input_win.redraw()
+            # mark nuqql's list window as active, so main loop does not quit
+            self.list_win.active = True
 
     def get_name(self):
         """
@@ -120,9 +126,9 @@ class Conversation:
         if tstamp is None:
             tstamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_msg = LogMessage(tstamp, sender, msg)
-        # if window does not exist, activate it. TODO: log to conv?
+        # if window does not exist, create it. TODO: log to conv?
         if not self.log_win:
-            self.activate()
+            self.create_windows()
         self.log_win.add(log_msg)
 
     def notify(self):
@@ -227,7 +233,7 @@ class Win:
         self.config = config
 
         # is window active?
-        self.active = True
+        self.active = False
 
         # get window properties
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
@@ -364,8 +370,18 @@ class Win:
         Add entry to internal list
         """
 
+        # add entry to own list
         self.list.append(entry)
-        if self.active:
+
+        # if this window belongs to an active conversation, redraw it
+        if self.conversation.is_active():
+            self.redraw()
+        elif self is MAIN_WINS["log"]:
+            # if this is the main log, display it anyway if there is nothing
+            # else active
+            for conv in CONVERSATIONS:
+                if conv.is_active():
+                    return
             self.redraw()
 
     def resize_win(self, win_y_max, win_x_max):
@@ -562,6 +578,9 @@ class ListWin(Win):
             self.active = False
             return  # Exit the while loop
         elif char == "\n":
+            # create windows, if they do not exists
+            if not self.list[self.cur_y].has_windows():
+                self.list[self.cur_y].create_windows()
             # activate conversation
             self.list[self.cur_y].activate()
         # display changes in the pad
@@ -659,7 +678,6 @@ class LogWin(Win):
         pos_y, pos_x = self.config.get_pos(max_y, max_x)
         win_size_y, win_size_x = self.win.getmaxyx()
         unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
-        # if self.cur_y < len(self.list) - 1:
         lines = 0
         for msg in self.list:
             parts = msg.read().split("\n")
@@ -991,11 +1009,13 @@ def create_main_windows():
     # main screen
     # dummy conversation for main windows, creates log_win and input_win
     nuqql_conv = Conversation(None, None, "nuqql", ctype="nuqql")
-    nuqql_conv.activate()
+    nuqql_conv.create_windows()
     CONVERSATIONS.append(nuqql_conv)
 
     # draw list
     nuqql_conv.list_win.redraw()
+    nuqql_conv.log_win.redraw()
+    nuqql_conv.input_win.redraw()
 
     # save windows
     MAIN_WINS["list"] = nuqql_conv.list_win
