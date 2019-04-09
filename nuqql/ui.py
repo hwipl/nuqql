@@ -184,6 +184,25 @@ class Conversation:
         # return tuple of sort keys
         return sort_notify, sort_type, sort_status, sort_name
 
+    def is_active(self):
+        """
+        Check if this conversation is currently active, and return True if it
+        is the case; otherwise, return False.
+        """
+
+        if self.input_win and self.input_win.active:
+            return True
+
+        return False
+
+    def process_input(self, char):
+        """
+        Process user input in active window
+        """
+
+        if self.input_win and self.input_win.active:
+            self.input_win.process_input(char)
+
 
 class Win:
     """
@@ -916,7 +935,7 @@ def handle_message(backend, acc_id, tstamp, sender, msg):
             # log message
             conv.log(conv.name, msg, tstamp=tstamp)
             # if window is not already active notify user
-            if not conv.input_win.active:
+            if not conv.is_active():
                 conv.notify()
             return
 
@@ -986,8 +1005,8 @@ def handle_input():
 
     # pass user input to active conversation
     for conv in CONVERSATIONS:
-        if conv.input_win and conv.input_win.active:
-            conv.input_win.process_input(char)
+        if conv.is_active():
+            conv.process_input(char)
             return True
 
     # if no conversation is active pass input to active list window
