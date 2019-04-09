@@ -9,6 +9,7 @@ User Interface part of nuqql
 import curses
 import curses.ascii
 import datetime
+import math
 
 import nuqql.config
 
@@ -190,7 +191,12 @@ class Conversation:
         is the case; otherwise, return False.
         """
 
+        # check if input win is active
         if self.input_win and self.input_win.active:
+            return True
+
+        # check if log win is active
+        if self.log_win and self.log_win.active:
             return True
 
         return False
@@ -200,8 +206,15 @@ class Conversation:
         Process user input in active window
         """
 
+        # try to give control to the input win first...
         if self.input_win and self.input_win.active:
             self.input_win.process_input(char)
+            return
+
+        # then, try to give control to the log win
+        if self.log_win and self.log_win.active:
+            self.log_win.process_input(char)
+            return
 
 
 class Win:
@@ -625,6 +638,64 @@ class LogWin(Win):
                          pos_y + win_size_y - 2,
                          pos_x + win_size_x - 2)
 
+    def cursor_up(self, *args):
+        # move cursor up until first entry in list
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        win_size_y, win_size_x = self.win.getmaxyx()
+        if self.cur_y > 0:
+            self.pad.move(self.cur_y - 1, self.cur_x)
+            self.cur_y, self.cur_x = self.pad.getyx()
+            self.move_pad()
+            self.check_borders()
+            self.pad.refresh(self.pad_y, self.pad_x,
+                             pos_y + 1, pos_x + 1,
+                             pos_y + win_size_y - 2,
+                             pos_x + win_size_x - 2)
+
+    def cursor_down(self, *args):
+        # move cursor down until end of list
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        win_size_y, win_size_x = self.win.getmaxyx()
+        unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
+        # if self.cur_y < len(self.list) - 1:
+        lines = 0
+        for msg in self.list:
+            parts = msg.read().split("\n")
+            lines += len(parts) - 1
+            for part in parts:
+                if len(part) > pad_size_x:
+                    lines += math.floor(len(part) / pad_size_x)
+        if self.cur_y < lines:
+            self.pad.move(self.cur_y + 1, self.cur_x)
+            self.cur_y, self.cur_x = self.pad.getyx()
+            self.move_pad()
+            self.check_borders()
+            self.pad.refresh(self.pad_y, self.pad_x,
+                             pos_y + 1, pos_x + 1,
+                             pos_y + win_size_y - 2,
+                             pos_x + win_size_x - 2)
+
+    def go_back(self, *args):
+        self.active = True
+        self.conversation.input_win.active = True
+
+    def process_input(self, char):
+        """
+        Process user input
+        """
+
+        self.cur_y, self.cur_x = self.pad.getyx()
+
+        # look for special key mappings in keymap or process as text
+        if char in self.config.keymap:
+            func = self.keyfunc[self.config.keybinds[self.config.keymap[char]]]
+            func()
+
+        # display changes in the pad
+        # self.redraw_pad()
+
 
 class InputWin(Win):
     """
@@ -747,6 +818,14 @@ class InputWin(Win):
         self.active = False
         self.conversation.log_win.active = False
 
+    def go_log(self):
+        """
+        Jump to log
+        """
+
+        self.active = False
+        self.conversation.log_win.active = True
+
     def process_input(self, char):
         """
         Process user input (character)
@@ -760,6 +839,8 @@ class InputWin(Win):
         if char in self.config.keymap:
             func = self.keyfunc[self.config.keybinds[self.config.keymap[char]]]
             func(segments)
+        elif char == curses.ascii.ctrl("o"):
+            self.go_log()
         else:
             # insert new character into segments
             if not isinstance(char, str):
