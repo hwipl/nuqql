@@ -7,7 +7,6 @@ Backend part of nuqql.
 ################
 
 import subprocess
-import datetime
 import socket
 import select
 import shutil
@@ -564,14 +563,10 @@ def parse_message_msg(orig_msg):
     tstamp = part[2]
     sender = part[3]
     msg = " ".join(part[4:])
-    # msg = "\n".join(msg.split("<BR>"))
     msg = "\n".join(re.split("<br/>", msg, flags=re.IGNORECASE))
     msg = html.unescape(msg)
-    tstamp = datetime.datetime.fromtimestamp(int(tstamp))
-    # tstamp = tstamp.strftime("%Y-%m-%d %H:%M:%S")
-    # TODO: move timestamp conversion to caller?
-    tstamp = tstamp.strftime("%H:%M:%S")
-    return "message", acc, acc_name, tstamp, sender, msg
+
+    return "message", acc, acc_name, int(tstamp), sender, msg
 
 
 def parse_buddy_msg(orig_msg):

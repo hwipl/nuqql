@@ -10,6 +10,8 @@ import curses
 import curses.ascii
 import datetime
 import math
+import logging
+import pathlib
 
 import nuqql.config
 
@@ -18,6 +20,56 @@ MAIN_WINS = {}
 
 # list of active conversations
 CONVERSATIONS = []
+
+
+def get_logger(name, file_name):
+    """
+    Create a logger for a conversation
+    """
+
+    # create logger
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+
+    # create handler
+    fileh = logging.FileHandler(file_name)
+    fileh.setLevel(logging.DEBUG)
+
+    # create formatter
+    formatter = logging.Formatter(
+        # fmt="%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s",
+        fmt="%(message)s",
+        datefmt="%s")
+
+    # add formatter to handler
+    fileh.setFormatter(formatter)
+
+    # add handler to logger
+    logger.addHandler(fileh)
+
+    # return logger to caller
+    return logger
+
+
+def init_logger(backend, account, conv_name):
+    """
+    Init logger for a conversation
+    """
+
+    # make sure log directory exists
+    log_dir = str(pathlib.Path.home()) + \
+        "/.config/nuqql/conversation/{}/{}/{}".format(backend.name,
+                                                      account.aid,
+                                                      conv_name)
+    pathlib.Path(log_dir).mkdir(parents=True, exist_ok=True)
+
+    # create logger with log name and log file
+    log_name = "{} {} {}".format(backend.name, account.aid, conv_name)
+    log_file = log_dir + "/history"
+    logger = get_logger(log_name, log_file)
+
+    # return the ready logger and the log file to caller
+    return logger, log_file
 
 
 class Conversation:
@@ -35,8 +87,11 @@ class Conversation:
         self.input_win = None
         self.list_win = None
         self.notification = 0
+        self.logger = None
+        self.log_file = None
         if ctype == "buddy":
             self.list_win = MAIN_WINS["list"]
+            self.logger, self.log_file = init_logger(backend, account, name)
 
     def activate(self):
         """
@@ -90,6 +145,34 @@ class Conversation:
             self.list_win.list = CONVERSATIONS
             # mark nuqql's list window as active, so main loop does not quit
             self.list_win.active = True
+
+        if self.type == "buddy":
+            # try to read old messages from message history
+            lines = []
+            with open(self.log_file, newline="\r\n") as in_file:
+                lines = in_file.readlines()
+            for line in lines:
+                parts = line.split(sep=" ", maxsplit=3)
+                tstamp = parts[0]
+                direction = parts[1]
+                is_own = False
+                if direction == "OUT":
+                    is_own = True
+                sender = parts[2]
+                msg = parts[3][:-2]
+                tstamp = datetime.datetime.fromtimestamp(int(tstamp))
+                tstamp = tstamp.strftime("%H:%M:%S")
+                log_msg = LogMessage(tstamp, sender, msg, own=is_own)
+                log_msg.is_read = True
+                self.log_win.add(log_msg)
+            if lines:
+                tstamp = datetime.datetime.now()
+                tstamp = tstamp.strftime("%H:%M:%S")
+                log_msg = LogMessage(tstamp, "you",
+                                     "<Started new conversation.>",
+                                     own=True)
+                log_msg.is_read = True
+                self.log_win.add(log_msg)
 
     def get_name(self):
         """
@@ -787,8 +870,10 @@ class InputWin(Win):
         if self.msg == "":
             return
 
+        # TODO: unify the logging in a method of Conversation?
         # log message
-        now = datetime.datetime.now().strftime("%H:%M:%S")
+        tstamp = datetime.datetime.now()
+        now = tstamp.strftime("%H:%M:%S")
         # log_msg = LogMessage(now, self.conversation.account.name, self.msg,
         # TODO: add conversation -> own name function? just use "You"?
         log_msg = LogMessage(now, self.conversation.name, self.msg,
@@ -801,6 +886,8 @@ class InputWin(Win):
             self.conversation.backend.client.send_msg(
                 self.conversation.account.aid, self.conversation.name,
                 self.msg)
+            self.conversation.logger.info("{} {} {} {}\r".format(
+                round(tstamp.timestamp()), "OUT", "you", self.msg))
         else:
             # send command message
             if self.conversation.backend is not None:
@@ -1034,6 +1121,10 @@ def handle_message(backend, acc_id, tstamp, sender, msg):
            conv.account and conv.account.aid == acc_id and \
            conv.name == sender:
             # log message
+            conv.logger.info("{} {} {} {}\r".format(tstamp, "IN", sender,
+                                                    msg))
+            tstamp = datetime.datetime.fromtimestamp(tstamp)
+            tstamp = tstamp.strftime("%H:%M:%S")
             conv.log(conv.name, msg, tstamp=tstamp)
             # if window is not already active notify user
             if not conv.is_active():
