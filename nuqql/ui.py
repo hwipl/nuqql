@@ -22,56 +22,6 @@ MAIN_WINS = {}
 CONVERSATIONS = []
 
 
-def get_logger(name, file_name):
-    """
-    Create a logger for a conversation
-    """
-
-    # create logger
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-
-    # create handler
-    fileh = logging.FileHandler(file_name)
-    fileh.setLevel(logging.DEBUG)
-
-    # create formatter
-    formatter = logging.Formatter(
-        # fmt="%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s",
-        fmt="%(message)s",
-        datefmt="%s")
-
-    # add formatter to handler
-    fileh.setFormatter(formatter)
-
-    # add handler to logger
-    logger.addHandler(fileh)
-
-    # return logger to caller
-    return logger
-
-
-def init_logger(backend, account, conv_name):
-    """
-    Init logger for a conversation
-    """
-
-    # make sure log directory exists
-    log_dir = str(pathlib.Path.home()) + \
-        "/.config/nuqql/conversation/{}/{}/{}".format(backend.name,
-                                                      account.aid,
-                                                      conv_name)
-    pathlib.Path(log_dir).mkdir(parents=True, exist_ok=True)
-
-    # create logger with log name and log file
-    log_name = "{} {} {}".format(backend.name, account.aid, conv_name)
-    log_file = log_dir + "/history"
-    logger = get_logger(log_name, log_file)
-
-    # return the ready logger and the log file to caller
-    return logger, log_file
-
-
 class Conversation:
     """
     Class for conversations
@@ -121,6 +71,7 @@ class Conversation:
         """
         Create windows for this conversation
         """
+
         # create windows
         if self.type == "buddy":
             # standard chat windows
@@ -148,31 +99,7 @@ class Conversation:
 
         if self.type == "buddy":
             # try to read old messages from message history
-            lines = []
-            with open(self.log_file, newline="\r\n") as in_file:
-                lines = in_file.readlines()
-            for line in lines:
-                parts = line.split(sep=" ", maxsplit=3)
-                tstamp = parts[0]
-                direction = parts[1]
-                is_own = False
-                if direction == "OUT":
-                    is_own = True
-                sender = parts[2]
-                msg = parts[3][:-2]
-                tstamp = datetime.datetime.fromtimestamp(int(tstamp))
-                tstamp = tstamp.strftime("%H:%M:%S")
-                log_msg = LogMessage(tstamp, sender, msg, own=is_own)
-                log_msg.is_read = True
-                self.log_win.add(log_msg)
-            if lines:
-                tstamp = datetime.datetime.now()
-                tstamp = tstamp.strftime("%H:%M:%S")
-                log_msg = LogMessage(tstamp, "you",
-                                     "<Started new conversation.>",
-                                     own=True)
-                log_msg.is_read = True
-                self.log_win.add(log_msg)
+            init_log_from_file(self)
 
     def get_name(self):
         """
@@ -684,16 +611,14 @@ class LogWin(Win):
 
         self.pad.clear()
         # if window was resized, resize pad x size according to new window size
-        # TODO: do the same thing for y size and ensure a minimal pad y size?
+        # pad y size will be sorted out in the message loop below
         if pad_size_x != win_size_x - 2:
             pad_size_x = win_size_x - 2
             self.pad.resize(pad_size_y, pad_size_x)
 
         # dump log messages and resize pad according to new lines added
-        for msg in self.list[-(pad_size_y-1):]:
-            # current pad dimensions for resize later
-            old_y, unused_x = self.pad.getyx()
-
+        lines = 0
+        for msg in self.list:
             # define colors for own and buddy's messages
             # TODO: move all color definitions to config part?
             curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
@@ -723,13 +648,17 @@ class LogWin(Win):
                     self.pad.attroff(curses.A_NORMAL)
                     self.pad.attron(curses.color_pair(4) | curses.A_BOLD)
 
+            # make sure new line fits into pad
+            parts = msg.read().split("\n")
+            lines += len(parts) - 1
+            for part in parts:
+                if len(part) > pad_size_x:
+                    lines += math.floor(len(part) / pad_size_x)
+
+            if lines >= pad_size_y:
+                self.pad.resize(lines + 1, pad_size_x)
             # output message
             self.pad.addstr(msg.read())
-
-            # resize pad
-            new_y, unused_x = self.pad.getyx()
-            pad_size_y += new_y - old_y
-            self.pad.resize(pad_size_y, pad_size_x)
 
         # check if visible part of pad needs to be moved and display it
         self.cur_y, self.cur_x = self.pad.getyx()
@@ -1027,6 +956,87 @@ class LogMessage:
 ####################
 # HELPER FUNCTIONS #
 ####################
+
+def get_logger(name, file_name):
+    """
+    Create a logger for a conversation
+    """
+
+    # create logger
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+
+    # create handler
+    fileh = logging.FileHandler(file_name)
+    fileh.setLevel(logging.DEBUG)
+
+    # create formatter
+    formatter = logging.Formatter(
+        # fmt="%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s",
+        fmt="%(message)s",
+        datefmt="%s")
+
+    # add formatter to handler
+    fileh.setFormatter(formatter)
+
+    # add handler to logger
+    logger.addHandler(fileh)
+
+    # return logger to caller
+    return logger
+
+
+def init_logger(backend, account, conv_name):
+    """
+    Init logger for a conversation
+    """
+
+    # make sure log directory exists
+    log_dir = str(pathlib.Path.home()) + \
+        "/.config/nuqql/conversation/{}/{}/{}".format(backend.name,
+                                                      account.aid,
+                                                      conv_name)
+    pathlib.Path(log_dir).mkdir(parents=True, exist_ok=True)
+
+    # create logger with log name and log file
+    log_name = "{} {} {}".format(backend.name, account.aid, conv_name)
+    log_file = log_dir + "/history"
+    logger = get_logger(log_name, log_file)
+
+    # return the ready logger and the log file to caller
+    return logger, log_file
+
+
+def init_log_from_file(conv):
+    """
+    Initialize a conversation's log from the conversation's log file
+    """
+
+    lines = []
+    with open(conv.log_file, newline="\r\n") as in_file:
+        lines = in_file.readlines()
+        for line in lines:
+            parts = line.split(sep=" ", maxsplit=3)
+            tstamp = parts[0]
+            direction = parts[1]
+            is_own = False
+            if direction == "OUT":
+                is_own = True
+            sender = parts[2]
+            msg = parts[3][:-2]
+            tstamp = datetime.datetime.fromtimestamp(int(tstamp))
+            tstamp = tstamp.strftime("%H:%M:%S")
+            log_msg = LogMessage(tstamp, sender, msg, own=is_own)
+            log_msg.is_read = True
+            conv.log_win.add(log_msg)
+    if lines:
+        tstamp = datetime.datetime.now()
+        tstamp = tstamp.strftime("%H:%M:%S")
+        log_msg = LogMessage(tstamp, "<event>", "<Started new conversation.>",
+                             own=True)
+        log_msg.is_read = True
+        conv.log_win.add(log_msg)
+
 
 def log_main_window(msg):
     """
