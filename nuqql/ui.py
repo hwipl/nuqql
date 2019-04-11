@@ -861,7 +861,7 @@ class InputWin(Win):
                 self.conversation.account.aid, self.conversation.name,
                 self.msg)
             tstamp = round(tstamp.timestamp())
-            msg = "{} {} {} {}".format(tstamp, "OUT", "you", self.msg)
+            msg = create_log_line(tstamp, "OUT", "you", self.msg)
             self.conversation.logger.info(msg)
             set_lastread(self.conversation.backend, self.conversation.account,
                          self.conversation.name, tstamp,
@@ -1093,6 +1093,15 @@ def parse_log_line(line):
     return log_msg
 
 
+def create_log_line(tstamp, direction, sender, msg):
+    """
+    Create a line for the log files
+    """
+    # TODO: create from a LogMessage
+
+    return "{} {} {} {}".format(tstamp, direction, sender, msg)
+
+
 def get_lastread(backend, account, conv_name):
     """
     Get last read message from "lastread" file of the conversation
@@ -1130,7 +1139,7 @@ def set_lastread(backend, account, conv_name, tstamp, direction, sender, msg):
     pathlib.Path(lastread_dir).mkdir(parents=True, exist_ok=True)
     lastread_file = lastread_dir + "/lastread"
 
-    line = "{} {} {} {}\r\n".format(tstamp, direction, sender, msg)
+    line = create_log_line(tstamp, direction, sender, msg) + "\r\n"
     lines = []
     lines.append(line)
     with open(lastread_file, "w+") as in_file:
@@ -1262,7 +1271,7 @@ def handle_message(backend, acc_id, tstamp, sender, msg):
            conv.account and conv.account.aid == acc_id and \
            conv.name == sender:
             # log message
-            conv.logger.info("{} {} {} {}".format(tstamp, "IN", sender, msg))
+            conv.logger.info(create_log_line(tstamp, "IN", sender, msg))
             if conv.is_active():
                 set_lastread(conv.backend, conv.account, conv.name, tstamp,
                              "IN", sender, msg)
