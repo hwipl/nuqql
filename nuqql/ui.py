@@ -1071,6 +1071,27 @@ def init_logger(backend, account, conv_name):
     return logger, log_file
 
 
+def parse_log_line(line):
+    """
+    Parse line from log file and return a LogMessage
+    """
+
+    # parse line
+    parts = line.split(sep=" ", maxsplit=3)
+    tstamp = parts[0]
+    direction = parts[1]
+    is_own = False
+    if direction == "OUT":
+        is_own = True
+    sender = parts[2]
+    msg = parts[3][:-2]
+    tstamp = datetime.datetime.fromtimestamp(int(tstamp))
+
+    # create and return LogMessage
+    log_msg = LogMessage(tstamp, sender, msg, own=is_own)
+    return log_msg
+
+
 def get_lastread(backend, account, conv_name):
     """
     Get last read message from "lastread" file of the conversation
@@ -1088,16 +1109,7 @@ def get_lastread(backend, account, conv_name):
         with open(lastread_file, newline="\r\n") as in_file:
             lines = in_file.readlines()
             for line in lines:
-                parts = line.split(sep=" ", maxsplit=3)
-                tstamp = parts[0]
-                direction = parts[1]
-                is_own = False
-                if direction == "OUT":
-                    is_own = True
-                sender = parts[2]
-                msg = parts[3][:-2]
-                tstamp = datetime.datetime.fromtimestamp(int(tstamp))
-                log_msg = LogMessage(tstamp, sender, msg, own=is_own)
+                log_msg = parse_log_line(line)
                 log_msg.is_read = True
                 return log_msg
     except FileNotFoundError:
@@ -1137,19 +1149,8 @@ def init_log_from_file(conv):
     with open(conv.log_file, newline="\r\n") as in_file:
         lines = in_file.readlines()
         for line in lines:
-            # parse log message
-            parts = line.split(sep=" ", maxsplit=3)
-            tstamp = parts[0]
-            direction = parts[1]
-            is_own = False
-            if direction == "OUT":
-                is_own = True
-            sender = parts[2]
-            msg = parts[3][:-2]
-            tstamp = datetime.datetime.fromtimestamp(int(tstamp))
-
             # add log message to the conversation's log
-            log_msg = LogMessage(tstamp, sender, msg, own=is_own)
+            log_msg = parse_log_line(line)
             log_msg.is_read = is_read
             conv.log_win.add(log_msg)
 
