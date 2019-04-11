@@ -134,7 +134,7 @@ class Conversation:
         """
 
         if tstamp is None:
-            tstamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            tstamp = datetime.datetime.now()
         log_msg = LogMessage(tstamp, sender, msg)
         # if window does not exist, create it. TODO: log to conv?
         if not self.log_win:
@@ -848,10 +848,9 @@ class InputWin(Win):
         # TODO: unify the logging in a method of Conversation?
         # log message
         tstamp = datetime.datetime.now()
-        now = tstamp.strftime("%H:%M:%S")
         # log_msg = LogMessage(now, self.conversation.account.name, self.msg,
         # TODO: add conversation -> own name function? just use "You"?
-        log_msg = LogMessage(now, self.conversation.name, self.msg,
+        log_msg = LogMessage(tstamp, self.conversation.name, self.msg,
                              own=True)
         self.conversation.log_win.add(log_msg)
 
@@ -861,8 +860,12 @@ class InputWin(Win):
             self.conversation.backend.client.send_msg(
                 self.conversation.account.aid, self.conversation.name,
                 self.msg)
-            self.conversation.logger.info("{} {} {} {}\r".format(
-                round(tstamp.timestamp()), "OUT", "you", self.msg))
+            tstamp = round(tstamp.timestamp())
+            msg = "{} {} {} {}\r".format(tstamp, "OUT", "you", self.msg)
+            self.conversation.logger.info(msg)
+            set_lastread(self.conversation.backend, self.conversation.account,
+                         self.conversation.name, tstamp,
+                         "OUT", "you", self.msg)
         else:
             # send command message
             if self.conversation.backend is not None:
@@ -990,13 +993,28 @@ class LogMessage:
         """
 
         # format message
-        msg = "{0} {1}: {2}\n".format(self.tstamp, self.get_short_sender(),
+        msg = "{0} {1}: {2}\n".format(self.tstamp.strftime("%H:%M:%S"),
+                                      self.get_short_sender(),
                                       self.msg)
 
         # message has now been read
         self.is_read = True
 
         return msg
+
+    def is_equal(self, other):
+        """
+        Check if this message and the LogMessage "other" match
+        """
+
+        if self.tstamp != other.tstamp:
+            return False
+        if self.sender != other.sender:
+            return False
+        if self.msg != other.msg:
+            return False
+
+        return True
 
 
 ####################
@@ -1053,15 +1071,73 @@ def init_logger(backend, account, conv_name):
     return logger, log_file
 
 
+def get_lastread(backend, account, conv_name):
+    """
+    Get last read message from "lastread" file of the conversation
+    """
+
+    # make sure log directory exists
+    lastread_dir = str(pathlib.Path.home()) + \
+        "/.config/nuqql/conversation/{}/{}/{}".format(backend.name,
+                                                      account.aid,
+                                                      conv_name)
+    pathlib.Path(lastread_dir).mkdir(parents=True, exist_ok=True)
+    lastread_file = lastread_dir + "/lastread"
+
+    try:
+        with open(lastread_file, newline="\r\n") as in_file:
+            lines = in_file.readlines()
+            for line in lines:
+                parts = line.split(sep=" ", maxsplit=3)
+                tstamp = parts[0]
+                direction = parts[1]
+                is_own = False
+                if direction == "OUT":
+                    is_own = True
+                sender = parts[2]
+                msg = parts[3][:-2]
+                tstamp = datetime.datetime.fromtimestamp(int(tstamp))
+                log_msg = LogMessage(tstamp, sender, msg, own=is_own)
+                log_msg.is_read = True
+                return log_msg
+    except FileNotFoundError:
+        return None
+
+
+def set_lastread(backend, account, conv_name, tstamp, direction, sender, msg):
+    """
+    Set last read message in "lastread" file of the conversation
+    """
+
+    # make sure log directory exists
+    lastread_dir = str(pathlib.Path.home()) + \
+        "/.config/nuqql/conversation/{}/{}/{}".format(backend.name,
+                                                      account.aid,
+                                                      conv_name)
+    pathlib.Path(lastread_dir).mkdir(parents=True, exist_ok=True)
+    lastread_file = lastread_dir + "/lastread"
+
+    line = "{} {} {} {}\r\n".format(tstamp, direction, sender, msg)
+    lines = []
+    lines.append(line)
+    with open(lastread_file, "w+") as in_file:
+        lines = in_file.writelines(lines)
+
+
 def init_log_from_file(conv):
     """
     Initialize a conversation's log from the conversation's log file
     """
 
+    # get last read log message
+    last_read = get_lastread(conv.backend, conv.account, conv.name)
+    is_read = True
+
     lines = []
     with open(conv.log_file, newline="\r\n") as in_file:
         lines = in_file.readlines()
         for line in lines:
+            # parse log message
             parts = line.split(sep=" ", maxsplit=3)
             tstamp = parts[0]
             direction = parts[1]
@@ -1071,13 +1147,20 @@ def init_log_from_file(conv):
             sender = parts[2]
             msg = parts[3][:-2]
             tstamp = datetime.datetime.fromtimestamp(int(tstamp))
-            tstamp = tstamp.strftime("%H:%M:%S")
+
+            # add log message to the conversation's log
             log_msg = LogMessage(tstamp, sender, msg, own=is_own)
-            log_msg.is_read = True
+            log_msg.is_read = is_read
             conv.log_win.add(log_msg)
+
+            # if this is the last read message, following message will be
+            # marked as unread
+            if last_read and last_read.is_equal(log_msg):
+                is_read = False
     if lines:
+        # if there were any log messages in the log file, put a marker in the
+        # log where the new messages start
         tstamp = datetime.datetime.now()
-        tstamp = tstamp.strftime("%H:%M:%S")
         log_msg = LogMessage(tstamp, "<event>", "<Started new conversation.>",
                              own=True)
         log_msg.is_read = True
@@ -1089,7 +1172,7 @@ def log_main_window(msg):
     Log message to main windows
     """
 
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = datetime.datetime.now()
     log_msg = LogMessage(now, "nuqql", msg)
     MAIN_WINS["log"].add(log_msg)
 
@@ -1179,8 +1262,11 @@ def handle_message(backend, acc_id, tstamp, sender, msg):
             # log message
             conv.logger.info("{} {} {} {}\r".format(tstamp, "IN", sender,
                                                     msg))
+            if conv.is_active():
+                set_lastread(conv.backend, conv.account, conv.name, tstamp,
+                             "IN", sender, msg)
+
             tstamp = datetime.datetime.fromtimestamp(tstamp)
-            tstamp = tstamp.strftime("%H:%M:%S")
             conv.log(conv.name, msg, tstamp=tstamp)
             # if window is not already active notify user
             if not conv.is_active():
