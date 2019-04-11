@@ -861,7 +861,7 @@ class InputWin(Win):
                 self.conversation.account.aid, self.conversation.name,
                 self.msg)
             tstamp = round(tstamp.timestamp())
-            msg = "{} {} {} {}\r".format(tstamp, "OUT", "you", self.msg)
+            msg = "{} {} {} {}".format(tstamp, "OUT", "you", self.msg)
             self.conversation.logger.info(msg)
             set_lastread(self.conversation.backend, self.conversation.account,
                          self.conversation.name, tstamp,
@@ -1033,6 +1033,7 @@ def get_logger(name, file_name):
     # create handler
     fileh = logging.FileHandler(file_name)
     fileh.setLevel(logging.DEBUG)
+    fileh.terminator = "\r\n"
 
     # create formatter
     formatter = logging.Formatter(
@@ -1261,8 +1262,7 @@ def handle_message(backend, acc_id, tstamp, sender, msg):
            conv.account and conv.account.aid == acc_id and \
            conv.name == sender:
             # log message
-            conv.logger.info("{} {} {} {}\r".format(tstamp, "IN", sender,
-                                                    msg))
+            conv.logger.info("{} {} {} {}".format(tstamp, "IN", sender, msg))
             if conv.is_active():
                 set_lastread(conv.backend, conv.account, conv.name, tstamp,
                              "IN", sender, msg)
