@@ -669,6 +669,52 @@ class LogWin(Win):
                          pos_y + win_size_y - 2,
                          pos_x + win_size_x - 2)
 
+    def cursor_line_start(self, *args):
+        # TODO: use other method and keybind with more fitting name?
+        # move cursor up one page until first entry in log
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        win_size_y, win_size_x = self.win.getmaxyx()
+
+        if self.cur_y > 0:
+            if self.cur_y - win_size_y >= 0:
+                self.pad.move(self.cur_y - win_size_y, self.cur_x)
+            else:
+                self.pad.move(0, self.cur_x)
+            self.move_pad()
+            self.check_borders()
+            self.pad.refresh(self.pad_y, self.pad_x,
+                             pos_y + 1, pos_x + 1,
+                             pos_y + win_size_y - 2,
+                             pos_x + win_size_x - 2)
+
+    def cursor_line_end(self, *args):
+        # TODO: use other method and keybind with more fitting name?
+        # move cursor down one page until last entry in log
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        win_size_y, win_size_x = self.win.getmaxyx()
+        unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
+
+        lines = 0
+        for msg in self.list:
+            parts = msg.read().split("\n")
+            lines += len(parts) - 1
+            for part in parts:
+                if len(part) > pad_size_x:
+                    lines += math.floor(len(part) / pad_size_x)
+        if self.cur_y < lines:
+            if self.cur_y + win_size_y < lines:
+                self.pad.move(self.cur_y + win_size_y, self.cur_x)
+            else:
+                self.pad.move(lines, self.cur_x)
+            self.move_pad()
+            self.check_borders()
+            self.pad.refresh(self.pad_y, self.pad_x,
+                             pos_y + 1, pos_x + 1,
+                             pos_y + win_size_y - 2,
+                             pos_x + win_size_x - 2)
+
     def cursor_up(self, *args):
         # move cursor up until first entry in list
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
