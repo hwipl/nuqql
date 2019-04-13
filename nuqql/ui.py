@@ -12,6 +12,7 @@ import datetime
 import math
 import logging
 import pathlib
+import os
 
 import nuqql.config
 
@@ -1146,6 +1147,45 @@ def set_lastread(backend, account, conv_name, tstamp, direction, sender, msg):
         lines = in_file.writelines(lines)
 
 
+def get_last_log_line(conv):
+    """
+    Read last LogMessage from log file
+    """
+
+    # make sure log directory exists
+    lastread_dir = str(pathlib.Path.home()) + \
+        "/.config/nuqql/conversation/{}/{}/{}".format(conv.backend.name,
+                                                      conv.account.aid,
+                                                      conv.name)
+    pathlib.Path(lastread_dir).mkdir(parents=True, exist_ok=True)
+    lastread_file = lastread_dir + "/lastread"
+
+    try:
+        # negative seeking requires binary mode
+        with open(lastread_file, "rb") as in_file:
+            # check if file contains at least 2 bytes
+            in_file.seek(0, os.SEEK_END)
+            if in_file.tell() < 3:
+                return None
+
+            # try to find last line
+            in_file.seek(-3, os.SEEK_END)
+            while in_file.read(2) != b"\r\n":
+                try:
+                    in_file.seek(-3, os.SEEK_CUR)
+                except IOError:
+                    in_file.seek(-2, os.SEEK_CUR)
+                    if in_file.tell() == 0:
+                        break
+
+            # read and return last line as LogMessage
+            last_line = in_file.read()
+            log_msg = parse_log_line(last_line.decode())
+            return log_msg
+    except FileNotFoundError:
+        return None
+
+
 def init_log_from_file(conv):
     """
     Initialize a conversation's log from the conversation's log file
@@ -1312,6 +1352,16 @@ def add_buddy(buddy):
     conv.peers.append(buddy)
     conv.list_win.add(conv)
     conv.list_win.redraw()
+
+    # check if there are unread messages for this new buddy in the history
+    last_log_msg = get_last_log_line(conv)
+    last_read_msg = get_lastread(conv.backend, conv.account, conv.name)
+    if last_log_msg:
+        if not last_read_msg or not last_log_msg.is_equal(last_read_msg):
+            # there are unread messages, notify user if
+            # conversation is inactive
+            if not conv.is_active():
+                conv.notify()
 
 
 def read_input():

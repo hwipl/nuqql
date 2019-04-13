@@ -743,7 +743,7 @@ def start_backends():
     Helper for starting all backends
     """
 
-    start_purpled()
+    # start_purpled()
     start_based()
     start_slixmppd()
 
