@@ -26,13 +26,10 @@ def handle_message(backend, acc_id, tstamp, sender, msg):
            conv.account and conv.account.aid == acc_id and \
            conv.name == sender:
             # log message
-            conv.logger.info(nuqql.history.create_log_line(tstamp, "IN",
-                                                           sender, msg))
-            if conv.is_active():
-                nuqql.history.set_lastread(conv, tstamp, "IN", sender, msg)
-
             tstamp = datetime.datetime.fromtimestamp(tstamp)
-            conv.log(conv.name, msg, tstamp=tstamp)
+            log_msg = conv.log(conv.name, msg, tstamp=tstamp)
+            nuqql.history.log(conv, log_msg)
+
             # if window is not already active notify user
             if not conv.is_active():
                 conv.notify()

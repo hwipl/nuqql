@@ -269,3 +269,24 @@ def init_log_from_file(conv):
                              own=True)
         log_msg.is_read = True
         conv.log_win.add(log_msg)
+
+
+def log(conv, log_msg):
+    """
+    Write LogMessage to history log file and set lastread message
+    """
+
+    # determine log line contents
+    tstamp = round(log_msg.tstamp.timestamp())
+    direction = "IN"
+    sender = log_msg.sender
+    if log_msg.own:
+        direction = "OUT"
+        sender = "you"
+    msg = log_msg.msg
+
+    # create line and write it to history and lastread
+    line = create_log_line(tstamp, direction, sender, msg)
+    conv.logger.info(line)
+    if conv.is_active():
+        set_lastread(conv, tstamp, direction, sender, msg)

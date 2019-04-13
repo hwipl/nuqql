@@ -132,6 +132,8 @@ class Conversation:
             self.create_windows()
         self.log_win.add(log_msg)
 
+        return log_msg
+
     def notify(self):
         """
         Notify this conversation about new messages
@@ -245,19 +247,15 @@ class Conversation:
         # TODO: unify the logging in a method of Conversation?
         # log message
         tstamp = datetime.datetime.now()
-        # log_msg = LogMessage(now, self.conversation.account.name, self.msg,
         # TODO: add conversation -> own name function? just use "You"?
         log_msg = nuqql.history.LogMessage(tstamp, self.name, msg, own=True)
         self.log_win.add(log_msg)
 
         # depending on conversation type send a message or a command
         if self.type == "buddy":
-            # send message
+            # send message and log it in the history file
             self.backend.client.send_msg(self.account.aid, self.name, msg)
-            tstamp = round(tstamp.timestamp())
-            msg = nuqql.history.create_log_line(tstamp, "OUT", "you", msg)
-            self.logger.info(msg)
-            nuqql.history.set_lastread(self, tstamp, "OUT", "you", msg)
+            nuqql.history.log(self, log_msg)
         else:
             # send command message
             if self.backend is not None:
