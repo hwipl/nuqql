@@ -8,6 +8,10 @@ import pathlib
 import os
 
 
+HISTORY_FILE = "/history"
+LASTREAD_FILE = "/lastread"
+
+
 class LogMessage:
     """Class for log messages to be displayed in LogWins"""
 
@@ -131,7 +135,7 @@ def init_logger(conv):
     # create logger with log name and log file
     log_name = "{} {} {}".format(conv.backend.name, conv.account.aid,
                                  conv.name)
-    log_file = log_dir + "/history"
+    log_file = log_dir + HISTORY_FILE
     logger = get_logger(log_name, log_file)
 
     # return the ready logger and the log file to caller
@@ -175,7 +179,7 @@ def get_lastread(conv):
 
     # get lastread dir and make sure it exists
     lastread_dir = get_conv_path(conv)
-    lastread_file = lastread_dir + "/lastread"
+    lastread_file = lastread_dir + LASTREAD_FILE
 
     try:
         with open(lastread_file, newline="\r\n") as in_file:
@@ -195,7 +199,7 @@ def set_lastread(conv, tstamp, direction, sender, msg):
 
     # get lastread dir and make sure it exists
     lastread_dir = get_conv_path(conv)
-    lastread_file = lastread_dir + "/lastread"
+    lastread_file = lastread_dir + LASTREAD_FILE
 
     line = create_log_line(tstamp, direction, sender, msg) + "\r\n"
     lines = []
@@ -211,7 +215,7 @@ def get_last_log_line(conv):
 
     # get history dir and make sure it exists
     history_dir = get_conv_path(conv)
-    history_file = history_dir + "/histoy"
+    history_file = history_dir + HISTORY_FILE
 
     try:
         # negative seeking requires binary mode
