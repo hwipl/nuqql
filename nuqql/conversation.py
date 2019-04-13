@@ -31,9 +31,7 @@ class Conversation:
         self.log_file = None
         if ctype == "buddy":
             self.list_win = nuqql.win.MAIN_WINS["list"]
-            self.logger, self.log_file = nuqql.history.init_logger(backend,
-                                                                   account,
-                                                                   name)
+            self.logger, self.log_file = nuqql.history.init_logger(self)
 
     def activate(self):
         """
@@ -259,8 +257,7 @@ class Conversation:
             tstamp = round(tstamp.timestamp())
             msg = nuqql.history.create_log_line(tstamp, "OUT", "you", msg)
             self.logger.info(msg)
-            nuqql.history.set_lastread(self.backend, self.account, self.name,
-                                       tstamp, "OUT", "you", msg)
+            nuqql.history.set_lastread(self, tstamp, "OUT", "you", msg)
         else:
             # send command message
             if self.backend is not None:

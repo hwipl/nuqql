@@ -29,9 +29,7 @@ def handle_message(backend, acc_id, tstamp, sender, msg):
             conv.logger.info(nuqql.history.create_log_line(tstamp, "IN",
                                                            sender, msg))
             if conv.is_active():
-                nuqql.history.set_lastread(conv.backend, conv.account,
-                                           conv.name, tstamp, "IN", sender,
-                                           msg)
+                nuqql.history.set_lastread(conv, tstamp, "IN", sender, msg)
 
             tstamp = datetime.datetime.fromtimestamp(tstamp)
             conv.log(conv.name, msg, tstamp=tstamp)
@@ -73,8 +71,7 @@ def add_buddy(buddy):
 
     # check if there are unread messages for this new buddy in the history
     last_log_msg = nuqql.history.get_last_log_line(conv)
-    last_read_msg = nuqql.history.get_lastread(conv.backend, conv.account,
-                                               conv.name)
+    last_read_msg = nuqql.history.get_lastread(conv)
     if last_log_msg:
         if not last_read_msg or not last_log_msg.is_equal(last_read_msg):
             # there are unread messages, notify user if

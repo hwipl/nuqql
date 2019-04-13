@@ -69,6 +69,27 @@ class LogMessage:
         return True
 
 
+####################
+# Helper Functions #
+####################
+
+
+def get_conv_path(conv):
+    """
+    Get path for conversation history as a string and make sure it exists
+    """
+
+    # construct directory path
+    conv_dir = str(pathlib.Path.home()) + \
+        "/.config/nuqql/conversation/{}/{}/{}".format(conv.backend.name,
+                                                      conv.account.aid,
+                                                      conv.name)
+    # make sure directory exists
+    pathlib.Path(conv_dir).mkdir(parents=True, exist_ok=True)
+
+    return conv_dir
+
+
 def get_logger(name, file_name):
     """
     Create a logger for a conversation
@@ -99,20 +120,17 @@ def get_logger(name, file_name):
     return logger
 
 
-def init_logger(backend, account, conv_name):
+def init_logger(conv):
     """
     Init logger for a conversation
     """
 
-    # make sure log directory exists
-    log_dir = str(pathlib.Path.home()) + \
-        "/.config/nuqql/conversation/{}/{}/{}".format(backend.name,
-                                                      account.aid,
-                                                      conv_name)
-    pathlib.Path(log_dir).mkdir(parents=True, exist_ok=True)
+    # get log dir and make sure it exists
+    log_dir = get_conv_path(conv)
 
     # create logger with log name and log file
-    log_name = "{} {} {}".format(backend.name, account.aid, conv_name)
+    log_name = "{} {} {}".format(conv.backend.name, conv.account.aid,
+                                 conv.name)
     log_file = log_dir + "/history"
     logger = get_logger(log_name, log_file)
 
@@ -150,17 +168,13 @@ def create_log_line(tstamp, direction, sender, msg):
     return "{} {} {} {}".format(tstamp, direction, sender, msg)
 
 
-def get_lastread(backend, account, conv_name):
+def get_lastread(conv):
     """
     Get last read message from "lastread" file of the conversation
     """
 
-    # make sure log directory exists
-    lastread_dir = str(pathlib.Path.home()) + \
-        "/.config/nuqql/conversation/{}/{}/{}".format(backend.name,
-                                                      account.aid,
-                                                      conv_name)
-    pathlib.Path(lastread_dir).mkdir(parents=True, exist_ok=True)
+    # get lastread dir and make sure it exists
+    lastread_dir = get_conv_path(conv)
     lastread_file = lastread_dir + "/lastread"
 
     try:
@@ -174,17 +188,13 @@ def get_lastread(backend, account, conv_name):
         return None
 
 
-def set_lastread(backend, account, conv_name, tstamp, direction, sender, msg):
+def set_lastread(conv, tstamp, direction, sender, msg):
     """
     Set last read message in "lastread" file of the conversation
     """
 
-    # make sure log directory exists
-    lastread_dir = str(pathlib.Path.home()) + \
-        "/.config/nuqql/conversation/{}/{}/{}".format(backend.name,
-                                                      account.aid,
-                                                      conv_name)
-    pathlib.Path(lastread_dir).mkdir(parents=True, exist_ok=True)
+    # get lastread dir and make sure it exists
+    lastread_dir = get_conv_path(conv)
     lastread_file = lastread_dir + "/lastread"
 
     line = create_log_line(tstamp, direction, sender, msg) + "\r\n"
@@ -199,17 +209,13 @@ def get_last_log_line(conv):
     Read last LogMessage from log file
     """
 
-    # make sure log directory exists
-    lastread_dir = str(pathlib.Path.home()) + \
-        "/.config/nuqql/conversation/{}/{}/{}".format(conv.backend.name,
-                                                      conv.account.aid,
-                                                      conv.name)
-    pathlib.Path(lastread_dir).mkdir(parents=True, exist_ok=True)
-    lastread_file = lastread_dir + "/lastread"
+    # get history dir and make sure it exists
+    history_dir = get_conv_path(conv)
+    history_file = history_dir + "/histoy"
 
     try:
         # negative seeking requires binary mode
-        with open(lastread_file, "rb") as in_file:
+        with open(history_file, "rb") as in_file:
             # check if file contains at least 2 bytes
             in_file.seek(0, os.SEEK_END)
             if in_file.tell() < 3:
@@ -239,7 +245,7 @@ def init_log_from_file(conv):
     """
 
     # get last read log message
-    last_read = get_lastread(conv.backend, conv.account, conv.name)
+    last_read = get_lastread(conv)
     is_read = True
 
     lines = []
