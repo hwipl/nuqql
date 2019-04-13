@@ -47,6 +47,20 @@ class Conversation:
             self.clear_notifications()
             return
 
+    def activate_log(self):
+        """
+        Activate windows of conversation and go to history
+        """
+
+        # check log_win to determine, if windows are already created
+        if self.log_win is not None:
+            self.input_win.active = False
+            self.input_win.redraw()
+            self.log_win.active = True
+            self.log_win.redraw()
+            self.clear_notifications()
+            return
+
     def has_windows(self):
         """
         Check if conversation has already created its windows

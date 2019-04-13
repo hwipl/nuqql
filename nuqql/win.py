@@ -368,6 +368,12 @@ class ListWin(Win):
                 self.list[self.cur_y].create_windows()
             # activate conversation
             self.list[self.cur_y].activate()
+        elif char == "h":
+            # create windows, if they do not exists
+            if not self.list[self.cur_y].has_windows():
+                self.list[self.cur_y].create_windows()
+            # activate conversation's history
+            self.list[self.cur_y].activate_log()
         # display changes in the pad
         self.redraw_pad()
 
