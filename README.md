@@ -1,26 +1,26 @@
 # nuqql
 
-*nuqql* is a command line instant messenger inspired by
+nuqql is a command line instant messenger inspired by
 [centericq](http://thekonst.net/centericq/) and
-[centerim](http://www.centerim.org) written in Python and using *ncurses*.
+[centerim](http://www.centerim.org) written in Python and using ncurses.
 
-Currently, *nuqql* requires [purpled](https://github.com/hwipl/purpled) as a
-back-end. *purpled* is a daemon that uses *libpurple* and allows *nuqql* to
+Currently, nuqql requires [purpled](https://github.com/hwipl/purpled) as a
+back-end. purpled is a daemon that uses libpurple and allows nuqql to
 connect to multiple chat networks.
 
 
 ## Usage
 
-After the setup steps (see the "Setup" section), you can start and use *nuqql*
+After the setup steps (see the "Setup" section), you can start and use nuqql
 as described in the following.
 
 ### Run
 
-Run *nuqql* with `./nuqql.py`.
+Run nuqql with `./nuqql.py`.
 
 ### Overview
 
-The layout of *nuqql* is as follows:
+The layout of nuqql is as follows:
 
 ```
 +--------------+----------------+
@@ -49,29 +49,31 @@ command conversations are shown with `{` and `}` around them, e.g., `{nuqql}`.
 
 ### Controls
 
-Basic controls of *nuqql* are:
+Basic controls of nuqql are:
 
 * Navigate the Conversation List with the arrow keys `UP` and `DOWN`
 * Press `ENTER` on a conversation to open it
+* Press `h` on a conversation to open it and switch to its chat log
 * In a conversation:
   * Enter your message/command
-  * Send message/command with `CTRL-X`
+  * Send message/command with `CTRL-x`
+  * Switch to chat log window with `CTRL-o`
   * Leave conversation with the `ESC` key
-* Exit *nuqql* with the `q` key when you are in no conversation
+* Exit nuqql with the `q` key when you are in no conversation
 
 
 ## Setup
 
-The basic setup of *nuqql* consists of installing a back-end (purpled) and
+The basic setup of nuqql consists of installing a back-end (purpled) and
 adding your instant messaging accounts to it.
 
 ### Installing purpled
 
-*nuqql* needs purpled to connect to chat networks. If you have not done
+nuqql needs purpled to connect to chat networks. If you have not done
 already, install purpled with the following steps:
 
 * Download [purpled](https://github.com/hwipl/purpled)
-* Build and install *purpled* with:
+* Build and install purpled with:
   * `meson builddir`
   * `ninja -C builddir install`
 
@@ -80,10 +82,10 @@ already, install purpled with the following steps:
 ### Adding purpled accounts
 
 If you have not done already, you need to add your instant messaging accounts
-in purpled (see also the purpled documentation). You can do this from *nuqql*
+in purpled (see also the purpled documentation). You can do this from nuqql
 with the following steps:
 
-* Start *nuqql*.
+* Start nuqql.
 * Enter the conversation with the purpled back-end by pressing the `ENTER` key
   on the `{purpled}` entry in the Conversation List.
 * Add your accounts (note: send the following commands to purpled with the
@@ -104,13 +106,15 @@ set up or reconfigure the keymaps within the nuqql code.
 ## Development
 
 Most of the development happens in the *devel* branch. When a new version of
-*nuqql* is released, the *devel* code is merged into the *master* branch. So,
+nuqql is released, the *devel* code is merged into the *master* branch. So,
 if you want to try the latest code, check out the *devel* branch, otherwise
 just use *master*.
 
 ## Changes
 
 * devel
+  * Introduce chat history support
+  * Add support for the slixmppd backend
   * Rename Buddy List to Conversation List
   * Introduce multiple backend support
     * Each backend is listed as conversation in the Conversation List
