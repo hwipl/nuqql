@@ -1,5 +1,5 @@
 """
-Nuqql's configuration part
+Nuqql's User Interface configuration
 """
 
 import curses

@@ -22,7 +22,6 @@ def main_loop():
     """
 
     # init and start all backends
-    nuqql.ui.log_main_window("Start backends.")
     nuqql.backend.start_backends()
 
     # loop as long as user does not quit

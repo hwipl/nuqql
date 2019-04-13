@@ -17,6 +17,7 @@ import re
 
 from pathlib import Path
 
+import nuqql.conversation
 import nuqql.ui
 
 # network buffer
@@ -660,9 +661,10 @@ def start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
     BACKENDS[backend_name] = backend
 
     # add conversation
-    conv = nuqql.ui.Conversation(backend, None, backend.name, ctype="backend")
+    conv = nuqql.conversation.Conversation(backend, None, backend.name,
+                                           ctype="backend")
     conv.create_windows()
-    nuqql.ui.CONVERSATIONS.append(conv)
+    nuqql.conversation.CONVERSATIONS.append(conv)
     backend.conversation = conv
 
     # request accounts from backend
@@ -670,7 +672,7 @@ def start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
 
     # log it
     log_msg = "Collecting accounts for \"{0}\".".format(backend.name)
-    nuqql.ui.log_main_window(log_msg)
+    nuqql.conversation.log_main_window(log_msg)
 
 
 def start_purpled():
@@ -743,6 +745,7 @@ def start_backends():
     Helper for starting all backends
     """
 
+    nuqql.conversation.log_main_window("Start backends.")
     start_purpled()
     start_based()
     start_slixmppd()
