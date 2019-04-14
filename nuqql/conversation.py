@@ -261,8 +261,7 @@ class Conversation:
         # TODO: unify the logging in a method of Conversation?
         # log message
         tstamp = datetime.datetime.now()
-        # TODO: add conversation -> own name function? just use "You"?
-        log_msg = nuqql.history.LogMessage(tstamp, self.name, msg, own=True)
+        log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
         self.log_win.add(log_msg)
 
         # depending on conversation type send a message or a command
