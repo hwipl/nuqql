@@ -4,9 +4,11 @@ nuqql is a command line instant messenger inspired by
 [centericq](http://thekonst.net/centericq/) and
 [centerim](http://www.centerim.org) written in Python and using ncurses.
 
-Currently, nuqql requires [purpled](https://github.com/hwipl/purpled) as a
-back-end. purpled is a daemon that uses libpurple and allows nuqql to
-connect to multiple chat networks.
+Currently, nuqql requires [purpled](https://github.com/hwipl/purpled) or
+[nuqql-slixmppd](https://github.com/hwipl/nuqql-slixmppd) as a backend. purpled
+is a daemon that uses libpurple and allows nuqql to connect to multiple chat
+networks. nuqql-slixmppd uses slixmpp and allows nuqql to connect to XMPP chat
+networks.
 
 
 ## Usage
@@ -43,8 +45,8 @@ The layout of nuqql is as follows:
 * Input Window: shows the user's input of the current Conversation
 
 The Conversation List shows your buddies and special conversations for your
-back-end commands and nuqql commands. Buddies are shown with their status (on,
-afk, off) and their name, e.g., `[on] buddy@jabber.org`. Back-end and the nuqql
+backend commands and nuqql commands. Buddies are shown with their status (on,
+afk, off) and their name, e.g., `[on] buddy@jabber.org`. Backend and the nuqql
 command conversations are shown with `{` and `}` around them, e.g., `{nuqql}`.
 
 ### Controls
@@ -64,13 +66,18 @@ Basic controls of nuqql are:
 
 ## Setup
 
-The basic setup of nuqql consists of installing a back-end (purpled) and
-adding your instant messaging accounts to it.
+The basic setup of nuqql consists of installing a backend (purpled and/or
+nuqql-slixmppd) and adding your instant messaging accounts to it.
 
-### Installing purpled
+### Installing backends
 
-nuqql needs purpled to connect to chat networks. If you have not done
-already, install purpled with the following steps:
+You can use purpled, nuqql-slixmppd, or both to connect to different chat
+networks.
+
+#### purpled
+
+nuqql can use purpled to connect to multiple chat networks. If you have not
+done already, install purpled with the following steps:
 
 * Download [purpled](https://github.com/hwipl/purpled)
 * Build and install purpled with:
@@ -79,16 +86,26 @@ already, install purpled with the following steps:
 
 (Note: these steps require the [meson](https://mesonbuild.com/) build system.)
 
-### Adding purpled accounts
+#### nuqql-slixmppd
+
+nuqql can use nuqql-slixmppd to connect to XMPP chat networks. If you have not
+done already, install nuqql-slixmppd with the following steps:
+
+* Download [nuqql-slixmppd](https://github.com/hwipl/nuqql-slixmppd)
+* nuqql looks for nuqql-slixmppd in your $PATH and the current directory. So, a
+  good way is symlinking the *slixmppd.py* executable from the nuqql-slixmppd
+  folder into your nuqql folder.
+
+
+### Adding accounts
 
 If you have not done already, you need to add your instant messaging accounts
-in purpled (see also the purpled documentation). You can do this from nuqql
-with the following steps:
+to your backends. You can do this from nuqql with the following steps:
 
 * Start nuqql.
-* Enter the conversation with the purpled back-end by pressing the `ENTER` key
-  on the `{purpled}` entry in the Conversation List.
-* Add your accounts (note: send the following commands to purpled with the
+* Enter the conversation with the backend by pressing the `ENTER` key
+  on the entry in the Conversation List (`{purpled}` or `{slixmppd}`).
+* Add your accounts (note: send the following commands the backend with the
   `CTRL-X` key combination):
   * for example, you can add a jabber account with this command:
     `account add xmpp user@jabber-server.com users_password`
@@ -110,9 +127,10 @@ nuqql is released, the *devel* code is merged into the *master* branch. So,
 if you want to try the latest code, check out the *devel* branch, otherwise
 just use *master*.
 
+
 ## Changes
 
-* devel
+* v0.3:
   * Introduce chat history support
   * Add support for the slixmppd backend
   * Rename Buddy List to Conversation List
@@ -120,6 +138,7 @@ just use *master*.
     * Each backend is listed as conversation in the Conversation List
   * nuqql command window is now also a conversation in the Conversation List
   * Coding style fixes and code reorganization
+  * Requires purpled v0.2 or nuqql-slixmppd v0.1.
 * v0.2:
   * Make nuqql configuration easier:
     * Look for purpled in $PATH
