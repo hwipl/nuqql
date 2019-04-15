@@ -261,6 +261,20 @@ class Win:
 
         # implemented in sub classes
 
+    def delete_line_end(self, *args):
+        """
+        User input: delete from cursor to end of current line
+        """
+
+        # implemented in sub classes
+
+    def delete_line(self, *args):
+        """
+        User input: delete current line
+        """
+
+        # implemented in sub classes
+
     def init_keyfunc(self):
         """
         Initialize key to function mapping
@@ -278,6 +292,8 @@ class Win:
             "CURSOR_MSG_END": self.cursor_msg_end,
             "CURSOR_LINE_START": self.cursor_line_start,
             "CURSOR_LINE_END": self.cursor_line_end,
+            "DEL_LINE_END": self.delete_line_end,
+            "DEL_LINE": self.delete_line,
         }
 
 
@@ -658,6 +674,37 @@ class InputWin(Win):
             self.pad.move(self.cur_y, self.cur_x - 1)
         elif self.cur_y > 0:
             self.pad.move(self.cur_y - 1, old_prev_len)
+
+    def delete_line_end(self, *args):
+        segment = args[0]
+
+        # delete from cursor to end of line
+        segment[self.cur_y] = segment[self.cur_y][:self.cur_x]
+
+        # reconstruct message
+        self.msg = "\n".join(segment)
+        self.pad.erase()
+        self.pad.addstr(self.msg)
+
+    def delete_line(self, *args):
+        segment = args[0]
+
+        # delete the current line
+        del segment[self.cur_y]
+
+        # reconstruct message
+        self.msg = "\n".join(segment)
+        self.pad.erase()
+        self.pad.addstr(self.msg)
+
+        # move cursor to new position
+        if len(segment) <= self.cur_y:
+            self.cur_y = max(0, len(segment) - 1)
+        if not segment:
+            self.cur_x = 0
+        elif len(segment[self.cur_y]) < self.cur_x:
+            self.cur_x = len(segment[self.cur_y])
+        self.pad.move(self.cur_y, self.cur_x)
 
     def go_back(self, *args):
         self.active = False
