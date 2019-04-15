@@ -316,6 +316,10 @@ class ListWin(Win):
             name = conv.get_name()
             name = name[:pad_size_x-1] + "\n"
 
+            # move cursor to active conversation
+            if conv.is_active():
+                self.cur_y = index
+
             # print name
             if index == self.cur_y:
                 # cursor is on conversation, highlight it in list
@@ -327,7 +331,7 @@ class ListWin(Win):
         # reset colors
         self.pad.attroff(curses.color_pair(2))
 
-        # move cursor back to original position
+        # move cursor back to original or active conversation's position
         self.pad.move(self.cur_y, self.cur_x)
 
         # check if visible part of pad needs to be moved and display it
