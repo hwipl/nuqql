@@ -326,15 +326,16 @@ class ListWin(Win):
         if len(self.list) > pad_size_y - 1:
             self.pad.resize(len(self.list) + 1, pad_size_x)
 
+        # if there is an active conversation, move cursor to it
+        for index, conv in enumerate(self.list):
+            if conv.is_active():
+                self.cur_y = index
+
         # print names in list window
         for index, conv in enumerate(self.list):
             # get name of element; cut if it's too long
             name = conv.get_name()
             name = name[:pad_size_x-1] + "\n"
-
-            # move cursor to active conversation
-            if conv.is_active():
-                self.cur_y = index
 
             # print name
             if index == self.cur_y:
