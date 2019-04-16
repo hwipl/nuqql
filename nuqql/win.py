@@ -61,8 +61,7 @@ class Win:
         """
 
         # screen/window properties
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        unused_win_size_y, win_size_x = self.config.get_size(max_y, max_x)
+        unused_win_size_y, win_size_x = self.win.getmaxyx()
         self.win.clear()
 
         # color settings on
@@ -275,6 +274,13 @@ class Win:
 
         # implemented in sub classes
 
+    def zoom_win(self, *args):
+        """
+        User input: zoom current window
+        """
+
+        # implemented in sub classes
+
     def init_keyfunc(self):
         """
         Initialize key to function mapping
@@ -294,6 +300,7 @@ class Win:
             "CURSOR_LINE_END": self.cursor_line_end,
             "DEL_LINE_END": self.delete_line_end,
             "DEL_LINE": self.delete_line,
+            "WIN_ZOOM": self.zoom_win,
         }
 
 
@@ -440,12 +447,22 @@ class LogWin(Win):
     Class for Log Windows
     """
 
+    def __init__(self, config, conversation, title):
+        Win.__init__(self, config, conversation, title)
+
+        self.zoomed = False
+
     def redraw_pad(self):
         # screen/pad properties
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        pos_y, pos_x = self.config.get_pos(max_y, max_x)
-        win_size_y, win_size_x = self.win.getmaxyx()
-        pad_size_y, pad_size_x = self.pad.getmaxyx()
+        if self.zoomed:
+            pos_y, pos_x = 0, 0
+            win_size_y, win_size_x = max_y, max_x
+            pad_size_y, pad_size_x = (max_y - 2, max_x - 2)
+        else:
+            pos_y, pos_x = self.config.get_pos(max_y, max_x)
+            win_size_y, win_size_x = self.win.getmaxyx()
+            pad_size_y, pad_size_x = self.pad.getmaxyx()
 
         self.pad.clear()
         # if window was resized, resize pad x size according to new window size
@@ -511,7 +528,10 @@ class LogWin(Win):
         # TODO: use other method and keybind with more fitting name?
         # jump to first line in log
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        if self.zoomed:
+            pos_y, pos_x = 0, 0
+        else:
+            pos_y, pos_x = self.config.get_pos(max_y, max_x)
         win_size_y, win_size_x = self.win.getmaxyx()
         if self.cur_y > 0 or self.cur_x > 0:
             self.pad.move(0, 0)
@@ -526,7 +546,10 @@ class LogWin(Win):
         # TODO: use other method and keybind with more fitting name?
         # jump to last line in log
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        if self.zoomed:
+            pos_y, pos_x = 0, 0
+        else:
+            pos_y, pos_x = self.config.get_pos(max_y, max_x)
         win_size_y, win_size_x = self.win.getmaxyx()
         unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
         lines = 0
@@ -549,7 +572,10 @@ class LogWin(Win):
         # TODO: use other method and keybind with more fitting name?
         # move cursor up one page until first entry in log
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        if self.zoomed:
+            pos_y, pos_x = 0, 0
+        else:
+            pos_y, pos_x = self.config.get_pos(max_y, max_x)
         win_size_y, win_size_x = self.win.getmaxyx()
 
         if self.cur_y > 0:
@@ -568,7 +594,10 @@ class LogWin(Win):
         # TODO: use other method and keybind with more fitting name?
         # move cursor down one page until last entry in log
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        if self.zoomed:
+            pos_y, pos_x = 0, 0
+        else:
+            pos_y, pos_x = self.config.get_pos(max_y, max_x)
         win_size_y, win_size_x = self.win.getmaxyx()
         unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
 
@@ -594,7 +623,11 @@ class LogWin(Win):
     def cursor_up(self, *args):
         # move cursor up until first entry in list
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        if self.zoomed:
+            # pos_y, pos_x = 1, 1
+            pos_y, pos_x = 0, 0
+        else:
+            pos_y, pos_x = self.config.get_pos(max_y, max_x)
         win_size_y, win_size_x = self.win.getmaxyx()
         if self.cur_y > 0:
             self.pad.move(self.cur_y - 1, self.cur_x)
@@ -609,7 +642,11 @@ class LogWin(Win):
     def cursor_down(self, *args):
         # move cursor down until end of list
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        if self.zoomed:
+            # pos_y, pos_x = 1, 1
+            pos_y, pos_x = 0, 0
+        else:
+            pos_y, pos_x = self.config.get_pos(max_y, max_x)
         win_size_y, win_size_x = self.win.getmaxyx()
         unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
         lines = 0
@@ -629,7 +666,45 @@ class LogWin(Win):
                              pos_y + win_size_y - 2,
                              pos_x + win_size_x - 2)
 
+    def zoom_win(self, *args):
+        """
+        Zoom in and out of log window
+        """
+
+        # get positions and sizes for zoomed and normal mode
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        if self.zoomed:
+            self.zoomed = False
+            win_size_y, win_size_x = self.config.get_size(max_y, max_x)
+            pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        else:
+            self.zoomed = True
+            win_size_y, win_size_x = max_y, max_x
+            pos_y, pos_x = 0, 0
+
+        # resize window and pad
+        self.resize_win(win_size_y, win_size_x)
+        self.move_win(pos_y, pos_x)
+        self.pad.resize(win_size_y - 2, win_size_x - 2)
+        self.move_pad()
+        self.check_borders()
+
+        # redraw everything
+        if self.zoomed:
+            self.redraw()
+        else:
+            MAIN_WINS["screen"].clear()
+            MAIN_WINS["screen"].refresh()
+            self.conversation.list_win.redraw()
+            self.conversation.log_win.redraw()
+            self.conversation.input_win.redraw()
+
     def go_back(self, *args):
+        # if window was zoomed, switch back to normal view
+        if self.zoomed:
+            self.zoom_win()
+
+        # reactivate input window
         self.active = True
         self.conversation.input_win.active = True
 
@@ -646,6 +721,7 @@ class LogWin(Win):
             func()
 
         # display changes in the pad
+        # TODO: switch this back on and remove redraw code from other methods?
         # self.redraw_pad()
 
 

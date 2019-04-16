@@ -26,6 +26,7 @@ DEFAULT_KEYMAP = {
     curses.KEY_END:         "KEY_END",
     curses.KEY_PPAGE:       "KEY_PAGE_UP",
     curses.KEY_NPAGE:       "KEY_PAGE_DOWN",
+    curses.KEY_F9:          "KEY_F9",
 }
 
 # default key bindings for input windows
@@ -45,6 +46,7 @@ DEFAULT_INPUT_WIN_KEYBINDS = {
     "KEY_END":          "CURSOR_MSG_END",
     "KEY_PAGE_UP":      "CURSOR_LINE_START",
     "KEY_PAGE_DOWN":    "CURSOR_LINE_END",
+    "KEY_F9":           "WIN_ZOOM",
 }
 
 # default key bindings for log windows
