@@ -451,7 +451,7 @@ class LogWin(Win):
 
             # make sure new line fits into pad
             parts = msg.read().split("\n")
-            lines += len(parts) - 1
+            lines += len(parts)
             for part in parts:
                 if len(part) > pad_size_x:
                     lines += math.floor(len(part) / pad_size_x)
