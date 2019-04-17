@@ -280,8 +280,19 @@ class Conversation:
         thus, marking all messages as read.
         """
 
-        log_msg = self.log_win.list[-1]
-        nuqql.history.set_lastread(self, log_msg)
+        log_msg = None
+        if self.log_win.list:
+            log_msg = self.log_win.list[-1]
+            # do not put new conversation event in last_read
+            if log_msg.sender == "<event>" and \
+               log_msg.msg == "<Started new conversation.>":
+                log_msg = None
+                if len(self.log_win.list) > 1:
+                    log_msg = self.log_win.list[-2]
+
+        # if there is a log message, write it to lastread
+        if log_msg:
+            nuqql.history.set_lastread(self, log_msg)
 
 
 def log_main_window(msg):
