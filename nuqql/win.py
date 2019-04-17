@@ -359,6 +359,19 @@ class ListWin(Win):
                          pos_y + win_size_y - 2,
                          pos_x + win_size_x - 2)
 
+    def cursor_msg_start(self, *args):
+        # TODO: use other method and keybind with more fitting name?
+        # jump to first conversation
+        if self.cur_y > 0:
+            self.pad.move(0, 0)
+
+    def cursor_msg_end(self, *args):
+        # TODO: use other method and keybind with more fitting name?
+        # jump to last conversation
+        lines = len(self.list)
+        if self.cur_y < lines - 1:
+            self.pad.move(lines - 1, self.cur_x)
+
     def cursor_line_start(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # move cursor up one page until first entry in log
