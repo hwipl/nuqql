@@ -280,6 +280,10 @@ class Conversation:
         thus, marking all messages as read.
         """
 
+        # make sure it's a buddy conversation, only they have a lastread file
+        if self.type != "buddy":
+            return
+
         log_msg = None
         if self.log_win.list:
             log_msg = self.log_win.list[-1]
