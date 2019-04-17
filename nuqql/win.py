@@ -654,6 +654,10 @@ class InputWin(Win):
         self.msg = ""
         self.pad.clear()
 
+        # reset pad size
+        win_size_y, win_size_x = self.win.getmaxyx()
+        self.pad.resize(win_size_y - 2, win_size_x - 2)
+
     def delete_char(self, *args):
         segment = args[0]
         if self.cur_x > 0:
@@ -740,9 +744,11 @@ class InputWin(Win):
                 return
             # make sure new char fits in the pad
             if len(segments) == pad_size_y - 1 and char == "\n":
-                return
+                pad_size_y += 1
+                self.pad.resize(pad_size_y, pad_size_x)
             if len(segments[self.cur_y]) == pad_size_x - 2 and char != "\n":
-                return
+                pad_size_x += 1
+                self.pad.resize(pad_size_y, pad_size_x)
 
             segments[self.cur_y] = segments[self.cur_y][:self.cur_x] + char +\
                 segments[self.cur_y][self.cur_x:]
