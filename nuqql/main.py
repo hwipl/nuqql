@@ -21,19 +21,20 @@ def main_loop():
     Main loop of nuqql.
     """
 
-    # init and start all backends
-    nuqql.backend.start_backends()
+    try:
+        # init and start all backends
+        nuqql.backend.start_backends()
 
-    # loop as long as user does not quit
-    while nuqql.ui.handle_input():
-        # update buddies
-        nuqql.backend.update_buddies()
+        # loop as long as user does not quit
+        while nuqql.ui.handle_input():
+            # update buddies
+            nuqql.backend.update_buddies()
 
-        # handle network input
-        nuqql.backend.handle_network()
-
-    # shut down
-    nuqql.backend.stop_backends()
+            # handle network input
+            nuqql.backend.handle_network()
+    finally:
+        # shut down backends
+        nuqql.backend.stop_backends()
 
 
 # main entry point
