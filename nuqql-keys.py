@@ -3,13 +3,19 @@
 import curses
 import curses.ascii
 
+CHAR = ""
+
 
 def main(stdscr):
     while True:
-        ch = stdscr.get_wch()
+        global CHAR
+        CHAR = stdscr.get_wch()
+        ch = CHAR
         if type(ch) is not str:
             msg = "int: " + str(ch) + "\n"
         else:
+            if ch == "\0":
+                continue
             msg = "char: " + ch
             msg += " ord: " + str(ord(ch))
             msg += " ascii: " + curses.ascii.ascii(ch)
@@ -18,4 +24,8 @@ def main(stdscr):
         stdscr.addstr(msg)
 
 
-curses.wrapper(main)
+try:
+    curses.wrapper(main)
+except Exception as e:
+    print("last input: \"{}\"".format(CHAR))
+    print(e)
