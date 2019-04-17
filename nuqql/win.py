@@ -502,8 +502,8 @@ class LogWin(Win):
         win_size_y, win_size_x = self.win.getmaxyx()
 
         if self.cur_y > 0:
-            if self.cur_y - win_size_y >= 0:
-                self.pad.move(self.cur_y - win_size_y, self.cur_x)
+            if self.cur_y - (win_size_y - 2) >= 0:
+                self.pad.move(self.cur_y - (win_size_y - 2), self.cur_x)
             else:
                 self.pad.move(0, self.cur_x)
             self.move_pad()
@@ -529,8 +529,8 @@ class LogWin(Win):
                 if len(part) > pad_size_x:
                     lines += math.floor(len(part) / pad_size_x)
         if self.cur_y < lines:
-            if self.cur_y + win_size_y < lines:
-                self.pad.move(self.cur_y + win_size_y, self.cur_x)
+            if self.cur_y + win_size_y - 2 < lines:
+                self.pad.move(self.cur_y + win_size_y - 2, self.cur_x)
             else:
                 self.pad.move(lines, self.cur_x)
             self.move_pad()
