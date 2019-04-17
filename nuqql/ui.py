@@ -92,6 +92,22 @@ def read_input():
     return wch
 
 
+def is_input_valid(char):
+    """
+    Helper that checks if input is valid
+    """
+
+    # is there a char at all?
+    if char is None:
+        return False
+
+    # check for embedded 0 byte
+    if char == "\0":
+        return False
+
+    return True
+
+
 def handle_input():
     """
     Read and handle user input
@@ -101,8 +117,8 @@ def handle_input():
     char = read_input()
 
     # handle user input
-    if char is None:
-        # NO INPUT, keep waiting for input..
+    if not is_input_valid(char):
+        # No valid input, keep waiting for input
         return True
 
     # if terminal resized, resize and redraw active windows
