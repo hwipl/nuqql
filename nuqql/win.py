@@ -715,6 +715,9 @@ class InputWin(Win):
         self.active = False
         self.conversation.log_win.active = False
 
+        # assume user read all messages and set lastread to last message
+        self.conversation.set_lastread()
+
     def go_log(self):
         """
         Jump to log

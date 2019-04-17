@@ -274,6 +274,15 @@ class Conversation:
             if self.backend is not None:
                 self.backend.client.send_command(msg)
 
+    def set_lastread(self):
+        """
+        Helper that sets lastread to the last message in the conversation,
+        thus, marking all messages as read.
+        """
+
+        log_msg = self.log_win.list[-1]
+        nuqql.history.set_lastread(self, log_msg)
+
 
 def log_main_window(msg):
     """

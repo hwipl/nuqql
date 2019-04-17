@@ -163,11 +163,19 @@ def parse_log_line(line):
     return log_msg
 
 
-def create_log_line(tstamp, direction, sender, msg):
+def create_log_line(log_msg):
     """
-    Create a line for the log files
+    Create a line for the log files from a LogMessage
     """
-    # TODO: create from a LogMessage
+
+    # determine log line contents
+    tstamp = round(log_msg.tstamp.timestamp())
+    direction = "IN"
+    sender = log_msg.sender
+    if log_msg.own:
+        direction = "OUT"
+        sender = "you"
+    msg = log_msg.msg
 
     return "{} {} {} {}".format(tstamp, direction, sender, msg)
 
@@ -192,7 +200,7 @@ def get_lastread(conv):
         return None
 
 
-def set_lastread(conv, tstamp, direction, sender, msg):
+def set_lastread(conv, log_msg):
     """
     Set last read message in "lastread" file of the conversation
     """
@@ -201,7 +209,8 @@ def set_lastread(conv, tstamp, direction, sender, msg):
     lastread_dir = get_conv_path(conv)
     lastread_file = lastread_dir + LASTREAD_FILE
 
-    line = create_log_line(tstamp, direction, sender, msg) + "\r\n"
+    # create log line and write it to lastread file
+    line = create_log_line(log_msg) + "\r\n"
     lines = []
     lines.append(line)
     with open(lastread_file, "w+") as in_file:
@@ -280,17 +289,11 @@ def log(conv, log_msg):
     Write LogMessage to history log file and set lastread message
     """
 
-    # determine log line contents
-    tstamp = round(log_msg.tstamp.timestamp())
-    direction = "IN"
-    sender = log_msg.sender
-    if log_msg.own:
-        direction = "OUT"
-        sender = "you"
-    msg = log_msg.msg
-
-    # create line and write it to history and lastread
-    line = create_log_line(tstamp, direction, sender, msg)
+    # create line and write it to history
+    line = create_log_line(log_msg)
     conv.logger.info(line)
-    if conv.is_active():
-        set_lastread(conv, tstamp, direction, sender, msg)
+
+    # assume user read all previous messages when user sends a message and set
+    # lastread accordingly
+    if log_msg.own:
+        set_lastread(conv, log_msg)
