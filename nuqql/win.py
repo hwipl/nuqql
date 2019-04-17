@@ -359,6 +359,29 @@ class ListWin(Win):
                          pos_y + win_size_y - 2,
                          pos_x + win_size_x - 2)
 
+    def cursor_line_start(self, *args):
+        # TODO: use other method and keybind with more fitting name?
+        # move cursor up one page until first entry in log
+        win_size_y, unused_win_size_x = self.win.getmaxyx()
+
+        if self.cur_y > 0:
+            if self.cur_y - (win_size_y - 2) >= 0:
+                self.pad.move(self.cur_y - (win_size_y - 2), self.cur_x)
+            else:
+                self.pad.move(0, self.cur_x)
+
+    def cursor_line_end(self, *args):
+        # TODO: use other method and keybind with more fitting name?
+        # move cursor down one page until last entry in log
+        win_size_y, unused_win_size_x = self.win.getmaxyx()
+
+        lines = len(self.list)
+        if self.cur_y < lines:
+            if self.cur_y + win_size_y - 2 < lines:
+                self.pad.move(self.cur_y + win_size_y - 2, self.cur_x)
+            else:
+                self.pad.move(lines - 1, self.cur_x)
+
     def cursor_up(self, *args):
         # move cursor up until first entry in list
         if self.cur_y > 0:
