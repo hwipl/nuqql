@@ -20,13 +20,15 @@ def handle_message(backend, acc_id, tstamp, sender, msg):
     Handle message from backend
     """
 
+    # convert timestamp
+    tstamp = datetime.datetime.fromtimestamp(tstamp)
+
     # look for an existing conversation and use it
     for conv in nuqql.conversation.CONVERSATIONS:
         if conv.backend is backend and \
            conv.account and conv.account.aid == acc_id and \
            conv.name == sender:
             # log message
-            tstamp = datetime.datetime.fromtimestamp(tstamp)
             log_msg = conv.log(conv.name, msg, tstamp=tstamp)
             nuqql.history.log(conv, log_msg)
 

@@ -610,8 +610,8 @@ def parse_msg(orig_msg):
         # return this as parsing error
         acc = "-1"
         acc_name = "error"
-        tstamp = "never"
-        sender = "purpled"
+        tstamp = int(time.time())
+        sender = "<backend>"
         msg = "Error parsing message: " + orig_msg
         return "parsing error", acc, acc_name, tstamp, sender, msg
 
