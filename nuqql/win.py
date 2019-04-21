@@ -465,11 +465,14 @@ class LogWin(Win):
             pad_size_y, pad_size_x = self.pad.getmaxyx()
 
         self.pad.clear()
-        # if window was resized, resize pad x size according to new window size
-        # pad y size will be sorted out in the message loop below
+        # if window was resized, resize pad size according to new window size
         if pad_size_x != win_size_x - 2:
             pad_size_x = win_size_x - 2
             self.pad.resize(pad_size_y, pad_size_x)
+        if pad_size_y != win_size_y - 2:
+            pad_size_y = win_size_y - 2
+            self.pad.resize(pad_size_y, pad_size_x)
+            self.pad_y = 0  # reset pad position
 
         # dump log messages and resize pad according to new lines added
         lines = 0

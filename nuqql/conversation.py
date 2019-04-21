@@ -325,15 +325,22 @@ def resize_main_window():
     screen.refresh()
 
     # redraw conversation windows
+    found_active = False
     for conv in CONVERSATIONS:
         # resize and move conversation windows
         if conv.list_win:
             size_y, size_x = conv.list_win.config.get_size(max_y, max_x)
             conv.list_win.resize_win(size_y, size_x)
         if conv.log_win:
-            size_y, size_x = conv.log_win.config.get_size(max_y, max_x)
+            # TODO: move zoom/resizing to win.py?
+            if conv.log_win.zoomed:
+                size_y, size_x = max_y, max_x
+                pos_y, pos_x = 0, 0
+                conv.log_win.pad_y = 0  # reset pad position
+            else:
+                size_y, size_x = conv.log_win.config.get_size(max_y, max_x)
+                pos_y, pos_x = conv.log_win.config.get_pos(max_y, max_x)
             conv.log_win.resize_win(size_y, size_x)
-            pos_y, pos_x = conv.log_win.config.get_pos(max_y, max_x)
             conv.log_win.move_win(pos_y, pos_x)
         if conv.input_win:
             size_y, size_x = conv.input_win.config.get_size(max_y, max_x)
@@ -341,12 +348,17 @@ def resize_main_window():
             pos_y, pos_x = conv.input_win.config.get_pos(max_y, max_x)
             conv.input_win.move_win(pos_y, pos_x)
         # redraw active conversation windows
-        if conv.list_win and conv.list_win.active:
+        if conv.is_active():
+            found_active = True
             conv.list_win.redraw()
-        if conv.log_win and conv.log_win.active:
-            conv.log_win.redraw()
-        if conv.input_win and conv.input_win.active:
             conv.input_win.redraw()
+            conv.log_win.redraw()
+
+    # if there are no active conversations, redraw nuqql main windows
+    if not found_active:
+        nuqql.win.MAIN_WINS["list"].redraw()
+        nuqql.win.MAIN_WINS["log"].redraw()
+        nuqql.win.MAIN_WINS["input"].redraw()
 
 
 def create_main_windows():
