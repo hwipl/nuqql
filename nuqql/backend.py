@@ -269,6 +269,12 @@ class Backend:
             self.handle_account_msg(parsed_msg)
             return
 
+        # handle status message
+        if msg_type == "status":
+            text = "account {} status: {}".format(parsed_msg[1], parsed_msg[2])
+            self.conversation.log("nuqql", text)
+            return
+
         # handle buddy messages
         if msg_type == "buddy":
             self.handle_buddy_msg(parsed_msg)
@@ -585,12 +591,27 @@ def parse_buddy_msg(orig_msg):
     return "buddy", acc, status, name, alias
 
 
+def parse_status_msg(orig_msg):
+    """
+    Parse "status" message received from backend
+    """
+
+    orig_msg = orig_msg[9:]
+    # account <acc> status: <status>
+    part = orig_msg.split(" ")
+    acc = part[1]
+    status = part[3]
+
+    return "status", acc, status
+
+
 # dictionary for parsing functions, used by parse_msg()
 PARSE_FUNCTIONS = {
     "message:": parse_message_msg,
     "collect:": parse_collect_msg,
     "buddy:": parse_buddy_msg,
     "account:": parse_account_msg,
+    "status:": parse_status_msg,
     "info:": parse_info_msg,
     "error:": parse_error_msg,
 }
