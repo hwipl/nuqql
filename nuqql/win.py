@@ -516,7 +516,7 @@ class LogWin(Win):
             parts = msg.read().split("\n")
             lines += len(parts)
             for part in parts:
-                if len(part) > pad_size_x:
+                if len(part) >= pad_size_x:
                     lines += math.floor(len(part) / pad_size_x)
 
             if lines >= pad_size_y:
@@ -574,7 +574,7 @@ class LogWin(Win):
             parts = msg.read().split("\n")
             lines += len(parts) - 1
             for part in parts:
-                if len(part) > pad_size_x:
+                if len(part) >= pad_size_x:
                     lines += math.floor(len(part) / pad_size_x)
         if self.cur_y < lines:
             self.pad.move(lines, self.cur_x)
@@ -632,7 +632,7 @@ class LogWin(Win):
             parts = msg.read().split("\n")
             lines += len(parts) - 1
             for part in parts:
-                if len(part) > pad_size_x:
+                if len(part) >= pad_size_x:
                     lines += math.floor(len(part) / pad_size_x)
         if self.cur_y < lines:
             if self.cur_y + win_size_y - pad_y_delta < lines:
@@ -688,7 +688,7 @@ class LogWin(Win):
             parts = msg.read().split("\n")
             lines += len(parts) - 1
             for part in parts:
-                if len(part) > pad_size_x:
+                if len(part) >= pad_size_x:
                     lines += math.floor(len(part) / pad_size_x)
         if self.cur_y < lines:
             self.pad.move(self.cur_y + 1, self.cur_x)
