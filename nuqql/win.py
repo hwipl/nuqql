@@ -61,7 +61,7 @@ class Win:
         """
 
         # screen/window properties
-        unused_win_size_y, win_size_x = self.win.getmaxyx()
+        win_size_y, win_size_x = self.win.getmaxyx()
         self.win.clear()
 
         # color settings on
@@ -69,7 +69,9 @@ class Win:
         self.win.attron(curses.color_pair(1) | curses.A_BOLD)
 
         # window border
-        self.win.border()
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        if not win_size_y == max_y or not win_size_x == max_x:
+            self.win.border()
 
         # window title
         max_title_len = min(len(self.title), win_size_x - 3)
