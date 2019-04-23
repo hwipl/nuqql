@@ -328,6 +328,9 @@ class ListWin(Win):
         curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
         self.pad.attron(curses.color_pair(2))
 
+        # store last selected entry
+        last_selected = self.list[self.cur_y]
+
         # sort list
         self.list.sort()
 
@@ -335,9 +338,10 @@ class ListWin(Win):
         if len(self.list) > pad_size_y - 1:
             self.pad.resize(len(self.list) + 1, pad_size_x)
 
-        # if there is an active conversation, move cursor to it
+        # if there is an active conversation or last selected conversation was
+        # moved, move cursor to it
         for index, conv in enumerate(self.list):
-            if conv.is_active():
+            if conv.is_active() or conv is last_selected:
                 self.cur_y = index
 
         # print names in list window
