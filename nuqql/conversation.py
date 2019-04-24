@@ -4,6 +4,8 @@ Nuqql Conversations
 
 import datetime
 
+from pathlib import Path
+
 import nuqql.history
 import nuqql.win
 
@@ -269,10 +271,13 @@ class Conversation:
             # send message and log it in the history file
             self.backend.client.send_msg(self.account.aid, self.name, msg)
             nuqql.history.log(self, log_msg)
-        else:
-            # send command message
+        elif self.type == "backend":
+            # send command message to backend
             if self.backend is not None:
                 self.backend.client.send_command(msg)
+        elif self.type == "nuqql":
+            # handle nuqql command
+            handle_nuqql_command(self, msg)
 
     def set_lastread(self):
         """
@@ -297,6 +302,100 @@ class Conversation:
         # if there is a log message, write it to lastread
         if log_msg:
             nuqql.history.set_lastread(self, log_msg)
+
+
+def handle_nuqql_global_status(conv, parts):
+    """
+    Handle nuqql command: global-status
+    Call getter and setter funcions
+    """
+
+    if not parts:
+        return
+    sub_command = parts[0]
+    if sub_command == "set":
+        if len(parts) < 2:
+            return
+        handle_nuqql_global_status_set(conv, parts[1:])
+    elif sub_command == "get":
+        handle_nuqql_global_status_get(conv)
+
+
+def handle_nuqql_global_status_set(conv, status):
+    """
+    Handle nuqql command: global-status set
+    Set status and store it in global_status file
+    """
+
+    # only use the first word as status
+    if not status or status[0] == "":
+        return
+    status = status[0]
+
+    # write status to file
+    global_status_dir = str(Path.home()) + "/.config/nuqql"
+    Path(global_status_dir).mkdir(parents=True, exist_ok=True)
+    global_status_file = global_status_dir + "/global_status"
+    line = status + "\n"
+    lines = []
+    lines.append(line)
+    with open(global_status_file, "w+") as status_file:
+        status_file.writelines(lines)
+
+    # set status in all backends and their accounts
+    for conversation in CONVERSATIONS:
+        if conversation.type == "backend":
+            for acc in conversation.backend.accounts.values():
+                conversation.backend.client.send_status_set(acc.aid, status)
+
+    # log message
+    tstamp = datetime.datetime.now()
+    msg = "global-status: " + status
+    log_msg = nuqql.history.LogMessage(tstamp, "nuqql", msg)
+    conv.log_win.add(log_msg)
+
+
+def handle_nuqql_global_status_get(conv):
+    """
+    Handle nuqql command: global-status get
+    Read status from global_status file
+    """
+
+    # if there is a global_status file, read it
+    global_status_dir = str(Path.home()) + "/.config/nuqql"
+    Path(global_status_dir).mkdir(parents=True, exist_ok=True)
+    global_status_file = global_status_dir + "/global_status"
+    try:
+        with open(global_status_file) as status_file:
+            line = status_file.readline()
+            status = line.split()
+            if not status:
+                return
+            status = status[0]
+    except FileNotFoundError:
+        return
+
+    # log message
+    tstamp = datetime.datetime.now()
+    msg = "global-status: " + status
+    log_msg = nuqql.history.LogMessage(tstamp, "nuqql", msg)
+    conv.log_win.add(log_msg)
+
+
+def handle_nuqql_command(conv, msg):
+    """
+    Handle a nuqql command (from the nuqql conversation)
+    """
+
+    # parse message
+    parts = msg.split()
+    if not parts:
+        return
+
+    # check command and call helper functions
+    command = parts[0]
+    if command == "global-status":
+        handle_nuqql_global_status(conv, parts[1:])
 
 
 def log_main_window(msg):

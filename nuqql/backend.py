@@ -189,6 +189,16 @@ class BackendClient:
         msg = msg.encode()
         self.sock.send(msg)
 
+    def send_status_set(self, account, status):
+        """
+        Send "status set" message over client connection,
+        which sets the status of the specified account of the backend
+        """
+
+        msg = "account {} status set {}\r\n".format(account, status)
+        msg = msg.encode()
+        self.sock.send(msg)
+
 
 class Backend:
     """
@@ -356,6 +366,21 @@ class Backend:
             acc.type, acc.aid, acc.name)
         self.conversation.log("nuqql", text)
         self.client.send_collect(acc.aid)
+
+        # if there is a global_status file, set account status to global_status
+        global_status_dir = str(Path.home()) + "/.config/nuqql"
+        Path(global_status_dir).mkdir(parents=True, exist_ok=True)
+        global_status_file = global_status_dir + "/global_status"
+        try:
+            with open(global_status_file) as status_file:
+                line = status_file.readline()
+                status = line.split()
+                if not status:
+                    return
+                status = status[0]
+                self.client.send_status_set(acc_id, status)
+        except FileNotFoundError:
+            return
 
     def handle_buddy_msg(self, parsed_msg):
         """
