@@ -337,15 +337,8 @@ def handle_nuqql_global_status_set(conv, status):
         return
     status = status[0]
 
-    # write status to file
-    global_status_dir = str(Path.home()) + "/.config/nuqql"
-    Path(global_status_dir).mkdir(parents=True, exist_ok=True)
-    global_status_file = global_status_dir + "/global_status"
-    line = status + "\n"
-    lines = []
-    lines.append(line)
-    with open(global_status_file, "w+") as status_file:
-        status_file.writelines(lines)
+    # write status
+    write_global_status(status)
 
     # set status in all backends and their accounts
     for conversation in CONVERSATIONS:
@@ -366,6 +359,39 @@ def handle_nuqql_global_status_get(conv):
     Read status from global_status file
     """
 
+    # read status
+    status = read_global_status()
+    if status == "":
+        return
+
+    # log message
+    tstamp = datetime.datetime.now()
+    msg = "global-status: " + status
+    log_msg = nuqql.history.LogMessage(tstamp, "nuqql", msg)
+    conv.log_win.add(log_msg)
+
+
+def write_global_status(status):
+    """
+    Write global status to global_status file
+    """
+
+    # write status to file
+    global_status_dir = str(Path.home()) + "/.config/nuqql"
+    Path(global_status_dir).mkdir(parents=True, exist_ok=True)
+    global_status_file = global_status_dir + "/global_status"
+    line = status + "\n"
+    lines = []
+    lines.append(line)
+    with open(global_status_file, "w+") as status_file:
+        status_file.writelines(lines)
+
+
+def read_global_status():
+    """
+    Read global status from global_status file
+    """
+
     # if there is a global_status file, read it
     global_status_dir = str(Path.home()) + "/.config/nuqql"
     Path(global_status_dir).mkdir(parents=True, exist_ok=True)
@@ -375,16 +401,10 @@ def handle_nuqql_global_status_get(conv):
             line = status_file.readline()
             status = line.split()
             if not status:
-                return
-            status = status[0]
+                return ""
+            return status[0]
     except FileNotFoundError:
-        return
-
-    # log message
-    tstamp = datetime.datetime.now()
-    msg = "global-status: " + status
-    log_msg = nuqql.history.LogMessage(tstamp, "nuqql", msg)
-    conv.log_win.add(log_msg)
+        return ""
 
 
 def handle_nuqql_command(conv, msg):
