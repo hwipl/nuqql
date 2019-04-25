@@ -104,15 +104,47 @@ class WinConfig:
         if self.type == "list_win":
             self.keybinds = DEFAULT_LIST_WIN_KEYBINDS
 
-    def get_size(self, max_y, max_x):
+    def get_win_size(self, max_y, max_x):
         """
         Get size of the window, depending on max_y and max_x as well as
-        window's y_per and x_per
+        window's y_per and x_per. If window size is smaller than minimum size,
+        return minimum size.
         """
 
-        abs_y = int(max_y * self.rel_y)
-        abs_x = int(max_x * self.rel_x)
+        abs_y = max(int(max_y * self.rel_y), 3)
+        abs_x = max(int(max_x * self.rel_x), 3)
         return abs_y, abs_x
+
+    def get_size(self, max_y, max_x):
+        """
+        Return window size depending on max screen size and
+        other windows' sizes.
+        """
+
+        # get (minimum) size of all windows
+        list_y, list_x = get("list_win").get_win_size(max_y, max_x)
+        log_y, log_x = get("log_win").get_win_size(max_y, max_x)
+        input_y, input_x = get("input_win").get_win_size(max_y, max_x)
+
+        # reduce log window height if necessary
+        if input_y + log_y > max_y:
+            log_y = max(max_y - input_y, 3)
+
+        # reduce log and input window width if necessary
+        if list_x + log_x > max_x:
+            log_x = max(max_x - list_x, 3)
+            input_x = max(max_x - list_x, 3)
+
+        # return height and width of this window
+        if self.type == "log_win":
+            return log_y, log_x
+        if self.type == "input_win":
+            return input_y, input_x
+        if self.type == "list_win":
+            return list_y, list_x
+
+        # should not be reached
+        return -1, -1
 
     def get_pos(self, max_y, max_x):
         """
@@ -131,6 +163,20 @@ class WinConfig:
         # should not be reached
         return -1, -1
 
+    @staticmethod
+    def is_terminal_valid():
+        """
+        Helper that checks if terminal size is still valid (after resize)
+        """
+
+        # height and width of screen should not get below minimum size
+        max_y, max_x = get("screen").getmaxyx()
+        if max_y < 6 or max_x < 6:
+            return False
+
+        # everything seems to be ok
+        return True
+
 
 def get(name):
     """
@@ -140,7 +186,7 @@ def get(name):
     return CONFIGS[name]
 
 
-def init_win():
+def init_win(screen):
     """
     Initialize window configurations
     """
@@ -160,3 +206,6 @@ def init_win():
     CONFIGS["list_win"] = list_win
     CONFIGS["log_win"] = log_win
     CONFIGS["input_win"] = input_win
+
+    # special "config" for main screen/window
+    CONFIGS["screen"] = screen

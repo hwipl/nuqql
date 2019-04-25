@@ -29,6 +29,7 @@ class Conversation:
         self.input_win = None
         self.list_win = None
         self.notification = 0
+        self.history = []
         self.logger = None
         self.log_file = None
         if ctype == "buddy":
@@ -91,6 +92,7 @@ class Conversation:
 
         log_config = nuqql.config.get("log_win")
         self.log_win = nuqql.win.LogWin(log_config, self, log_title)
+        self.log_win.list = self.history
         input_config = nuqql.config.get("input_win")
         self.input_win = nuqql.win.InputWin(input_config, self, input_title)
 
@@ -135,31 +137,29 @@ class Conversation:
         # this should not be reached
         return "<unknown>"
 
-    def log(self, sender, msg, tstamp=None, redraw=True):
+    def log(self, sender, msg, tstamp=None):
         """
-        Log message to conversation's log window
+        Log message to conversation's history/log window
         """
 
+        # create a log message and put it into conversation's history
         if tstamp is None:
             tstamp = datetime.datetime.now()
         log_msg = nuqql.history.LogMessage(tstamp, sender, msg)
-        # if window does not exist, create it. TODO: log to conv?
-        if not self.log_win:
-            self.create_windows()
-        self.log_win.add(log_msg, redraw)
+        self.history.append(log_msg)
+
+        # if conversation is already active, redraw the log window
+        if self.is_active():
+            self.log_win.redraw()
 
         return log_msg
 
-    def notify(self, redraw=True):
+    def notify(self):
         """
         Notify this conversation about new messages
         """
 
         self.notification = 1
-
-        # redraw window?
-        if not redraw:
-            return
 
         if self.list_win:
             self.list_win.redraw_pad()

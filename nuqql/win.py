@@ -26,23 +26,13 @@ class Win:
         size_y, size_x = self.config.get_size(max_y, max_x)
         pos_y, pos_x = self.config.get_pos(max_y, max_x)
 
-        # make sure new window is at least minimum size. TODO: improve?
-        if max_y < 3:
-            max_y = 3
-        if max_x < 3:
-            max_x = 3
-        if size_y < 3:
-            size_y = 3
-        if size_x < 3:
-            size_x = 3
-
         # new window
         self.win = curses.newwin(size_y, size_x, pos_y, pos_x)
 
         # new pad
         self.pad_y = 0
         self.pad_x = 0
-        self.pad = curses.newpad(max_y - 2, max_x - 2)
+        self.pad = curses.newpad(size_y - 2, size_x - 2)
 
         # cursor positions
         self.cur_y = 0
@@ -69,6 +59,10 @@ class Win:
         """
         Redraw entire window
         """
+
+        # if terminal size is invalid, stop here
+        if not self.config.is_terminal_valid():
+            return
 
         # screen/window properties
         win_size_y, win_size_x = self.win.getmaxyx()
@@ -162,7 +156,7 @@ class Win:
         self.redraw_win()
         self.redraw_pad()
 
-    def add(self, entry, redraw=True):
+    def add(self, entry):
         """
         Add entry to internal list
         """
@@ -170,8 +164,8 @@ class Win:
         # add entry to own list
         self.list.append(entry)
 
-        # redraw window?
-        if not redraw:
+        # if terminal size is invalid, stop here
+        if not self.config.is_terminal_valid():
             return
 
         # if this window belongs to an active conversation, redraw it
@@ -189,6 +183,10 @@ class Win:
         Resize window
         """
 
+        # if terminal size is invalid, stop here
+        if not self.config.is_terminal_valid():
+            return
+
         # TODO: change function parameters?
         self.win.resize(win_y_max, win_x_max)
 
@@ -196,6 +194,10 @@ class Win:
         """
         Move window
         """
+
+        # if terminal size is invalid, stop here
+        if not self.config.is_terminal_valid():
+            return
 
         self.win.mvwin(pos_y, pos_x)
 
@@ -330,6 +332,10 @@ class ListWin(Win):
         Redraw pad in window
         """
 
+        # if terminal size is invalid, stop here
+        if not self.config.is_terminal_valid():
+            return
+
         # screen/pad properties
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
         pos_y, pos_x = self.config.get_pos(max_y, max_x)
@@ -337,6 +343,11 @@ class ListWin(Win):
         pad_size_y, pad_size_x = self.pad.getmaxyx()
         self.cur_y, self.cur_x = self.pad.getyx()
         self.pad.clear()
+
+        # make sure pad has correct width (after resize)
+        if pad_size_x != win_size_x - 2:
+            self.pad.resize(pad_size_y, win_size_x - 2)
+            pad_size_x = win_size_x - 2
 
         # set colors
         curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
@@ -473,6 +484,10 @@ class LogWin(Win):
         self.zoomed = False
 
     def redraw_pad(self):
+        # if terminal size is invalid, stop here
+        if not self.config.is_terminal_valid():
+            return
+
         # screen/pad properties
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
         if self.zoomed:
@@ -785,6 +800,10 @@ class InputWin(Win):
     """
 
     def redraw_pad(self):
+        # if terminal size is invalid, stop here
+        if not self.config.is_terminal_valid():
+            return
+
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
         pos_y, pos_x = self.config.get_pos(max_y, max_x)
         win_size_y, win_size_x = self.config.get_size(max_y, max_x)
