@@ -43,7 +43,7 @@ class LogMessage:
         # TODO: improve? Save short name in account and buddy instead?
         return self.sender.split("@")[0]
 
-    def read(self):
+    def read(self, mark_read=True):
         """
         Format and return log message; mark it as read
         """
@@ -54,7 +54,8 @@ class LogMessage:
                                       self.msg)
 
         # message has now been read
-        self.is_read = True
+        if mark_read:
+            self.is_read = True
 
         return msg
 

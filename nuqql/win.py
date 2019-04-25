@@ -481,38 +481,31 @@ class LogWin(Win):
 
         self.zoomed = False
 
-    def redraw_pad(self):
-        # if terminal size is invalid, stop here
-        if not self.config.is_terminal_valid():
-            return
+    def _get_num_log_lines(self, pad_size_x):
+        """
+        Get number of lines in log, depending on number of messages and how
+        many lines each message uses.
+        """
 
-        # screen/pad properties
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        if self.zoomed:
-            pos_y, pos_x = 0, 0
-            pos_y_off, pos_x_off = 1, 0
-            win_size_y, win_size_x = max_y, max_x
-            pad_size_y, pad_size_x = (max_y - 2, max_x - 2)
-            pad_y_delta, pad_x_delta = 2, 0
-        else:
-            pos_y, pos_x = self.config.get_pos()
-            pos_y_off, pos_x_off = 1, 1
-            win_size_y, win_size_x = self.win.getmaxyx()
-            pad_size_y, pad_size_x = self.pad.getmaxyx()
-            pad_y_delta, pad_x_delta = 2, 2
-
-        self.pad.clear()
-        # if window was resized, resize pad size according to new window size
-        if pad_size_x != win_size_x - pad_x_delta:
-            pad_size_x = win_size_x - pad_x_delta
-            self.pad.resize(pad_size_y, pad_size_x)
-        if pad_size_y != win_size_y - pad_y_delta:
-            pad_size_y = win_size_y - pad_y_delta
-            self.pad.resize(pad_size_y, pad_size_x)
-            self.pad_y = 0  # reset pad position
-
-        # dump log messages and resize pad according to new lines added
         lines = 0
+        for msg in self.list:
+            parts = msg.read(mark_read=False).split("\n")
+            lines += len(parts) - 1
+            for part in parts:
+                if len(part) >= pad_size_x:
+                    lines += math.floor(len(part) / pad_size_x)
+        return lines
+
+    def _print_log(self, pad_size_y, pad_size_x):
+        """
+        dump log messages and resize pad according to new lines added
+        """
+
+        # make sure lines fit into pad
+        lines = self._get_num_log_lines(pad_size_x)
+        if lines >= pad_size_y:
+            self.pad.resize(lines + 1, pad_size_x)
+
         for msg in self.list:
             # define colors for own and buddy's messages
             # TODO: move all color definitions to config part?
@@ -543,17 +536,41 @@ class LogWin(Win):
                     self.pad.attroff(curses.A_NORMAL)
                     self.pad.attron(curses.color_pair(4) | curses.A_BOLD)
 
-            # make sure new line fits into pad
-            parts = msg.read().split("\n")
-            lines += len(parts)
-            for part in parts:
-                if len(part) >= pad_size_x:
-                    lines += math.floor(len(part) / pad_size_x)
-
-            if lines >= pad_size_y:
-                self.pad.resize(lines + 1, pad_size_x)
             # output message
             self.pad.addstr(msg.read())
+
+    def redraw_pad(self):
+        # if terminal size is invalid, stop here
+        if not self.config.is_terminal_valid():
+            return
+
+        # screen/pad properties
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        if self.zoomed:
+            pos_y, pos_x = 0, 0
+            pos_y_off, pos_x_off = 1, 0
+            win_size_y, win_size_x = max_y, max_x
+            pad_size_y, pad_size_x = (max_y - 2, max_x - 2)
+            pad_y_delta, pad_x_delta = 2, 0
+        else:
+            pos_y, pos_x = self.config.get_pos()
+            pos_y_off, pos_x_off = 1, 1
+            win_size_y, win_size_x = self.win.getmaxyx()
+            pad_size_y, pad_size_x = self.pad.getmaxyx()
+            pad_y_delta, pad_x_delta = 2, 2
+
+        # if window was resized, resize pad size according to new window size
+        if pad_size_x != win_size_x - pad_x_delta:
+            pad_size_x = win_size_x - pad_x_delta
+            self.pad.resize(pad_size_y, pad_size_x)
+        if pad_size_y != win_size_y - pad_y_delta:
+            pad_size_y = win_size_y - pad_y_delta
+            self.pad.resize(pad_size_y, pad_size_x)
+            self.pad_y = 0  # reset pad position
+
+        # print log
+        self.pad.clear()
+        self._print_log(pad_size_y, pad_size_x)
 
         # check if visible part of pad needs to be moved and display it
         self.cur_y, self.cur_x = self.pad.getyx()
@@ -598,13 +615,7 @@ class LogWin(Win):
             pos_y_off, pos_x_off = 1, 1
         win_size_y, win_size_x = self.win.getmaxyx()
         unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
-        lines = 0
-        for msg in self.list:
-            parts = msg.read().split("\n")
-            lines += len(parts) - 1
-            for part in parts:
-                if len(part) >= pad_size_x:
-                    lines += math.floor(len(part) / pad_size_x)
+        lines = self._get_num_log_lines(pad_size_x)
         if self.cur_y < lines:
             self.pad.move(lines, self.cur_x)
             self.move_pad()
@@ -654,13 +665,7 @@ class LogWin(Win):
         win_size_y, win_size_x = self.win.getmaxyx()
         unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
 
-        lines = 0
-        for msg in self.list:
-            parts = msg.read().split("\n")
-            lines += len(parts) - 1
-            for part in parts:
-                if len(part) >= pad_size_x:
-                    lines += math.floor(len(part) / pad_size_x)
+        lines = self._get_num_log_lines(pad_size_x)
         if self.cur_y < lines:
             if self.cur_y + win_size_y - pad_y_delta < lines:
                 self.pad.move(self.cur_y + win_size_y - pad_y_delta,
@@ -707,13 +712,7 @@ class LogWin(Win):
             pos_y_off, pos_x_off = 1, 1
         win_size_y, win_size_x = self.win.getmaxyx()
         unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
-        lines = 0
-        for msg in self.list:
-            parts = msg.read().split("\n")
-            lines += len(parts) - 1
-            for part in parts:
-                if len(part) >= pad_size_x:
-                    lines += math.floor(len(part) / pad_size_x)
+        lines = self._get_num_log_lines(pad_size_x)
         if self.cur_y < lines:
             self.pad.move(self.cur_y + 1, self.cur_x)
             self.cur_y, self.cur_x = self.pad.getyx()
