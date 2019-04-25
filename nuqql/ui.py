@@ -20,6 +20,10 @@ def handle_message(backend, acc_id, tstamp, sender, msg):
     Handle message from backend
     """
 
+    # check if terminal size is valid
+    # TODO: remove redraw=term_valid? move term_valid stuff to config instead?
+    term_valid = is_terminal_valid()
+
     # convert timestamp
     tstamp = datetime.datetime.fromtimestamp(tstamp)
 
@@ -29,12 +33,13 @@ def handle_message(backend, acc_id, tstamp, sender, msg):
            conv.account and conv.account.aid == acc_id and \
            conv.name == sender:
             # log message
-            log_msg = conv.log(conv.name, msg, tstamp=tstamp)
+            log_msg = conv.log(conv.name, msg, tstamp=tstamp,
+                               redraw=term_valid)
             nuqql.history.log(conv, log_msg)
 
             # if window is not already active notify user
             if not conv.is_active():
-                conv.notify()
+                conv.notify(redraw=term_valid)
             return
 
     # nothing found, log to main window
@@ -52,7 +57,8 @@ def update_buddy(buddy):
             continue
 
         conv_buddy = conv.peers[0]
-        if conv_buddy is buddy:
+        # TODO: remove terminal_valid? move term_valid stuff to config instead?
+        if conv_buddy is buddy and is_terminal_valid():
             conv.list_win.redraw()
 
 
@@ -61,12 +67,17 @@ def add_buddy(buddy):
     Add a new buddy to UI
     """
 
+    # check if terminal size is valid
+    # TODO: remove redraw=term_valid? move term_valid stuff to config instead?
+    term_valid = is_terminal_valid()
+
     # add a new conversation for the new buddy
     conv = nuqql.conversation.Conversation(buddy.backend, buddy.account,
                                            buddy.name)
     conv.peers.append(buddy)
-    conv.list_win.add(conv)
-    conv.list_win.redraw()
+    conv.list_win.add(conv, redraw=term_valid)
+    if term_valid:
+        conv.list_win.redraw()
 
     # check if there are unread messages for this new buddy in the history
     last_log_msg = nuqql.history.get_last_log_line(conv)
@@ -76,7 +87,7 @@ def add_buddy(buddy):
             # there are unread messages, notify user if
             # conversation is inactive
             if not conv.is_active():
-                conv.notify()
+                conv.notify(redraw=term_valid)
 
 
 def read_input():
@@ -92,6 +103,54 @@ def read_input():
         wch = None
 
     return wch
+
+
+def show_terminal_warning():
+    """
+    Show a warning that the terminal size is invalid, if it fits on screen
+    """
+
+    # clear terminal
+    nuqql.win.MAIN_WINS["screen"].clear()
+
+    # check if terminal is big enough for at least one character
+    max_y, max_x = nuqql.win.MAIN_WINS["screen"].getmaxyx()
+    if max_y < 1:
+        return
+    if max_x < 1:
+        return
+
+    # print as much of the error message as possible
+    msg = "Invalid terminal size. Please resize."[:max_x - 1]
+    nuqql.win.MAIN_WINS["screen"].addstr(0, 0, msg)
+
+
+def is_terminal_valid():
+    """
+    Helper that checks if terminal size is still valid (after resize)
+    """
+    # TODO: move this to config or somewhere else?
+
+    # get current max size
+    max_y, max_x = nuqql.win.MAIN_WINS["screen"].getmaxyx()
+
+    # check list window
+    win_y, win_x = nuqql.config.get("list_win").get_size(max_y, max_x)
+    if win_y <= 2 or win_x <= 2:
+        return False
+
+    # check log window
+    win_y, win_x = nuqql.config.get("log_win").get_size(max_y, max_x)
+    if win_y <= 2 or win_x <= 2:
+        return False
+
+    # check input window
+    win_y, win_x = nuqql.config.get("input_win").get_size(max_y, max_x)
+    if win_y <= 2 or win_x <= 2:
+        return False
+
+    # everything seems to be ok
+    return True
 
 
 def is_input_valid(char):
@@ -121,6 +180,11 @@ def handle_input():
     # handle user input
     if not is_input_valid(char):
         # No valid input, keep waiting for input
+        return True
+
+    # if terminal size is not valid, stop here
+    if not is_terminal_valid():
+        show_terminal_warning()
         return True
 
     # if terminal resized, resize and redraw active windows
@@ -164,11 +228,13 @@ def start(stdscr, func):
     # make sure window config is loaded
     nuqql.config.init_win()
 
-    # create main windows
+    # create main windows, if terminal size is valid, otherwise just stop here
+    if not is_terminal_valid():
+        return "Terminal size invalid."
     nuqql.conversation.create_main_windows()
 
     # run function provided by caller
-    func()
+    return func()
 
 
 def init(func):
@@ -176,4 +242,6 @@ def init(func):
     Initialize UI
     """
 
-    curses.wrapper(start, func)
+    retval = curses.wrapper(start, func)
+    if retval and retval != "":
+        print(retval)

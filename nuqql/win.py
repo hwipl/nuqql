@@ -26,6 +26,16 @@ class Win:
         size_y, size_x = self.config.get_size(max_y, max_x)
         pos_y, pos_x = self.config.get_pos(max_y, max_x)
 
+        # make sure new window is at least minimum size. TODO: improve?
+        if max_y < 3:
+            max_y = 3
+        if max_x < 3:
+            max_x = 3
+        if size_y < 3:
+            size_y = 3
+        if size_x < 3:
+            size_x = 3
+
         # new window
         self.win = curses.newwin(size_y, size_x, pos_y, pos_x)
 
@@ -152,13 +162,17 @@ class Win:
         self.redraw_win()
         self.redraw_pad()
 
-    def add(self, entry):
+    def add(self, entry, redraw=True):
         """
         Add entry to internal list
         """
 
         # add entry to own list
         self.list.append(entry)
+
+        # redraw window?
+        if not redraw:
+            return
 
         # if this window belongs to an active conversation, redraw it
         if self.conversation.is_active():

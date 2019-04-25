@@ -36,6 +36,9 @@ def main_loop():
         # shut down backends
         nuqql.backend.stop_backends()
 
+    # quit nuqql
+    return ""
+
 
 # main entry point
 def run():

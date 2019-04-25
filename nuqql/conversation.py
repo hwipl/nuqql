@@ -135,7 +135,7 @@ class Conversation:
         # this should not be reached
         return "<unknown>"
 
-    def log(self, sender, msg, tstamp=None):
+    def log(self, sender, msg, tstamp=None, redraw=True):
         """
         Log message to conversation's log window
         """
@@ -146,16 +146,21 @@ class Conversation:
         # if window does not exist, create it. TODO: log to conv?
         if not self.log_win:
             self.create_windows()
-        self.log_win.add(log_msg)
+        self.log_win.add(log_msg, redraw)
 
         return log_msg
 
-    def notify(self):
+    def notify(self, redraw=True):
         """
         Notify this conversation about new messages
         """
 
         self.notification = 1
+
+        # redraw window?
+        if not redraw:
+            return
+
         if self.list_win:
             self.list_win.redraw_pad()
 
