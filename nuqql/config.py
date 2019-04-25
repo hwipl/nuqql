@@ -115,13 +115,14 @@ class WinConfig:
         abs_x = max(int(max_x * self.rel_x), 3)
         return abs_y, abs_x
 
-    def get_size(self, max_y, max_x):
+    def get_size(self):
         """
         Return window size depending on max screen size and
         other windows' sizes.
         """
 
         # get (minimum) size of all windows
+        max_y, max_x = get("screen").getmaxyx()
         list_y, list_x = get("list_win").get_win_size(max_y, max_x)
         log_y, log_x = get("log_win").get_win_size(max_y, max_x)
         input_y, input_x = get("input_win").get_win_size(max_y, max_x)
@@ -146,12 +147,13 @@ class WinConfig:
         # should not be reached
         return -1, -1
 
-    def get_pos(self, max_y, max_x):
+    def get_pos(self):
         """
         Get position of the window, depending on type and window sizes
         """
 
-        size_y, size_x = self.get_size(max_y, max_x)
+        max_y, max_x = get("screen").getmaxyx()
+        size_y, size_x = self.get_size()
 
         if self.type == "list_win":
             return 0, 0

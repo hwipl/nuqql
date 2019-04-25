@@ -22,9 +22,8 @@ class Win:
         self.active = False
 
         # get window properties
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        size_y, size_x = self.config.get_size(max_y, max_x)
-        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        size_y, size_x = self.config.get_size()
+        pos_y, pos_x = self.config.get_pos()
 
         # new window
         self.win = curses.newwin(size_y, size_x, pos_y, pos_x)
@@ -337,8 +336,7 @@ class ListWin(Win):
             return
 
         # screen/pad properties
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        pos_y, pos_x = self.config.get_pos(max_y, max_x)
+        pos_y, pos_x = self.config.get_pos()
         win_size_y, win_size_x = self.win.getmaxyx()
         pad_size_y, pad_size_x = self.pad.getmaxyx()
         self.cur_y, self.cur_x = self.pad.getyx()
@@ -497,7 +495,7 @@ class LogWin(Win):
             pad_size_y, pad_size_x = (max_y - 2, max_x - 2)
             pad_y_delta, pad_x_delta = 2, 0
         else:
-            pos_y, pos_x = self.config.get_pos(max_y, max_x)
+            pos_y, pos_x = self.config.get_pos()
             pos_y_off, pos_x_off = 1, 1
             win_size_y, win_size_x = self.win.getmaxyx()
             pad_size_y, pad_size_x = self.pad.getmaxyx()
@@ -569,14 +567,13 @@ class LogWin(Win):
     def cursor_msg_start(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # jump to first line in log
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
         if self.zoomed:
             pad_y_delta, pad_x_delta = 2, 0
             pos_y, pos_x = 0, 0
             pos_y_off, pos_x_off = 1, 0
         else:
             pad_y_delta, pad_x_delta = 2, 2
-            pos_y, pos_x = self.config.get_pos(max_y, max_x)
+            pos_y, pos_x = self.config.get_pos()
             pos_y_off, pos_x_off = 1, 1
         win_size_y, win_size_x = self.win.getmaxyx()
         if self.cur_y > 0 or self.cur_x > 0:
@@ -591,14 +588,13 @@ class LogWin(Win):
     def cursor_msg_end(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # jump to last line in log
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
         if self.zoomed:
             pad_y_delta, pad_x_delta = 2, 0
             pos_y, pos_x = 0, 0
             pos_y_off, pos_x_off = 1, 0
         else:
             pad_y_delta, pad_x_delta = 2, 2
-            pos_y, pos_x = self.config.get_pos(max_y, max_x)
+            pos_y, pos_x = self.config.get_pos()
             pos_y_off, pos_x_off = 1, 1
         win_size_y, win_size_x = self.win.getmaxyx()
         unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
@@ -621,14 +617,13 @@ class LogWin(Win):
     def cursor_line_start(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # move cursor up one page until first entry in log
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
         if self.zoomed:
             pad_y_delta, pad_x_delta = 2, 0
             pos_y, pos_x = 0, 0
             pos_y_off, pos_x_off = 1, 0
         else:
             pad_y_delta, pad_x_delta = 2, 2
-            pos_y, pos_x = self.config.get_pos(max_y, max_x)
+            pos_y, pos_x = self.config.get_pos()
             pos_y_off, pos_x_off = 1, 1
         win_size_y, win_size_x = self.win.getmaxyx()
 
@@ -648,14 +643,13 @@ class LogWin(Win):
     def cursor_line_end(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # move cursor down one page until last entry in log
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
         if self.zoomed:
             pad_y_delta, pad_x_delta = 2, 0
             pos_y, pos_x = 0, 0
             pos_y_off, pos_x_off = 1, 0
         else:
             pad_y_delta, pad_x_delta = 2, 2
-            pos_y, pos_x = self.config.get_pos(max_y, max_x)
+            pos_y, pos_x = self.config.get_pos()
             pos_y_off, pos_x_off = 1, 1
         win_size_y, win_size_x = self.win.getmaxyx()
         unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
@@ -682,14 +676,13 @@ class LogWin(Win):
 
     def cursor_up(self, *args):
         # move cursor up until first entry in list
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
         if self.zoomed:
             pad_y_delta, pad_x_delta = 2, 0
             pos_y, pos_x = 0, 0
             pos_y_off, pos_x_off = 1, 0
         else:
             pad_y_delta, pad_x_delta = 2, 2
-            pos_y, pos_x = self.config.get_pos(max_y, max_x)
+            pos_y, pos_x = self.config.get_pos()
             pos_y_off, pos_x_off = 1, 1
         win_size_y, win_size_x = self.win.getmaxyx()
         if self.cur_y > 0:
@@ -704,15 +697,13 @@ class LogWin(Win):
 
     def cursor_down(self, *args):
         # move cursor down until end of list
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
         if self.zoomed:
             pad_y_delta, pad_x_delta = 2, 0
-            # pos_y, pos_x = 1, 1
             pos_y, pos_x = 0, 0
             pos_y_off, pos_x_off = 1, 0
         else:
             pad_y_delta, pad_x_delta = 2, 2
-            pos_y, pos_x = self.config.get_pos(max_y, max_x)
+            pos_y, pos_x = self.config.get_pos()
             pos_y_off, pos_x_off = 1, 1
         win_size_y, win_size_x = self.win.getmaxyx()
         unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
@@ -743,8 +734,8 @@ class LogWin(Win):
         if self.zoomed:
             self.zoomed = False
             pad_y_delta, pad_x_delta = 2, 2
-            win_size_y, win_size_x = self.config.get_size(max_y, max_x)
-            pos_y, pos_x = self.config.get_pos(max_y, max_x)
+            win_size_y, win_size_x = self.config.get_size()
+            pos_y, pos_x = self.config.get_pos()
         else:
             self.zoomed = True
             pad_y_delta, pad_x_delta = 2, 0
@@ -804,9 +795,8 @@ class InputWin(Win):
         if not self.config.is_terminal_valid():
             return
 
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        pos_y, pos_x = self.config.get_pos(max_y, max_x)
-        win_size_y, win_size_x = self.config.get_size(max_y, max_x)
+        pos_y, pos_x = self.config.get_pos()
+        win_size_y, win_size_x = self.config.get_size()
 
         self.move_pad()
         self.check_borders()

@@ -433,7 +433,7 @@ def resize_main_window():
     for conv in CONVERSATIONS:
         # resize and move conversation windows
         if conv.list_win:
-            size_y, size_x = conv.list_win.config.get_size(max_y, max_x)
+            size_y, size_x = conv.list_win.config.get_size()
             conv.list_win.resize_win(size_y, size_x)
         if conv.log_win:
             # TODO: move zoom/resizing to win.py?
@@ -442,14 +442,14 @@ def resize_main_window():
                 pos_y, pos_x = 0, 0
                 conv.log_win.pad_y = 0  # reset pad position
             else:
-                size_y, size_x = conv.log_win.config.get_size(max_y, max_x)
-                pos_y, pos_x = conv.log_win.config.get_pos(max_y, max_x)
+                size_y, size_x = conv.log_win.config.get_size()
+                pos_y, pos_x = conv.log_win.config.get_pos()
             conv.log_win.resize_win(size_y, size_x)
             conv.log_win.move_win(pos_y, pos_x)
         if conv.input_win:
-            size_y, size_x = conv.input_win.config.get_size(max_y, max_x)
+            size_y, size_x = conv.input_win.config.get_size()
             conv.input_win.resize_win(size_y, size_x)
-            pos_y, pos_x = conv.input_win.config.get_pos(max_y, max_x)
+            pos_y, pos_x = conv.input_win.config.get_pos()
             conv.input_win.move_win(pos_y, pos_x)
         # redraw active conversation windows
         if conv.is_active():
