@@ -46,9 +46,9 @@ class Win:
 
         # keymaps/bindings
         self.keyfunc = {}
-        self.init_keyfunc()
+        self._init_keyfunc()
 
-    def redraw_win(self):
+    def _redraw_win(self):
         """
         Redraw entire window
         """
@@ -82,7 +82,7 @@ class Win:
 
         self.win.refresh()
 
-    def move_pad(self):
+    def _move_pad(self):
         """
         Move the pad
         """
@@ -109,7 +109,7 @@ class Win:
         if self.state.cur_y < self.state.pad_y:
             self.state.pad_y = self.state.cur_y
 
-    def check_borders(self):
+    def _check_borders(self):
         """
         Check borders
         """
@@ -146,7 +146,7 @@ class Win:
         Redraw the window
         """
 
-        self.redraw_win()
+        self._redraw_win()
         self.redraw_pad()
 
     def resize_win(self, win_y_max, win_x_max):
@@ -172,124 +172,124 @@ class Win:
 
         self.win.mvwin(pos_y, pos_x)
 
-    def go_back(self, *args):
+    def _go_back(self, *args):
         """
         User input: go back
         """
 
         # implemented in sub classes
 
-    def cursor_right(self, *args):
+    def _cursor_right(self, *args):
         """
         User input: cursor right
         """
 
         # implemented in sub classes
 
-    def cursor_left(self, *args):
+    def _cursor_left(self, *args):
         """
         User input: cursor left
         """
 
         # implemented in sub classes
 
-    def cursor_down(self, *args):
+    def _cursor_down(self, *args):
         """
         User input: cursor down
         """
 
         # implemented in sub classes
 
-    def cursor_up(self, *args):
+    def _cursor_up(self, *args):
         """
         User input: cursor up
         """
 
         # implemented in sub classes
 
-    def send_msg(self, *args):
+    def _send_msg(self, *args):
         """
         User input: send message
         """
 
         # implemented in sub classes
 
-    def delete_char(self, *args):
+    def _delete_char(self, *args):
         """
         User input: delete character
         """
 
         # implemented in sub classes
 
-    def cursor_msg_start(self, *args):
+    def _cursor_msg_start(self, *args):
         """
         User input: move cursor to message start
         """
 
         # implemented in sub classes
 
-    def cursor_msg_end(self, *args):
+    def _cursor_msg_end(self, *args):
         """
         User input: move cursor to message end
         """
 
         # implemented in sub classes
 
-    def cursor_line_start(self, *args):
+    def _cursor_line_start(self, *args):
         """
         User input: move cursor to line start
         """
 
         # implemented in sub classes
 
-    def cursor_line_end(self, *args):
+    def _cursor_line_end(self, *args):
         """
         User input: move cursor to line end
         """
 
         # implemented in sub classes
 
-    def delete_line_end(self, *args):
+    def _delete_line_end(self, *args):
         """
         User input: delete from cursor to end of current line
         """
 
         # implemented in sub classes
 
-    def delete_line(self, *args):
+    def _delete_line(self, *args):
         """
         User input: delete current line
         """
 
         # implemented in sub classes
 
-    def zoom_win(self, *args):
+    def _zoom_win(self, *args):
         """
         User input: zoom current window
         """
 
         # implemented in sub classes
 
-    def init_keyfunc(self):
+    def _init_keyfunc(self):
         """
         Initialize key to function mapping
         """
 
         self.keyfunc = {
-            "GO_BACK": self.go_back,
-            "CURSOR_RIGHT": self.cursor_right,
-            "CURSOR_LEFT": self.cursor_left,
-            "CURSOR_DOWN": self.cursor_down,
-            "CURSOR_UP": self.cursor_up,
-            "SEND_MSG": self.send_msg,
-            "DEL_CHAR": self.delete_char,
-            "CURSOR_MSG_START": self.cursor_msg_start,
-            "CURSOR_MSG_END": self.cursor_msg_end,
-            "CURSOR_LINE_START": self.cursor_line_start,
-            "CURSOR_LINE_END": self.cursor_line_end,
-            "DEL_LINE_END": self.delete_line_end,
-            "DEL_LINE": self.delete_line,
-            "WIN_ZOOM": self.zoom_win,
+            "GO_BACK": self._go_back,
+            "CURSOR_RIGHT": self._cursor_right,
+            "CURSOR_LEFT": self._cursor_left,
+            "CURSOR_DOWN": self._cursor_down,
+            "CURSOR_UP": self._cursor_up,
+            "SEND_MSG": self._send_msg,
+            "DEL_CHAR": self._delete_char,
+            "CURSOR_MSG_START": self._cursor_msg_start,
+            "CURSOR_MSG_END": self._cursor_msg_end,
+            "CURSOR_LINE_START": self._cursor_line_start,
+            "CURSOR_LINE_END": self._cursor_line_end,
+            "DEL_LINE_END": self._delete_line_end,
+            "DEL_LINE": self._delete_line,
+            "WIN_ZOOM": self._zoom_win,
         }
 
 
@@ -388,27 +388,27 @@ class ListWin(Win):
         self.pad.move(self.state.cur_y, self.state.cur_x)
 
         # check if visible part of pad needs to be moved and display it
-        self.move_pad()
-        self.check_borders()
+        self._move_pad()
+        self._check_borders()
         self.pad.refresh(self.state.pad_y, self.state.pad_x,
                          pos_y + 1, pos_x + 1,
                          pos_y + win_size_y - 2,
                          pos_x + win_size_x - 2)
 
-    def cursor_msg_start(self, *args):
+    def _cursor_msg_start(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # jump to first conversation
         if self.state.cur_y > 0:
             self.pad.move(0, 0)
 
-    def cursor_msg_end(self, *args):
+    def _cursor_msg_end(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # jump to last conversation
         lines = len(self.list)
         if self.state.cur_y < lines - 1:
             self.pad.move(lines - 1, self.state.cur_x)
 
-    def cursor_line_start(self, *args):
+    def _cursor_line_start(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # move cursor up one page until first entry in log
         win_size_y, unused_win_size_x = self.win.getmaxyx()
@@ -420,7 +420,7 @@ class ListWin(Win):
             else:
                 self.pad.move(0, self.state.cur_x)
 
-    def cursor_line_end(self, *args):
+    def _cursor_line_end(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # move cursor down one page until last entry in log
         win_size_y, unused_win_size_x = self.win.getmaxyx()
@@ -433,12 +433,12 @@ class ListWin(Win):
             else:
                 self.pad.move(lines - 1, self.state.cur_x)
 
-    def cursor_up(self, *args):
+    def _cursor_up(self, *args):
         # move cursor up until first entry in list
         if self.state.cur_y > 0:
             self.pad.move(self.state.cur_y - 1, self.state.cur_x)
 
-    def cursor_down(self, *args):
+    def _cursor_down(self, *args):
         # move cursor down until end of list
         if self.state.cur_y < len(self.list) - 1:
             self.pad.move(self.state.cur_y + 1, self.state.cur_x)
@@ -596,8 +596,8 @@ class LogWin(Win):
         """
         Helper for running move_pad(), check_borders(), and pad.refresh()
         """
-        self.move_pad()
-        self.check_borders()
+        self._move_pad()
+        self._check_borders()
         self.pad.refresh(self.state.pad_y, self.state.pad_x,
                          props.pos_y + props.pos_y_off,
                          props.pos_x + props.pos_x_off,
@@ -629,7 +629,7 @@ class LogWin(Win):
         self.state.cur_y, self.state.cur_x = self.pad.getyx()
         self._pad_refresh(props)
 
-    def cursor_msg_start(self, *args):
+    def _cursor_msg_start(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # jump to first line in log
         if self.state.cur_y > 0 or self.state.cur_x > 0:
@@ -637,7 +637,7 @@ class LogWin(Win):
             props = self._get_properties()
             self._pad_refresh(props)
 
-    def cursor_msg_end(self, *args):
+    def _cursor_msg_end(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # jump to last line in log
         props = self._get_properties()
@@ -646,7 +646,7 @@ class LogWin(Win):
             self.pad.move(lines, self.state.cur_x)
             self._pad_refresh(props)
 
-    def cursor_line_start(self, *args):
+    def _cursor_line_start(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # move cursor up one page until first entry in log
         props = self._get_properties()
@@ -659,7 +659,7 @@ class LogWin(Win):
                 self.pad.move(0, self.state.cur_x)
             self._pad_refresh(props)
 
-    def cursor_line_end(self, *args):
+    def _cursor_line_end(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # move cursor down one page until last entry in log
         props = self._get_properties()
@@ -672,7 +672,7 @@ class LogWin(Win):
                 self.pad.move(lines, self.state.cur_x)
             self._pad_refresh(props)
 
-    def cursor_up(self, *args):
+    def _cursor_up(self, *args):
         # move cursor up until first entry in list
         if self.state.cur_y > 0:
             self.pad.move(self.state.cur_y - 1, self.state.cur_x)
@@ -680,7 +680,7 @@ class LogWin(Win):
             props = self._get_properties()
             self._pad_refresh(props)
 
-    def cursor_down(self, *args):
+    def _cursor_down(self, *args):
         # move cursor down until end of list
         props = self._get_properties()
         lines = self._get_num_log_lines(props.pad_size_x)
@@ -689,7 +689,7 @@ class LogWin(Win):
             self.state.cur_y, self.state.cur_x = self.pad.getyx()
             self._pad_refresh(props)
 
-    def zoom_win(self, *args):
+    def _zoom_win(self, *args):
         """
         Zoom in and out of log window
         """
@@ -706,8 +706,8 @@ class LogWin(Win):
         self.move_win(props.pos_y, props.pos_x)
         self.pad.resize(props.win_size_y - props.pad_y_delta,
                         props.win_size_x - props.pad_x_delta)
-        self.move_pad()
-        self.check_borders()
+        self._move_pad()
+        self._check_borders()
 
         # redraw everything
         if self.zoomed:
@@ -719,10 +719,10 @@ class LogWin(Win):
             self.conversation.wins.log_win.redraw()
             self.conversation.wins.input_win.redraw()
 
-    def go_back(self, *args):
+    def _go_back(self, *args):
         # if window was zoomed, switch back to normal view
         if self.zoomed:
-            self.zoom_win()
+            self._zoom_win()
 
         # reactivate input window
         self.state.active = True
@@ -764,21 +764,21 @@ class InputWin(Win):
         pos_y, pos_x = self.config.get_pos()
         win_size_y, win_size_x = self.config.get_size()
 
-        self.move_pad()
-        self.check_borders()
+        self._move_pad()
+        self._check_borders()
         self.pad.refresh(self.state.pad_y, self.state.pad_x,
                          pos_y + 1, pos_x + 1,
                          pos_y + win_size_y - 2,
                          pos_x + win_size_x - 2)
 
-    def cursor_up(self, *args):
+    def _cursor_up(self, *args):
         segment = args[0]
         if self.state.cur_y > 0:
             self.pad.move(self.state.cur_y - 1,
                           min(self.state.cur_x,
                               len(segment[self.state.cur_y - 1])))
 
-    def cursor_down(self, *args):
+    def _cursor_down(self, *args):
         # pad properties
         pad_y_max, unused_pad_x_max = self.pad.getmaxyx()
 
@@ -789,11 +789,11 @@ class InputWin(Win):
                           min(self.state.cur_x,
                               len(segment[self.state.cur_y + 1])))
 
-    def cursor_left(self, *args):
+    def _cursor_left(self, *args):
         if self.state.cur_x > 0:
             self.pad.move(self.state.cur_y, self.state.cur_x - 1)
 
-    def cursor_right(self, *args):
+    def _cursor_right(self, *args):
         # pad properties
         unused_pad_y_max, pad_x_max = self.pad.getmaxyx()
 
@@ -802,11 +802,11 @@ class InputWin(Win):
            self.state.cur_x < len(segment[self.state.cur_y]):
             self.pad.move(self.state.cur_y, self.state.cur_x + 1)
 
-    def cursor_line_start(self, *args):
+    def _cursor_line_start(self, *args):
         if self.state.cur_x > 0:
             self.pad.move(self.state.cur_y, 0)
 
-    def cursor_line_end(self, *args):
+    def _cursor_line_end(self, *args):
         # pad properties
         unused_pad_y_max, pad_x_max = self.pad.getmaxyx()
 
@@ -815,17 +815,17 @@ class InputWin(Win):
            self.state.cur_x < len(segment[self.state.cur_y]):
             self.pad.move(self.state.cur_y, len(segment[self.state.cur_y]))
 
-    def cursor_msg_start(self, *args):
+    def _cursor_msg_start(self, *args):
         if self.state.cur_y > 0 or self.state.cur_x > 0:
             self.pad.move(0, 0)
 
-    def cursor_msg_end(self, *args):
+    def _cursor_msg_end(self, *args):
         segment = args[0]
         if self.state.cur_y < len(segment) - 1 or \
            self.state.cur_x < len(segment[-1]):
             self.pad.move(len(segment) - 1, len(segment[-1]))
 
-    def send_msg(self, *args):
+    def _send_msg(self, *args):
         # do not send empty messages
         if self.msg == "":
             return
@@ -841,7 +841,7 @@ class InputWin(Win):
         win_size_y, win_size_x = self.win.getmaxyx()
         self.pad.resize(win_size_y - 2, win_size_x - 2)
 
-    def delete_char(self, *args):
+    def _delete_char(self, *args):
         segment = args[0]
         if self.state.cur_x > 0:
             # delete charater within a line
@@ -865,7 +865,7 @@ class InputWin(Win):
         elif self.state.cur_y > 0:
             self.pad.move(self.state.cur_y - 1, old_prev_len)
 
-    def delete_line_end(self, *args):
+    def _delete_line_end(self, *args):
         segment = args[0]
 
         # delete from cursor to end of line
@@ -877,7 +877,7 @@ class InputWin(Win):
         self.pad.erase()
         self.pad.addstr(self.msg)
 
-    def delete_line(self, *args):
+    def _delete_line(self, *args):
         segment = args[0]
 
         # delete the current line
@@ -897,14 +897,14 @@ class InputWin(Win):
             self.state.cur_x = len(segment[self.state.cur_y])
         self.pad.move(self.state.cur_y, self.state.cur_x)
 
-    def go_back(self, *args):
+    def _go_back(self, *args):
         self.state.active = False
         self.conversation.wins.log_win.state.active = False
 
         # assume user read all messages and set lastread to last message
         self.conversation.set_lastread()
 
-    def go_log(self):
+    def _go_log(self):
         """
         Jump to log
         """
@@ -926,7 +926,7 @@ class InputWin(Win):
             func = self.keyfunc[self.config.keybinds[self.config.keymap[char]]]
             func(segments)
         elif char == curses.ascii.ctrl("o"):
-            self.go_log()
+            self._go_log()
         else:
             # insert new character into segments
             if not isinstance(char, str):
