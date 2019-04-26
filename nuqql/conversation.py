@@ -36,9 +36,10 @@ class Conversation:
         self.wins.list_win = None
 
         # history and logging
-        self.history = []
-        self.logger = None
-        self.log_file = None
+        self.history = SimpleNamespace()
+        self.history.log = []
+        self.history.logger = None
+        self.history.log_file = None
 
     def activate(self):
         """
@@ -101,7 +102,7 @@ class Conversation:
         if tstamp is None:
             tstamp = datetime.datetime.now()
         log_msg = nuqql.history.LogMessage(tstamp, sender, msg)
-        self.history.append(log_msg)
+        self.history.log.append(log_msg)
 
         # if conversation is already active, redraw the log window
         if self.is_active():
@@ -217,7 +218,8 @@ class BuddyConversation(Conversation):
 
         self.peers = []
         self.wins.list_win = nuqql.win.MAIN_WINS["list"]
-        self.logger, self.log_file = nuqql.history.init_logger(self)
+        self.history.logger, self.history.log_file = nuqql.history.init_logger(
+            self)
 
     def create_windows(self):
         """
@@ -230,7 +232,7 @@ class BuddyConversation(Conversation):
 
         log_config = nuqql.config.get("log_win")
         self.wins.log_win = nuqql.win.LogWin(log_config, self, log_title)
-        self.wins.log_win.list = self.history
+        self.wins.log_win.list = self.history.log
         input_config = nuqql.config.get("input_win")
         self.wins.input_win = nuqql.win.InputWin(input_config, self,
                                                  input_title)
@@ -325,7 +327,7 @@ class BackendConversation(Conversation):
 
         log_config = nuqql.config.get("log_win")
         self.wins.log_win = nuqql.win.LogWin(log_config, self, log_title)
-        self.wins.log_win.list = self.history
+        self.wins.log_win.list = self.history.log
         input_config = nuqql.config.get("input_win")
         self.wins.input_win = nuqql.win.InputWin(input_config, self,
                                                  input_title)
@@ -390,7 +392,7 @@ class NuqqlConversation(Conversation):
 
         log_config = nuqql.config.get("log_win")
         self.wins.log_win = nuqql.win.LogWin(log_config, self, log_title)
-        self.wins.log_win.list = self.history
+        self.wins.log_win.list = self.history.log
         input_config = nuqql.config.get("input_win")
         self.wins.input_win = nuqql.win.InputWin(input_config, self,
                                                  input_title)

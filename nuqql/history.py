@@ -263,13 +263,13 @@ def init_log_from_file(conv):
     is_read = True
 
     lines = []
-    with open(conv.log_file, newline="\r\n") as in_file:
+    with open(conv.history.log_file, newline="\r\n") as in_file:
         lines = in_file.readlines()
         for line in lines:
             # add log message to the conversation's log
             log_msg = parse_log_line(line)
             log_msg.is_read = is_read
-            conv.history.append(log_msg)
+            conv.history.log.append(log_msg)
 
             # if this is the last read message, following message will be
             # marked as unread
@@ -282,7 +282,7 @@ def init_log_from_file(conv):
         log_msg = LogMessage(tstamp, "<event>", "<Started new conversation.>",
                              own=True)
         log_msg.is_read = True
-        conv.history.append(log_msg)
+        conv.history.log.append(log_msg)
 
 
 def log(conv, log_msg):
@@ -292,7 +292,7 @@ def log(conv, log_msg):
 
     # create line and write it to history
     line = create_log_line(log_msg)
-    conv.logger.info(line)
+    conv.history.logger.info(line)
 
     # assume user read all previous messages when user sends a message and set
     # lastread accordingly
