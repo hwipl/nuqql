@@ -19,11 +19,10 @@ class Conversation:
     Class for conversations
     """
 
-    def __init__(self, backend, account, name, ctype="buddy"):
+    def __init__(self, backend, account, name):
         self.name = name
         self.backend = backend
         self.account = account
-        self.type = ctype
         self.peers = []
         self.log_win = None
         self.input_win = None
@@ -32,9 +31,6 @@ class Conversation:
         self.history = []
         self.logger = None
         self.log_file = None
-        if ctype == "buddy":
-            self.list_win = nuqql.win.MAIN_WINS["list"]
-            self.logger, self.log_file = nuqql.history.init_logger(self)
 
     def activate(self):
         """
@@ -79,63 +75,14 @@ class Conversation:
         Create windows for this conversation
         """
 
-        # create windows
-        if self.type == "buddy":
-            # standard chat windows
-            log_title = "Chat log with {0}".format(self.name)
-            input_title = "Message to {0}".format(self.name)
-        else:
-            # type: "nuqql" or "backend"
-            # command windows for nuqql and backends
-            log_title = "Command log of {0}".format(self.name)
-            input_title = "Command to {0}".format(self.name)
-
-        log_config = nuqql.config.get("log_win")
-        self.log_win = nuqql.win.LogWin(log_config, self, log_title)
-        self.log_win.list = self.history
-        input_config = nuqql.config.get("input_win")
-        self.input_win = nuqql.win.InputWin(input_config, self, input_title)
-
-        if self.type == "nuqql":
-            # nuqql itself needs a list window for buddy list
-            list_config = nuqql.config.get("list_win")
-            self.list_win = nuqql.win.ListWin(list_config, self,
-                                              "Conversation list")
-            # set list to conversations
-            self.list_win.list = CONVERSATIONS
-            # mark nuqql's list window as active, so main loop does not quit
-            self.list_win.active = True
-
-        if self.type == "buddy":
-            # try to read old messages from message history
-            nuqql.history.init_log_from_file(self)
+        # implemented in sub classes
 
     def get_name(self):
         """
         Get the name of the conversation, depending on type
         """
 
-        # check if there are pending notifications
-        if self.notification > 0:
-            notify = "# "
-        else:
-            notify = ""
-
-        # is it a buddy?
-        if self.type == "buddy":
-            peer = self.peers[0]
-            return "{0}[{1}] {2}".format(notify, peer.status, peer.alias)
-
-        # is it a backend?
-        if self.type == "backend":
-            return "{0}{{backend}} {1}".format(notify, self.name)
-
-        # is it nuqql itself?
-        if self.type == "nuqql":
-            return "{0}{{nuqql}}".format(notify)
-
-        # this should not be reached
-        return "<unknown>"
+        # implemented in sub classes
 
     def log(self, sender, msg, tstamp=None):
         """
@@ -189,31 +136,7 @@ class Conversation:
         Get a key for sorting this conversation
         """
 
-        # defaults
-        sort_notify = 0 - self.notification
-        sort_type = 0
-        sort_status = 0
-        sort_name = self.name
-
-        # is it a buddy?
-        if self.type == "buddy":
-            peer = self.peers[0]
-            try:
-                sort_status = self.status_key[peer.status]
-            except KeyError:
-                sort_status = len(self.status_key) + 1
-            sort_name = peer.alias
-
-        # is it a backend?
-        if self.type == "backend":
-            sort_type = 1
-
-        # is it nuqql itself?
-        if self.type == "nuqql":
-            sort_type = 2
-
-        # return tuple of sort keys
-        return sort_notify, sort_type, sort_status, sort_name
+        # implemented in sub classes
 
     def is_active(self):
         """
@@ -265,24 +188,7 @@ class Conversation:
         Send message coming from the UI/input window
         """
 
-        # TODO: unify the logging in a method of Conversation?
-        # log message
-        tstamp = datetime.datetime.now()
-        log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
-        self.log_win.add(log_msg)
-
-        # depending on conversation type send a message or a command
-        if self.type == "buddy":
-            # send message and log it in the history file
-            self.backend.client.send_msg(self.account.aid, self.name, msg)
-            nuqql.history.log(self, log_msg)
-        elif self.type == "backend":
-            # send command message to backend
-            if self.backend is not None:
-                self.backend.client.send_command(msg)
-        elif self.type == "nuqql":
-            # handle nuqql command
-            handle_nuqql_command(self, msg)
+        # implemented in sub classes
 
     def set_lastread(self):
         """
@@ -290,9 +196,93 @@ class Conversation:
         thus, marking all messages as read.
         """
 
-        # make sure it's a buddy conversation, only they have a lastread file
-        if self.type != "buddy":
-            return
+        # only relevant for BuddyConversation. Implemented there.
+
+
+class BuddyConversation(Conversation):
+    """
+    Class for conversations with buddies
+    """
+
+    def __init__(self, backend, account, name):
+        Conversation.__init__(self, backend, account, name)
+
+        self.list_win = nuqql.win.MAIN_WINS["list"]
+        self.logger, self.log_file = nuqql.history.init_logger(self)
+
+    def create_windows(self):
+        """
+        Create windows for this conversation
+        """
+
+        # create standard chat windows
+        log_title = "Chat log with {0}".format(self.name)
+        input_title = "Message to {0}".format(self.name)
+
+        log_config = nuqql.config.get("log_win")
+        self.log_win = nuqql.win.LogWin(log_config, self, log_title)
+        self.log_win.list = self.history
+        input_config = nuqql.config.get("input_win")
+        self.input_win = nuqql.win.InputWin(input_config, self, input_title)
+
+        # try to read old messages from message history
+        nuqql.history.init_log_from_file(self)
+
+    def get_name(self):
+        """
+        Get the name of the conversation, depending on type
+        """
+
+        # check if there are pending notifications
+        if self.notification > 0:
+            notify = "# "
+        else:
+            notify = ""
+
+        peer = self.peers[0]
+        return "{0}[{1}] {2}".format(notify, peer.status, peer.alias)
+
+    def get_key(self):
+        """
+        Get a key for sorting this conversation
+        """
+
+        # defaults
+        sort_notify = 0 - self.notification
+        sort_type = 0
+        sort_status = 0
+        sort_name = self.name
+
+        peer = self.peers[0]
+        try:
+            sort_status = self.status_key[peer.status]
+        except KeyError:
+            sort_status = len(self.status_key) + 1
+        sort_name = peer.alias
+
+        # return tuple of sort keys
+        return sort_notify, sort_type, sort_status, sort_name
+
+    def send_msg(self, msg):
+        """
+        Send message coming from the UI/input window
+        """
+
+        # TODO: unify the logging in a method of Conversation?
+        # log message
+        tstamp = datetime.datetime.now()
+        log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
+        self.log_win.add(log_msg)
+
+        # send message and log it in the history file
+        self.backend.client.send_msg(self.account.aid, self.name, msg)
+        nuqql.history.log(self, log_msg)
+
+    def set_lastread(self):
+        """
+        Helper that sets lastread to the last message in the conversation,
+        thus, marking all messages as read.
+        """
 
         log_msg = None
         if self.log_win.list:
@@ -307,6 +297,142 @@ class Conversation:
         # if there is a log message, write it to lastread
         if log_msg:
             nuqql.history.set_lastread(self, log_msg)
+
+
+class BackendConversation(Conversation):
+    """
+    Class for backend conversations
+    """
+
+    def create_windows(self):
+        """
+        Create windows for this conversation
+        """
+
+        # create windows command windows for backends
+        log_title = "Command log of {0}".format(self.name)
+        input_title = "Command to {0}".format(self.name)
+
+        log_config = nuqql.config.get("log_win")
+        self.log_win = nuqql.win.LogWin(log_config, self, log_title)
+        self.log_win.list = self.history
+        input_config = nuqql.config.get("input_win")
+        self.input_win = nuqql.win.InputWin(input_config, self, input_title)
+
+    def get_name(self):
+        """
+        Get the name of the conversation, depending on type
+        """
+
+        # check if there are pending notifications
+        if self.notification > 0:
+            notify = "# "
+        else:
+            notify = ""
+
+        return "{0}{{backend}} {1}".format(notify, self.name)
+
+    def get_key(self):
+        """
+        Get a key for sorting this conversation
+        """
+
+        # defaults
+        sort_notify = 0 - self.notification
+        sort_type = 0
+        sort_status = 0
+        sort_name = self.name
+        sort_type = 1
+
+        # return tuple of sort keys
+        return sort_notify, sort_type, sort_status, sort_name
+
+    def send_msg(self, msg):
+        """
+        Send message coming from the UI/input window
+        """
+
+        # TODO: unify the logging in a method of Conversation?
+        # log message
+        tstamp = datetime.datetime.now()
+        log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
+        self.log_win.add(log_msg)
+
+        # send command message to backend
+        if self.backend is not None:
+            self.backend.client.send_command(msg)
+
+
+class NuqqlConversation(Conversation):
+    """
+    Class for the nuqql conversation
+    """
+
+    def create_windows(self):
+        """
+        Create windows for this conversation
+        """
+
+        # create command windows for nuqql
+        log_title = "Command log of {0}".format(self.name)
+        input_title = "Command to {0}".format(self.name)
+
+        log_config = nuqql.config.get("log_win")
+        self.log_win = nuqql.win.LogWin(log_config, self, log_title)
+        self.log_win.list = self.history
+        input_config = nuqql.config.get("input_win")
+        self.input_win = nuqql.win.InputWin(input_config, self, input_title)
+
+        # nuqql itself needs a list window for buddy list
+        list_config = nuqql.config.get("list_win")
+        self.list_win = nuqql.win.ListWin(list_config, self,
+                                          "Conversation list")
+        # set list to conversations
+        self.list_win.list = CONVERSATIONS
+        # mark nuqql's list window as active, so main loop does not quit
+        self.list_win.active = True
+
+    def get_name(self):
+        """
+        Get the name of the conversation, depending on type
+        """
+
+        # check if there are pending notifications
+        if self.notification > 0:
+            notify = "# "
+        else:
+            notify = ""
+
+        return "{0}{{nuqql}}".format(notify)
+
+    def get_key(self):
+        """
+        Get a key for sorting this conversation
+        """
+
+        # defaults
+        sort_notify = 0 - self.notification
+        sort_type = 0
+        sort_status = 0
+        sort_name = self.name
+        sort_type = 2
+
+        # return tuple of sort keys
+        return sort_notify, sort_type, sort_status, sort_name
+
+    def send_msg(self, msg):
+        """
+        Send message coming from the UI/input window
+        """
+
+        # TODO: unify the logging in a method of Conversation?
+        # log message
+        tstamp = datetime.datetime.now()
+        log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
+        self.log_win.add(log_msg)
+
+        # handle nuqql command
+        handle_nuqql_command(self, msg)
 
 
 def handle_nuqql_global_status(conv, parts):
@@ -342,7 +468,7 @@ def handle_nuqql_global_status_set(conv, status):
 
     # set status in all backends and their accounts
     for conversation in CONVERSATIONS:
-        if conversation.type == "backend":
+        if isinstance(conversation, BackendConversation):
             for acc in conversation.backend.accounts.values():
                 conversation.backend.client.send_status_set(acc.aid, status)
 
@@ -492,7 +618,7 @@ def create_main_windows():
 
     # main screen
     # dummy conversation for main windows, creates log_win and input_win
-    nuqql_conv = Conversation(None, None, "nuqql", ctype="nuqql")
+    nuqql_conv = NuqqlConversation(None, None, "nuqql")
     nuqql_conv.create_windows()
     CONVERSATIONS.append(nuqql_conv)
 

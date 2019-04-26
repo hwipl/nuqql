@@ -697,8 +697,7 @@ def start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
     BACKENDS[backend_name] = backend
 
     # add conversation
-    conv = nuqql.conversation.Conversation(backend, None, backend.name,
-                                           ctype="backend")
+    conv = nuqql.conversation.BackendConversation(backend, None, backend.name)
     conv.create_windows()
     nuqql.conversation.CONVERSATIONS.append(conv)
     backend.conversation = conv

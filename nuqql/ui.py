@@ -48,7 +48,7 @@ def update_buddy(buddy):
 
     # look for existing buddy
     for conv in nuqql.conversation.CONVERSATIONS:
-        if conv.type != "buddy":
+        if not isinstance(conv, nuqql.conversation.BuddyConversation):
             continue
 
         conv_buddy = conv.peers[0]
@@ -62,8 +62,8 @@ def add_buddy(buddy):
     """
 
     # add a new conversation for the new buddy
-    conv = nuqql.conversation.Conversation(buddy.backend, buddy.account,
-                                           buddy.name)
+    conv = nuqql.conversation.BuddyConversation(buddy.backend, buddy.account,
+                                                buddy.name)
     conv.peers.append(buddy)
     conv.list_win.add(conv)
     conv.list_win.redraw()
