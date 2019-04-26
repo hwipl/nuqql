@@ -48,9 +48,9 @@ class Conversation:
 
         # check log_win to determine, if windows are already created
         if self.wins.log_win is not None:
-            self.wins.input_win.active = True
+            self.wins.input_win.state.active = True
             self.wins.input_win.redraw()
-            self.wins.log_win.active = False
+            self.wins.log_win.state.active = False
             self.wins.log_win.redraw()
             self.clear_notifications()
             return
@@ -62,9 +62,9 @@ class Conversation:
 
         # check log_win to determine, if windows are already created
         if self.wins.log_win is not None:
-            self.wins.input_win.active = False
+            self.wins.input_win.state.active = False
             self.wins.input_win.redraw()
-            self.wins.log_win.active = True
+            self.wins.log_win.state.active = True
             self.wins.log_win.redraw()
             self.clear_notifications()
             return
@@ -154,11 +154,11 @@ class Conversation:
         """
 
         # check if input win is active
-        if self.wins.input_win and self.wins.input_win.active:
+        if self.wins.input_win and self.wins.input_win.state.active:
             return True
 
         # check if log win is active
-        if self.wins.log_win and self.wins.log_win.active:
+        if self.wins.log_win and self.wins.log_win.state.active:
             return True
 
         return False
@@ -183,12 +183,12 @@ class Conversation:
         """
 
         # try to give control to the input win first...
-        if self.wins.input_win and self.wins.input_win.active:
+        if self.wins.input_win and self.wins.input_win.state.active:
             self.wins.input_win.process_input(char)
             return
 
         # then, try to give control to the log win
-        if self.wins.log_win and self.wins.log_win.active:
+        if self.wins.log_win and self.wins.log_win.state.active:
             self.wins.log_win.process_input(char)
             return
 
@@ -404,7 +404,7 @@ class NuqqlConversation(Conversation):
         # set list to conversations
         self.wins.list_win.list = CONVERSATIONS
         # mark nuqql's list window as active, so main loop does not quit
-        self.wins.list_win.active = True
+        self.wins.list_win.state.active = True
 
     def get_name(self):
         """
@@ -600,7 +600,7 @@ def resize_main_window():
             if conv.wins.log_win.zoomed:
                 size_y, size_x = max_y, max_x
                 pos_y, pos_x = 0, 0
-                conv.wins.log_win.pad_y = 0  # reset pad position
+                conv.wins.log_win.state.pad_y = 0  # reset pad position
             else:
                 size_y, size_x = conv.wins.log_win.config.get_size()
                 pos_y, pos_x = conv.wins.log_win.config.get_pos()

@@ -160,7 +160,7 @@ def handle_input():
             return True
 
     # if no conversation is active pass input to active list window
-    if nuqql.win.MAIN_WINS["list"].active:
+    if nuqql.win.MAIN_WINS["list"].state.active:
         # list window navigation
         nuqql.win.MAIN_WINS["input"].redraw()
         nuqql.win.MAIN_WINS["log"].redraw()
