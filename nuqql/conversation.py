@@ -4,6 +4,7 @@ Nuqql Conversations
 
 import datetime
 
+from types import SimpleNamespace
 from pathlib import Path
 
 import nuqql.history
@@ -20,14 +21,21 @@ class Conversation:
     """
 
     def __init__(self, backend, account, name):
+        # general
         self.name = name
+        self.notification = 0
+
+        # backend info
         self.backend = backend
         self.account = account
-        self.peers = []
-        self.log_win = None
-        self.input_win = None
-        self.list_win = None
-        self.notification = 0
+
+        # windows of the conversation
+        self.wins = SimpleNamespace()
+        self.wins.log_win = None
+        self.wins.input_win = None
+        self.wins.list_win = None
+
+        # history and logging
         self.history = []
         self.logger = None
         self.log_file = None
@@ -38,11 +46,11 @@ class Conversation:
         """
 
         # check log_win to determine, if windows are already created
-        if self.log_win is not None:
-            self.input_win.active = True
-            self.input_win.redraw()
-            self.log_win.active = False
-            self.log_win.redraw()
+        if self.wins.log_win is not None:
+            self.wins.input_win.active = True
+            self.wins.input_win.redraw()
+            self.wins.log_win.active = False
+            self.wins.log_win.redraw()
             self.clear_notifications()
             return
 
@@ -52,11 +60,11 @@ class Conversation:
         """
 
         # check log_win to determine, if windows are already created
-        if self.log_win is not None:
-            self.input_win.active = False
-            self.input_win.redraw()
-            self.log_win.active = True
-            self.log_win.redraw()
+        if self.wins.log_win is not None:
+            self.wins.input_win.active = False
+            self.wins.input_win.redraw()
+            self.wins.log_win.active = True
+            self.wins.log_win.redraw()
             self.clear_notifications()
             return
 
@@ -65,7 +73,7 @@ class Conversation:
         Check if conversation has already created its windows
         """
 
-        if self.log_win:
+        if self.wins.log_win:
             return True
 
         return False
@@ -97,7 +105,7 @@ class Conversation:
 
         # if conversation is already active, redraw the log window
         if self.is_active():
-            self.log_win.redraw()
+            self.wins.log_win.redraw()
 
         return log_msg
 
@@ -108,8 +116,8 @@ class Conversation:
 
         self.notification = 1
 
-        if self.list_win:
-            self.list_win.redraw_pad()
+        if self.wins.list_win:
+            self.wins.list_win.redraw_pad()
 
     def clear_notifications(self):
         """
@@ -117,8 +125,8 @@ class Conversation:
         """
 
         self.notification = 0
-        if self.list_win:
-            self.list_win.redraw_pad()
+        if self.wins.list_win:
+            self.wins.list_win.redraw_pad()
 
     def __lt__(self, other):
         # sort based on get_key output
@@ -145,11 +153,11 @@ class Conversation:
         """
 
         # check if input win is active
-        if self.input_win and self.input_win.active:
+        if self.wins.input_win and self.wins.input_win.active:
             return True
 
         # check if log win is active
-        if self.log_win and self.log_win.active:
+        if self.wins.log_win and self.wins.log_win.active:
             return True
 
         return False
@@ -174,13 +182,13 @@ class Conversation:
         """
 
         # try to give control to the input win first...
-        if self.input_win and self.input_win.active:
-            self.input_win.process_input(char)
+        if self.wins.input_win and self.wins.input_win.active:
+            self.wins.input_win.process_input(char)
             return
 
         # then, try to give control to the log win
-        if self.log_win and self.log_win.active:
-            self.log_win.process_input(char)
+        if self.wins.log_win and self.wins.log_win.active:
+            self.wins.log_win.process_input(char)
             return
 
     def send_msg(self, msg):
@@ -207,7 +215,8 @@ class BuddyConversation(Conversation):
     def __init__(self, backend, account, name):
         Conversation.__init__(self, backend, account, name)
 
-        self.list_win = nuqql.win.MAIN_WINS["list"]
+        self.peers = []
+        self.wins.list_win = nuqql.win.MAIN_WINS["list"]
         self.logger, self.log_file = nuqql.history.init_logger(self)
 
     def create_windows(self):
@@ -220,10 +229,11 @@ class BuddyConversation(Conversation):
         input_title = "Message to {0}".format(self.name)
 
         log_config = nuqql.config.get("log_win")
-        self.log_win = nuqql.win.LogWin(log_config, self, log_title)
-        self.log_win.list = self.history
+        self.wins.log_win = nuqql.win.LogWin(log_config, self, log_title)
+        self.wins.log_win.list = self.history
         input_config = nuqql.config.get("input_win")
-        self.input_win = nuqql.win.InputWin(input_config, self, input_title)
+        self.wins.input_win = nuqql.win.InputWin(input_config, self,
+                                                 input_title)
 
         # try to read old messages from message history
         nuqql.history.init_log_from_file(self)
@@ -272,7 +282,7 @@ class BuddyConversation(Conversation):
         # log message
         tstamp = datetime.datetime.now()
         log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
-        self.log_win.add(log_msg)
+        self.wins.log_win.add(log_msg)
 
         # send message and log it in the history file
         self.backend.client.send_msg(self.account.aid, self.name, msg)
@@ -285,14 +295,14 @@ class BuddyConversation(Conversation):
         """
 
         log_msg = None
-        if self.log_win.list:
-            log_msg = self.log_win.list[-1]
+        if self.wins.log_win.list:
+            log_msg = self.wins.log_win.list[-1]
             # do not put new conversation event in last_read
             if log_msg.sender == "<event>" and \
                log_msg.msg == "<Started new conversation.>":
                 log_msg = None
-                if len(self.log_win.list) > 1:
-                    log_msg = self.log_win.list[-2]
+                if len(self.wins.log_win.list) > 1:
+                    log_msg = self.wins.log_win.list[-2]
 
         # if there is a log message, write it to lastread
         if log_msg:
@@ -314,10 +324,11 @@ class BackendConversation(Conversation):
         input_title = "Command to {0}".format(self.name)
 
         log_config = nuqql.config.get("log_win")
-        self.log_win = nuqql.win.LogWin(log_config, self, log_title)
-        self.log_win.list = self.history
+        self.wins.log_win = nuqql.win.LogWin(log_config, self, log_title)
+        self.wins.log_win.list = self.history
         input_config = nuqql.config.get("input_win")
-        self.input_win = nuqql.win.InputWin(input_config, self, input_title)
+        self.wins.input_win = nuqql.win.InputWin(input_config, self,
+                                                 input_title)
 
     def get_name(self):
         """
@@ -356,7 +367,7 @@ class BackendConversation(Conversation):
         # log message
         tstamp = datetime.datetime.now()
         log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
-        self.log_win.add(log_msg)
+        self.wins.log_win.add(log_msg)
 
         # send command message to backend
         if self.backend is not None:
@@ -378,19 +389,20 @@ class NuqqlConversation(Conversation):
         input_title = "Command to {0}".format(self.name)
 
         log_config = nuqql.config.get("log_win")
-        self.log_win = nuqql.win.LogWin(log_config, self, log_title)
-        self.log_win.list = self.history
+        self.wins.log_win = nuqql.win.LogWin(log_config, self, log_title)
+        self.wins.log_win.list = self.history
         input_config = nuqql.config.get("input_win")
-        self.input_win = nuqql.win.InputWin(input_config, self, input_title)
+        self.wins.input_win = nuqql.win.InputWin(input_config, self,
+                                                 input_title)
 
         # nuqql itself needs a list window for buddy list
         list_config = nuqql.config.get("list_win")
-        self.list_win = nuqql.win.ListWin(list_config, self,
-                                          "Conversation list")
+        self.wins.list_win = nuqql.win.ListWin(list_config, self,
+                                               "Conversation list")
         # set list to conversations
-        self.list_win.list = CONVERSATIONS
+        self.wins.list_win.list = CONVERSATIONS
         # mark nuqql's list window as active, so main loop does not quit
-        self.list_win.active = True
+        self.wins.list_win.active = True
 
     def get_name(self):
         """
@@ -429,7 +441,7 @@ class NuqqlConversation(Conversation):
         # log message
         tstamp = datetime.datetime.now()
         log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
-        self.log_win.add(log_msg)
+        self.wins.log_win.add(log_msg)
 
         # handle nuqql command
         handle_nuqql_command(self, msg)
@@ -476,7 +488,7 @@ def handle_nuqql_global_status_set(conv, status):
     tstamp = datetime.datetime.now()
     msg = "global-status: " + status
     log_msg = nuqql.history.LogMessage(tstamp, "nuqql", msg)
-    conv.log_win.add(log_msg)
+    conv.wins.log_win.add(log_msg)
 
 
 def handle_nuqql_global_status_get(conv):
@@ -494,7 +506,7 @@ def handle_nuqql_global_status_get(conv):
     tstamp = datetime.datetime.now()
     msg = "global-status: " + status
     log_msg = nuqql.history.LogMessage(tstamp, "nuqql", msg)
-    conv.log_win.add(log_msg)
+    conv.wins.log_win.add(log_msg)
 
 
 def write_global_status(status):
@@ -578,31 +590,31 @@ def resize_main_window():
     found_active = False
     for conv in CONVERSATIONS:
         # resize and move conversation windows
-        if conv.list_win:
-            size_y, size_x = conv.list_win.config.get_size()
-            conv.list_win.resize_win(size_y, size_x)
-        if conv.log_win:
+        if conv.wins.list_win:
+            size_y, size_x = conv.wins.list_win.config.get_size()
+            conv.wins.list_win.resize_win(size_y, size_x)
+        if conv.wins.log_win:
             # TODO: move zoom/resizing to win.py?
-            if conv.log_win.zoomed:
+            if conv.wins.log_win.zoomed:
                 size_y, size_x = max_y, max_x
                 pos_y, pos_x = 0, 0
-                conv.log_win.pad_y = 0  # reset pad position
+                conv.wins.log_win.pad_y = 0  # reset pad position
             else:
-                size_y, size_x = conv.log_win.config.get_size()
-                pos_y, pos_x = conv.log_win.config.get_pos()
-            conv.log_win.resize_win(size_y, size_x)
-            conv.log_win.move_win(pos_y, pos_x)
-        if conv.input_win:
-            size_y, size_x = conv.input_win.config.get_size()
-            conv.input_win.resize_win(size_y, size_x)
-            pos_y, pos_x = conv.input_win.config.get_pos()
-            conv.input_win.move_win(pos_y, pos_x)
+                size_y, size_x = conv.wins.log_win.config.get_size()
+                pos_y, pos_x = conv.wins.log_win.config.get_pos()
+            conv.wins.log_win.resize_win(size_y, size_x)
+            conv.wins.log_win.move_win(pos_y, pos_x)
+        if conv.wins.input_win:
+            size_y, size_x = conv.wins.input_win.config.get_size()
+            conv.wins.input_win.resize_win(size_y, size_x)
+            pos_y, pos_x = conv.wins.input_win.config.get_pos()
+            conv.wins.input_win.move_win(pos_y, pos_x)
         # redraw active conversation windows
         if conv.is_active():
             found_active = True
-            conv.list_win.redraw()
-            conv.input_win.redraw()
-            conv.log_win.redraw()
+            conv.wins.list_win.redraw()
+            conv.wins.input_win.redraw()
+            conv.wins.log_win.redraw()
 
     # if there are no active conversations, redraw nuqql main windows
     if not found_active:
@@ -623,11 +635,11 @@ def create_main_windows():
     CONVERSATIONS.append(nuqql_conv)
 
     # draw list
-    nuqql_conv.list_win.redraw()
-    nuqql_conv.log_win.redraw()
-    nuqql_conv.input_win.redraw()
+    nuqql_conv.wins.list_win.redraw()
+    nuqql_conv.wins.log_win.redraw()
+    nuqql_conv.wins.input_win.redraw()
 
     # save windows
-    nuqql.win.MAIN_WINS["list"] = nuqql_conv.list_win
-    nuqql.win.MAIN_WINS["log"] = nuqql_conv.log_win
-    nuqql.win.MAIN_WINS["input"] = nuqql_conv.input_win
+    nuqql.win.MAIN_WINS["list"] = nuqql_conv.wins.list_win
+    nuqql.win.MAIN_WINS["log"] = nuqql_conv.wins.log_win
+    nuqql.win.MAIN_WINS["input"] = nuqql_conv.wins.input_win

@@ -53,7 +53,7 @@ def update_buddy(buddy):
 
         conv_buddy = conv.peers[0]
         if conv_buddy is buddy:
-            conv.list_win.redraw()
+            conv.wins.list_win.redraw()
 
 
 def add_buddy(buddy):
@@ -65,8 +65,8 @@ def add_buddy(buddy):
     conv = nuqql.conversation.BuddyConversation(buddy.backend, buddy.account,
                                                 buddy.name)
     conv.peers.append(buddy)
-    conv.list_win.add(conv)
-    conv.list_win.redraw()
+    conv.wins.list_win.add(conv)
+    conv.wins.list_win.redraw()
 
     # check if there are unread messages for this new buddy in the history
     last_log_msg = nuqql.history.get_last_log_line(conv)

@@ -688,9 +688,9 @@ class LogWin(Win):
         else:
             MAIN_WINS["screen"].clear()
             MAIN_WINS["screen"].refresh()
-            self.conversation.list_win.redraw()
-            self.conversation.log_win.redraw()
-            self.conversation.input_win.redraw()
+            self.conversation.wins.list_win.redraw()
+            self.conversation.wins.log_win.redraw()
+            self.conversation.wins.input_win.redraw()
 
     def go_back(self, *args):
         # if window was zoomed, switch back to normal view
@@ -699,7 +699,7 @@ class LogWin(Win):
 
         # reactivate input window
         self.active = True
-        self.conversation.input_win.active = True
+        self.conversation.wins.input_win.active = True
 
     def process_input(self, char):
         """
@@ -859,7 +859,7 @@ class InputWin(Win):
 
     def go_back(self, *args):
         self.active = False
-        self.conversation.log_win.active = False
+        self.conversation.wins.log_win.active = False
 
         # assume user read all messages and set lastread to last message
         self.conversation.set_lastread()
@@ -870,7 +870,7 @@ class InputWin(Win):
         """
 
         self.active = False
-        self.conversation.log_win.active = True
+        self.conversation.wins.log_win.active = True
 
     def process_input(self, char):
         """
