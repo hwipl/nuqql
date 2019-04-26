@@ -5,6 +5,8 @@ Nuqql UI Windows
 import curses
 import math
 
+from collections import namedtuple
+
 # screen and main windows
 MAIN_WINS = {}
 
@@ -496,15 +498,15 @@ class LogWin(Win):
                     lines += math.floor(len(part) / pad_size_x)
         return lines
 
-    def _print_log(self, pad_size_y, pad_size_x):
+    def _print_log(self, props):
         """
         dump log messages and resize pad according to new lines added
         """
 
         # make sure lines fit into pad
-        lines = self._get_num_log_lines(pad_size_x)
-        if lines >= pad_size_y:
-            self.pad.resize(lines + 1, pad_size_x)
+        lines = self._get_num_log_lines(props.pad_size_x)
+        if lines >= props.pad_size_y:
+            self.pad.resize(lines + 1, props.pad_size_x)
 
         for msg in self.list:
             # define colors for own and buddy's messages
@@ -539,189 +541,133 @@ class LogWin(Win):
             # output message
             self.pad.addstr(msg.read())
 
+    def _get_properties(self):
+        """
+        Get window/pad properties, depending on max size and zoom
+        """
+
+        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        if self.zoomed:
+            # window is currently zoomed
+            pos_y, pos_x = 0, 0
+            pos_y_off, pos_x_off = 1, 0
+            win_size_y, win_size_x = max_y, max_x
+            pad_size_y, pad_size_x = (max_y - 2, max_x)
+            pad_y_delta, pad_x_delta = 2, 0
+        else:
+            # window is not zoomed
+            pos_y, pos_x = self.config.get_pos()
+            pos_y_off, pos_x_off = 1, 1
+            win_size_y, win_size_x = self.config.get_size()
+            # use actual pad size, it will be resized later if necessary
+            pad_size_y, pad_size_x = self.pad.getmaxyx()
+            pad_y_delta, pad_x_delta = 2, 2
+
+        Props = namedtuple('Props', ['pos_y', 'pos_x', "pos_y_off",
+                                     "pos_x_off", "win_size_y", "win_size_x",
+                                     "pad_size_y", "pad_size_x", "pad_y_delta",
+                                     "pad_x_delta"])
+        return Props(pos_y, pos_x, pos_y_off, pos_x_off, win_size_y,
+                     win_size_x, pad_size_y, pad_size_x, pad_y_delta,
+                     pad_x_delta)
+
+    def _pad_refresh(self, props):
+        """
+        Helper for running move_pad(), check_borders(), and pad.refresh()
+        """
+        self.move_pad()
+        self.check_borders()
+        self.pad.refresh(self.pad_y, self.pad_x,
+                         props.pos_y + props.pos_y_off,
+                         props.pos_x + props.pos_x_off,
+                         props.pos_y + props.win_size_y - props.pad_y_delta,
+                         props.pos_x + props.win_size_x - props.pad_x_delta)
+
     def redraw_pad(self):
         # if terminal size is invalid, stop here
         if not self.config.is_terminal_valid():
             return
 
         # screen/pad properties
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
-        if self.zoomed:
-            pos_y, pos_x = 0, 0
-            pos_y_off, pos_x_off = 1, 0
-            win_size_y, win_size_x = max_y, max_x
-            pad_size_y, pad_size_x = (max_y - 2, max_x - 2)
-            pad_y_delta, pad_x_delta = 2, 0
-        else:
-            pos_y, pos_x = self.config.get_pos()
-            pos_y_off, pos_x_off = 1, 1
-            win_size_y, win_size_x = self.win.getmaxyx()
-            pad_size_y, pad_size_x = self.pad.getmaxyx()
-            pad_y_delta, pad_x_delta = 2, 2
+        props = self._get_properties()
 
         # if window was resized, resize pad size according to new window size
-        if pad_size_x != win_size_x - pad_x_delta:
-            pad_size_x = win_size_x - pad_x_delta
-            self.pad.resize(pad_size_y, pad_size_x)
-        if pad_size_y != win_size_y - pad_y_delta:
-            pad_size_y = win_size_y - pad_y_delta
-            self.pad.resize(pad_size_y, pad_size_x)
+        if props.pad_size_x != props.win_size_x - props.pad_x_delta:
+            props = props._replace(pad_size_x=props.win_size_x -
+                                   props.pad_x_delta)
+            self.pad.resize(props.pad_size_y, props.pad_size_x)
+        if props.pad_size_y != props.win_size_y - props.pad_y_delta:
+            props = props._replace(pad_size_y=props.win_size_y -
+                                   props.pad_y_delta)
+            self.pad.resize(props.pad_size_y, props.pad_size_x)
             self.pad_y = 0  # reset pad position
 
         # print log
         self.pad.clear()
-        self._print_log(pad_size_y, pad_size_x)
+        self._print_log(props)
 
         # check if visible part of pad needs to be moved and display it
         self.cur_y, self.cur_x = self.pad.getyx()
-        self.move_pad()
-        self.check_borders()
-        self.pad.refresh(self.pad_y, self.pad_x,
-                         pos_y + pos_y_off, pos_x + pos_x_off,
-                         pos_y + win_size_y - pad_y_delta,
-                         pos_x + win_size_x - pad_x_delta)
+        self._pad_refresh(props)
 
     def cursor_msg_start(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # jump to first line in log
-        if self.zoomed:
-            pad_y_delta, pad_x_delta = 2, 0
-            pos_y, pos_x = 0, 0
-            pos_y_off, pos_x_off = 1, 0
-        else:
-            pad_y_delta, pad_x_delta = 2, 2
-            pos_y, pos_x = self.config.get_pos()
-            pos_y_off, pos_x_off = 1, 1
-        win_size_y, win_size_x = self.win.getmaxyx()
         if self.cur_y > 0 or self.cur_x > 0:
             self.pad.move(0, 0)
-            self.move_pad()
-            self.check_borders()
-            self.pad.refresh(self.pad_y, self.pad_x,
-                             pos_y + pos_y_off, pos_x + pos_x_off,
-                             pos_y + win_size_y - pad_y_delta,
-                             pos_x + win_size_x - pad_x_delta)
+            props = self._get_properties()
+            self._pad_refresh(props)
 
     def cursor_msg_end(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # jump to last line in log
-        if self.zoomed:
-            pad_y_delta, pad_x_delta = 2, 0
-            pos_y, pos_x = 0, 0
-            pos_y_off, pos_x_off = 1, 0
-        else:
-            pad_y_delta, pad_x_delta = 2, 2
-            pos_y, pos_x = self.config.get_pos()
-            pos_y_off, pos_x_off = 1, 1
-        win_size_y, win_size_x = self.win.getmaxyx()
-        unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
-        lines = self._get_num_log_lines(pad_size_x)
+        props = self._get_properties()
+        lines = self._get_num_log_lines(props.pad_size_x)
         if self.cur_y < lines:
             self.pad.move(lines, self.cur_x)
-            self.move_pad()
-            self.check_borders()
-            self.pad.refresh(self.pad_y, self.pad_x,
-                             pos_y + pos_y_off, pos_x + pos_x_off,
-                             pos_y + win_size_y - pad_y_delta,
-                             pos_x + win_size_x - pad_x_delta)
+            self._pad_refresh(props)
 
     def cursor_line_start(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # move cursor up one page until first entry in log
-        if self.zoomed:
-            pad_y_delta, pad_x_delta = 2, 0
-            pos_y, pos_x = 0, 0
-            pos_y_off, pos_x_off = 1, 0
-        else:
-            pad_y_delta, pad_x_delta = 2, 2
-            pos_y, pos_x = self.config.get_pos()
-            pos_y_off, pos_x_off = 1, 1
-        win_size_y, win_size_x = self.win.getmaxyx()
-
+        props = self._get_properties()
         if self.cur_y > 0:
-            if self.cur_y - (win_size_y - pad_y_delta) >= 0:
-                self.pad.move(self.cur_y - (win_size_y - pad_y_delta),
-                              self.cur_x)
+            if self.cur_y - (props.win_size_y - props.pad_y_delta) >= 0:
+                self.pad.move(self.cur_y - (props.win_size_y -
+                                            props.pad_y_delta), self.cur_x)
             else:
                 self.pad.move(0, self.cur_x)
-            self.move_pad()
-            self.check_borders()
-            self.pad.refresh(self.pad_y, self.pad_x,
-                             pos_y + pos_y_off, pos_x + pos_x_off,
-                             pos_y + win_size_y - pad_y_delta,
-                             pos_x + win_size_x - pad_x_delta)
+            self._pad_refresh(props)
 
     def cursor_line_end(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # move cursor down one page until last entry in log
-        if self.zoomed:
-            pad_y_delta, pad_x_delta = 2, 0
-            pos_y, pos_x = 0, 0
-            pos_y_off, pos_x_off = 1, 0
-        else:
-            pad_y_delta, pad_x_delta = 2, 2
-            pos_y, pos_x = self.config.get_pos()
-            pos_y_off, pos_x_off = 1, 1
-        win_size_y, win_size_x = self.win.getmaxyx()
-        unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
-
-        lines = self._get_num_log_lines(pad_size_x)
+        props = self._get_properties()
+        lines = self._get_num_log_lines(props.pad_size_x)
         if self.cur_y < lines:
-            if self.cur_y + win_size_y - pad_y_delta < lines:
-                self.pad.move(self.cur_y + win_size_y - pad_y_delta,
-                              self.cur_x)
+            if self.cur_y + props.win_size_y - props.pad_y_delta < lines:
+                self.pad.move(self.cur_y + props.win_size_y -
+                              props.pad_y_delta, self.cur_x)
             else:
                 self.pad.move(lines, self.cur_x)
-            self.move_pad()
-            self.check_borders()
-            self.pad.refresh(self.pad_y, self.pad_x,
-                             pos_y + pos_y_off, pos_x + pos_x_off,
-                             pos_y + win_size_y - pad_y_delta,
-                             pos_x + win_size_x - pad_x_delta)
+            self._pad_refresh(props)
 
     def cursor_up(self, *args):
         # move cursor up until first entry in list
-        if self.zoomed:
-            pad_y_delta, pad_x_delta = 2, 0
-            pos_y, pos_x = 0, 0
-            pos_y_off, pos_x_off = 1, 0
-        else:
-            pad_y_delta, pad_x_delta = 2, 2
-            pos_y, pos_x = self.config.get_pos()
-            pos_y_off, pos_x_off = 1, 1
-        win_size_y, win_size_x = self.win.getmaxyx()
         if self.cur_y > 0:
             self.pad.move(self.cur_y - 1, self.cur_x)
             self.cur_y, self.cur_x = self.pad.getyx()
-            self.move_pad()
-            self.check_borders()
-            self.pad.refresh(self.pad_y, self.pad_x,
-                             pos_y + pos_y_off, pos_x + pos_x_off,
-                             pos_y + win_size_y - pad_y_delta,
-                             pos_x + win_size_x - pad_x_delta)
+            props = self._get_properties()
+            self._pad_refresh(props)
 
     def cursor_down(self, *args):
         # move cursor down until end of list
-        if self.zoomed:
-            pad_y_delta, pad_x_delta = 2, 0
-            pos_y, pos_x = 0, 0
-            pos_y_off, pos_x_off = 1, 0
-        else:
-            pad_y_delta, pad_x_delta = 2, 2
-            pos_y, pos_x = self.config.get_pos()
-            pos_y_off, pos_x_off = 1, 1
-        win_size_y, win_size_x = self.win.getmaxyx()
-        unused_pad_size_y, pad_size_x = self.pad.getmaxyx()
-        lines = self._get_num_log_lines(pad_size_x)
+        props = self._get_properties()
+        lines = self._get_num_log_lines(props.pad_size_x)
         if self.cur_y < lines:
             self.pad.move(self.cur_y + 1, self.cur_x)
             self.cur_y, self.cur_x = self.pad.getyx()
-            self.move_pad()
-            self.check_borders()
-            self.pad.refresh(self.pad_y, self.pad_x,
-                             pos_y + pos_y_off, pos_x + pos_x_off,
-                             pos_y + win_size_y - pad_y_delta,
-                             pos_x + win_size_x - pad_x_delta)
+            self._pad_refresh(props)
 
     def zoom_win(self, *args):
         """
@@ -729,22 +675,17 @@ class LogWin(Win):
         """
 
         # get positions and sizes for zoomed and normal mode
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
         if self.zoomed:
             self.zoomed = False
-            pad_y_delta, pad_x_delta = 2, 2
-            win_size_y, win_size_x = self.config.get_size()
-            pos_y, pos_x = self.config.get_pos()
         else:
             self.zoomed = True
-            pad_y_delta, pad_x_delta = 2, 0
-            win_size_y, win_size_x = max_y, max_x
-            pos_y, pos_x = 0, 0
+        props = self._get_properties()
 
         # resize window and pad
-        self.resize_win(win_size_y, win_size_x)
-        self.move_win(pos_y, pos_x)
-        self.pad.resize(win_size_y - pad_y_delta, win_size_x - pad_x_delta)
+        self.resize_win(props.win_size_y, props.win_size_x)
+        self.move_win(props.pos_y, props.pos_x)
+        self.pad.resize(props.win_size_y - props.pad_y_delta,
+                        props.win_size_x - props.pad_x_delta)
         self.move_pad()
         self.check_borders()
 
