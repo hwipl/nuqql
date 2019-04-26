@@ -5,7 +5,7 @@ Nuqql UI Windows
 import curses
 import math
 
-from collections import namedtuple
+from types import SimpleNamespace
 
 # screen and main windows
 MAIN_WINS = {}
@@ -546,30 +546,25 @@ class LogWin(Win):
         Get window/pad properties, depending on max size and zoom
         """
 
-        max_y, max_x = MAIN_WINS["screen"].getmaxyx()
+        props = SimpleNamespace()
+        props.max_y, props.max_x = MAIN_WINS["screen"].getmaxyx()
         if self.zoomed:
             # window is currently zoomed
-            pos_y, pos_x = 0, 0
-            pos_y_off, pos_x_off = 1, 0
-            win_size_y, win_size_x = max_y, max_x
-            pad_size_y, pad_size_x = (max_y - 2, max_x)
-            pad_y_delta, pad_x_delta = 2, 0
+            props.pos_y, props.pos_x = 0, 0
+            props.pos_y_off, props.pos_x_off = 1, 0
+            props.win_size_y, props.win_size_x = props.max_y, props.max_x
+            props.pad_size_y, props.pad_size_x = (props.max_y - 2, props.max_x)
+            props.pad_y_delta, props.pad_x_delta = 2, 0
         else:
             # window is not zoomed
-            pos_y, pos_x = self.config.get_pos()
-            pos_y_off, pos_x_off = 1, 1
-            win_size_y, win_size_x = self.config.get_size()
+            props.pos_y, props.pos_x = self.config.get_pos()
+            props.pos_y_off, props.pos_x_off = 1, 1
+            props.win_size_y, props.win_size_x = self.config.get_size()
             # use actual pad size, it will be resized later if necessary
-            pad_size_y, pad_size_x = self.pad.getmaxyx()
-            pad_y_delta, pad_x_delta = 2, 2
+            props.pad_size_y, props.pad_size_x = self.pad.getmaxyx()
+            props.pad_y_delta, props.pad_x_delta = 2, 2
 
-        Props = namedtuple('Props', ['pos_y', 'pos_x', "pos_y_off",
-                                     "pos_x_off", "win_size_y", "win_size_x",
-                                     "pad_size_y", "pad_size_x", "pad_y_delta",
-                                     "pad_x_delta"])
-        return Props(pos_y, pos_x, pos_y_off, pos_x_off, win_size_y,
-                     win_size_x, pad_size_y, pad_size_x, pad_y_delta,
-                     pad_x_delta)
+        return props
 
     def _pad_refresh(self, props):
         """
@@ -593,12 +588,10 @@ class LogWin(Win):
 
         # if window was resized, resize pad size according to new window size
         if props.pad_size_x != props.win_size_x - props.pad_x_delta:
-            props = props._replace(pad_size_x=props.win_size_x -
-                                   props.pad_x_delta)
+            props.pad_size_x = props.win_size_x - props.pad_x_delta
             self.pad.resize(props.pad_size_y, props.pad_size_x)
         if props.pad_size_y != props.win_size_y - props.pad_y_delta:
-            props = props._replace(pad_size_y=props.win_size_y -
-                                   props.pad_y_delta)
+            props.pad_size_y = props.win_size_y - props.pad_y_delta
             self.pad.resize(props.pad_size_y, props.pad_size_x)
             self.pad_y = 0  # reset pad position
 
