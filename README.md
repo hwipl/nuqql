@@ -104,7 +104,8 @@ to your backends. You can do this from nuqql with the following steps:
 
 * Start nuqql.
 * Enter the conversation with the backend by pressing the `ENTER` key
-  on the entry in the Conversation List (`{purpled}` or `{slixmppd}`).
+  on the entry in the Conversation List (`{backend} purpled` or `{backend}
+  slixmppd`).
 * Add your accounts (note: send the following commands the backend with the
   `CTRL-X` key combination):
   * for example, you can add a jabber account with this command:
@@ -130,6 +131,21 @@ just use *master*.
 
 ## Changes
 
+* devel:
+  * Add additional keybinds in Input Window:
+    * `ctrl-a`: go to beginning of line
+    * `ctrl-e`: go to end of line
+    * `ctrl-k`: delete from cursor to end of line
+    * `ctrl-u`: delete line
+  * Add additional keybinds in List and Log Window:
+    * `HOME`: jump to first line
+    * `END`: jump to last line
+  * Add Log Window zooming with `F9` key when browsing the history
+  * Add account status and persistent global status (for all accounts):
+    * `global-status get`: get global status
+    * `global-status set <status>`: set global status to `<status>`
+  * Improve terminal resize handling
+  * Code cleanups, fixes and reorganization
 * v0.3:
   * Introduce chat history support
   * Add support for the slixmppd backend
