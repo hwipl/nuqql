@@ -131,7 +131,7 @@ just use *master*.
 
 ## Changes
 
-* devel:
+* v0.4:
   * Add additional keybinds in Input Window:
     * `ctrl-a`: go to beginning of line
     * `ctrl-e`: go to end of line
@@ -141,11 +141,14 @@ just use *master*.
     * `HOME`: jump to first line
     * `END`: jump to last line
   * Add Log Window zooming with `F9` key when browsing the history
-  * Add account status and persistent global status (for all accounts):
+  * Add account status and persistent global status (for all accounts) in
+    `{nuqql}` conversation:
     * `global-status get`: get global status
     * `global-status set <status>`: set global status to `<status>`
   * Improve terminal resize handling
+  * Improve conversation list focus and conversation history behaviour
   * Code cleanups, fixes and reorganization
+  * Requires purpled v0.3 or nuqql-slixmppd v0.2
 * v0.3:
   * Introduce chat history support
   * Add support for the slixmppd backend
