@@ -286,9 +286,14 @@ class BuddyConversation(Conversation):
         log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
         self.wins.log_win.add(log_msg)
 
-        # send message and log it in the history file
-        self.backend.client.send_msg(self.account.aid, self.name, msg)
-        nuqql.history.log(self, log_msg)
+        if self.peers[0].status == "grp":
+            # this is a group chat
+            self.backend.client.send_group_msg(self.account.aid, self.name,
+                                               msg)
+        else:
+            # send message and log it in the history file
+            self.backend.client.send_msg(self.account.aid, self.name, msg)
+            nuqql.history.log(self, log_msg)
 
     def set_lastread(self):
         """

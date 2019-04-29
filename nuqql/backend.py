@@ -155,6 +155,18 @@ class BackendClient:
         msg = msg.encode()
         self.sock.send(msg)
 
+    def send_group_msg(self, account, buddy, msg):
+        """
+        Send a group message over the client connection
+        """
+
+        prefix = "account {0} chat send {1} ".format(account, buddy)
+        msg = html.escape(msg)
+        msg = "<br/>".join(msg.split("\n"))
+        msg = prefix + msg + "\r\n"
+        msg = msg.encode()
+        self.sock.send(msg)
+
     def send_collect(self, account):
         """
         Send "collect" message over the client connection,
@@ -285,6 +297,16 @@ class Backend:
             self.conversation.log("nuqql", text)
             return
 
+        # handle chat message
+        if msg_type == "chat":
+            # "chat", acc, ctype, nick, chat
+            text = "account {} chat: {} {} {}".format(parsed_msg[1],
+                                                      parsed_msg[2],
+                                                      parsed_msg[3],
+                                                      parsed_msg[4])
+            self.conversation.log("nuqql", text)
+            return
+
         # handle buddy messages
         if msg_type == "buddy":
             self.handle_buddy_msg(parsed_msg)
@@ -312,6 +334,7 @@ class Backend:
         # account specific message parsing
         for tmp_acc in self.accounts.values():
             if tmp_acc.aid == acc_id:
+                resource = ""
                 if tmp_acc.type == "icq":
                     if sender[-1] == ":":
                         sender = sender[:-1]
@@ -321,11 +344,13 @@ class Backend:
                         msg = msg[:-7]
                     break
                 elif tmp_acc.type == "xmpp":
-                    sender = sender.split("/")[0]
+                    sender_parts = sender.split("/")
+                    sender = sender_parts[0]
+                    resource = sender_parts[1]
                     break
 
         # let ui handle the message
-        nuqql.ui.handle_message(self, acc_id, tstamp, sender, msg)
+        nuqql.ui.handle_message(self, acc_id, tstamp, sender, msg, resource)
 
     def handle_account_msg(self, parsed_msg):
         """
@@ -479,11 +504,12 @@ class Buddy:
         self.status = "off"     # use short status name
         self.updated = True
 
-    # dictionary for mapping status names to shorter version
+    # dictionary for mapping status names to shorter version (key: lower case)
     status_map = {
         "offline": "off",
         "available": "on",
         "away": "afk",
+        "group_chat": "grp",
     }
 
     def set_status(self, status):
@@ -611,13 +637,35 @@ def parse_status_msg(orig_msg):
     Parse "status" message received from backend
     """
 
-    orig_msg = orig_msg[9:]
+    orig_msg = orig_msg[8:]
     # account <acc> status: <status>
     part = orig_msg.split(" ")
     acc = part[1]
     status = part[3]
 
     return "status", acc, status
+
+
+def parse_chat_msg(orig_msg):
+    """
+    Parse "chat" message received from backend
+    """
+
+    orig_msg = orig_msg[6:]
+    # list: <acc> <chat> <nick>
+    # user: <acc> <user>
+    part = orig_msg.split(" ")
+    ctype = part[0]
+    acc = part[1]
+    chat = None
+    nick = None
+    if ctype == "list:":
+        chat = part[2]
+        nick = part[3]
+    if ctype == "user:":
+        nick = part[2]
+
+    return "chat", acc, ctype, nick, chat
 
 
 # dictionary for parsing functions, used by parse_msg()
@@ -627,6 +675,7 @@ PARSE_FUNCTIONS = {
     "buddy:": parse_buddy_msg,
     "account:": parse_account_msg,
     "status:": parse_status_msg,
+    "chat:": parse_chat_msg,
     "info:": parse_info_msg,
     "error:": parse_error_msg,
 }

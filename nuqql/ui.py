@@ -15,7 +15,7 @@ import nuqql.conversation
 import nuqql.history
 
 
-def handle_message(backend, acc_id, tstamp, sender, msg):
+def handle_message(backend, acc_id, tstamp, sender, msg, resource):
     """
     Handle message from backend
     """
@@ -29,7 +29,11 @@ def handle_message(backend, acc_id, tstamp, sender, msg):
            conv.account and conv.account.aid == acc_id and \
            conv.name == sender:
             # log message
-            log_msg = conv.log(conv.name, msg, tstamp=tstamp)
+            if conv.peers[0].status == "grp":
+                # this is a group chat message, sender is in resource
+                log_msg = conv.log(resource, msg, tstamp=tstamp)
+            else:
+                log_msg = conv.log(conv.name, msg, tstamp=tstamp)
             nuqql.history.log(conv, log_msg)
 
             # if window is not already active notify user
