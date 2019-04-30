@@ -332,9 +332,9 @@ class Backend:
         msg = parsed_msg[5]
 
         # account specific message parsing
+        resource = ""
         for tmp_acc in self.accounts.values():
             if tmp_acc.aid == acc_id:
-                resource = ""
                 if tmp_acc.type == "icq":
                     if sender[-1] == ":":
                         sender = sender[:-1]
