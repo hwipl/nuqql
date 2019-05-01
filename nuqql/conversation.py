@@ -293,7 +293,7 @@ class BuddyConversation(Conversation):
         else:
             # send message and log it in the history file
             self.backend.client.send_msg(self.account.aid, self.name, msg)
-            nuqql.history.log(self, log_msg)
+        nuqql.history.log(self, log_msg)
 
     def set_lastread(self):
         """
