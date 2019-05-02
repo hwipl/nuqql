@@ -458,7 +458,8 @@ class Account:
         self.buddies_update = time.time()
 
         # remove buddies, that have not been updated for a while
-        # TODO: tell ui, buddy does not exist any more
+        for rem in [buddy for buddy in self.buddies if not buddy.updated]:
+            nuqql.ui.remove_buddy(rem)
         self.buddies = [buddy for buddy in self.buddies if buddy.updated]
 
         # set update pending in buddy

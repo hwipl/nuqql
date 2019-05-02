@@ -83,6 +83,21 @@ def add_buddy(buddy):
                 conv.notify()
 
 
+def remove_buddy(buddy):
+    """
+    Remove a buddy from the UI
+    """
+
+    for index, conv in enumerate(nuqql.conversation.CONVERSATIONS):
+        if not isinstance(conv, nuqql.conversation.BuddyConversation):
+            continue
+
+        conv_buddy = conv.peers[0]
+        if conv_buddy is buddy:
+            del nuqql.conversation.CONVERSATIONS[index]
+            conv.wins.list_win.redraw()
+
+
 def read_input():
     """
     Read user input and return it to caller
