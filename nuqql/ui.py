@@ -29,7 +29,7 @@ def handle_message(backend, acc_id, tstamp, sender, msg, resource):
            conv.account and conv.account.aid == acc_id and \
            conv.name == sender:
             # log message
-            if conv.peers[0].status == "grp":
+            if isinstance(conv, nuqql.conversation.GroupConversation):
                 # this is a group chat message, sender is in resource
                 log_msg = conv.log(resource, msg, tstamp=tstamp)
             else:
