@@ -357,6 +357,7 @@ class BackendConversation(Conversation):
         log_title = "Command log of {0}".format(self.name)
         input_title = "Command to {0}".format(self.name)
 
+        self.wins.list_win = nuqql.win.MAIN_WINS["list"]
         log_config = nuqql.config.get("log_win")
         self.wins.log_win = nuqql.win.LogWin(log_config, self, log_title)
         self.wins.log_win.list = self.history.log
