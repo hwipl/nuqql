@@ -65,9 +65,17 @@ def add_buddy(buddy):
     Add a new buddy to UI
     """
 
-    # add a new conversation for the new buddy
-    conv = nuqql.conversation.BuddyConversation(buddy.backend, buddy.account,
-                                                buddy.name)
+    # add new conversation for the buddy
+    if buddy.status == "grp":
+        # this "buddy" is a group chat
+        conv = nuqql.conversation.GroupConversation(buddy.backend,
+                                                    buddy.account,
+                                                    buddy.name)
+    else:
+        # this is a regular buddy
+        conv = nuqql.conversation.BuddyConversation(buddy.backend,
+                                                    buddy.account,
+                                                    buddy.name)
     conv.peers.append(buddy)
     conv.wins.list_win.add(conv)
     conv.wins.list_win.redraw()

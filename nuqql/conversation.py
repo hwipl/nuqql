@@ -286,13 +286,8 @@ class BuddyConversation(Conversation):
         log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
         self.wins.log_win.add(log_msg)
 
-        if self.peers[0].status == "grp":
-            # this is a group chat
-            self.backend.client.send_group_msg(self.account.aid, self.name,
-                                               msg)
-        else:
-            # send message and log it in the history file
-            self.backend.client.send_msg(self.account.aid, self.name, msg)
+        # send message and log it in the history file
+        self.backend.client.send_msg(self.account.aid, self.name, msg)
         nuqql.history.log(self, log_msg)
 
     def set_lastread(self):
@@ -314,6 +309,27 @@ class BuddyConversation(Conversation):
         # if there is a log message, write it to lastread
         if log_msg:
             nuqql.history.set_lastread(self, log_msg)
+
+
+class GroupConversation(BuddyConversation):
+    """
+    Class for group chat conversations
+    """
+
+    def send_msg(self, msg):
+        """
+        Send message coming from the UI/input window
+        """
+
+        # TODO: unify the logging in a method of Conversation?
+        # log message
+        tstamp = datetime.datetime.now()
+        log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
+        self.wins.log_win.add(log_msg)
+
+        # send and log  group chat message
+        self.backend.client.send_group_msg(self.account.aid, self.name, msg)
+        nuqql.history.log(self, log_msg)
 
 
 class BackendConversation(Conversation):
