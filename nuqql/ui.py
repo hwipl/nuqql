@@ -45,6 +45,29 @@ def handle_message(backend, acc_id, tstamp, sender, msg, resource):
     backend.conversation.log(sender, msg, tstamp=tstamp)
 
 
+def handle_chat_message(backend, acc_id, ctype, chat, nick):
+    """
+    Handle chat message from backend
+    """
+
+    for conv in nuqql.conversation.CONVERSATIONS:
+        if isinstance(conv, nuqql.conversation.GroupConversation) and \
+           conv.backend is backend and \
+           conv.account and conv.account.aid == acc_id and \
+           conv.name == chat:
+            # log chat message/event
+            log_msg = conv.log(chat, "{} {}".format(ctype, nick))
+            nuqql.history.log(conv, log_msg)
+
+            # if window is not already active notify user
+            if not conv.is_active():
+                conv.notify()
+            return True
+
+    # did not handle the message, return False
+    return False
+
+
 def update_buddy(buddy):
     """
     Update buddy in UI

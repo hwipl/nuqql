@@ -299,12 +299,7 @@ class Backend:
 
         # handle chat message
         if msg_type == "chat":
-            # "chat", acc, ctype, nick, chat
-            text = "account {} chat: {} {} {}".format(parsed_msg[1],
-                                                      parsed_msg[2],
-                                                      parsed_msg[3],
-                                                      parsed_msg[4])
-            self.conversation.log("nuqql", text)
+            self.handle_chat_msg(parsed_msg)
             return
 
         # handle buddy messages
@@ -351,6 +346,26 @@ class Backend:
 
         # let ui handle the message
         nuqql.ui.handle_message(self, acc_id, tstamp, sender, msg, resource)
+
+    def handle_chat_msg(self, parsed_msg):
+        """
+        Handle Chat message
+        """
+
+        # "chat", ctype, acc, chat, nick
+        ctype = parsed_msg[1]
+        acc_id = parsed_msg[2]
+        chat = parsed_msg[3]
+        nick = parsed_msg[4]
+
+        # if there is a conversation for this type and group chat, log to it
+        if ctype == "user:" and \
+           nuqql.ui.handle_chat_message(self, acc_id, ctype, chat, nick):
+            return
+
+        # otherwise, just log to backend conversation
+        text = "account {} chat: {} {} {}".format(acc_id, ctype, chat, nick)
+        self.conversation.log("nuqql", text)
 
     def handle_account_msg(self, parsed_msg):
         """
@@ -654,19 +669,14 @@ def parse_chat_msg(orig_msg):
 
     orig_msg = orig_msg[6:]
     # list: <acc> <chat> <nick>
-    # user: <acc> <user>
+    # user: <acc> <chat> <user>
     part = orig_msg.split(" ")
     ctype = part[0]
     acc = part[1]
-    chat = None
-    nick = None
-    if ctype == "list:":
-        chat = part[2]
-        nick = part[3]
-    if ctype == "user:":
-        nick = part[2]
+    chat = part[2]
+    nick = part[3]
 
-    return "chat", acc, ctype, nick, chat
+    return "chat", ctype, acc, chat, nick
 
 
 # dictionary for parsing functions, used by parse_msg()

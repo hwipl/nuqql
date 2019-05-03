@@ -327,6 +327,17 @@ class GroupConversation(BuddyConversation):
         log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
         self.wins.log_win.add(log_msg)
 
+        # check for special commands
+        if msg == "/names":
+            # TODO: use peers list for this?
+            # create user list command
+            msg = "account {} chat users {}".format(self.account.aid,
+                                                    self.name)
+            # send command message to backend
+            if self.backend is not None:
+                self.backend.client.send_command(msg)
+            return
+
         # send and log  group chat message
         self.backend.client.send_group_msg(self.account.aid, self.name, msg)
         nuqql.history.log(self, log_msg)
