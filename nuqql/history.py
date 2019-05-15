@@ -279,8 +279,9 @@ def init_log_from_file(conv):
         # if there were any log messages in the log file, put a marker in the
         # log where the new messages start
         tstamp = datetime.datetime.now()
-        log_msg = LogMessage(tstamp, "<event>", "<Started new conversation.>",
-                             own=True)
+        new_conv_msg = "<Started new conversation at {}.>".format(
+            tstamp.strftime("%Y-%m-%d %H:%M:%S"))
+        log_msg = LogMessage(tstamp, "<event>", new_conv_msg, own=True)
         log_msg.is_read = True
         conv.history.log.append(log_msg)
 
