@@ -93,7 +93,7 @@ class Conversation:
 
         # implemented in sub classes
 
-    def log(self, sender, msg, tstamp=None):
+    def log(self, sender, msg, tstamp=None, own=False):
         """
         Log message to conversation's history/log window
         """
@@ -101,7 +101,7 @@ class Conversation:
         # create a log message and put it into conversation's history
         if tstamp is None:
             tstamp = datetime.datetime.now()
-        log_msg = nuqql.history.LogMessage(tstamp, sender, msg)
+        log_msg = nuqql.history.LogMessage(tstamp, sender, msg, own=own)
         self.history.log.append(log_msg)
 
         # if conversation is already active, redraw the log window
@@ -280,14 +280,11 @@ class BuddyConversation(Conversation):
         Send message coming from the UI/input window
         """
 
-        # TODO: unify the logging in a method of Conversation?
-        # log message
-        tstamp = datetime.datetime.now()
-        log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
-        self.wins.log_win.add(log_msg)
-
         # send message and log it in the history file
         self.backend.client.send_msg(self.account.aid, self.name, msg)
+
+        # log message
+        log_msg = self.log("you", msg, own=True)
         nuqql.history.log(self, log_msg)
 
     def set_lastread(self):
@@ -320,11 +317,8 @@ class GroupConversation(BuddyConversation):
         Send message coming from the UI/input window
         """
 
-        # TODO: unify the logging in a method of Conversation?
         # log message
-        tstamp = datetime.datetime.now()
-        log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
-        self.wins.log_win.add(log_msg)
+        log_msg = self.log("you", msg, own=True)
 
         # check for special commands
         if msg == "/names":
