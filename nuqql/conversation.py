@@ -300,8 +300,7 @@ class BuddyConversation(Conversation):
         if self.wins.log_win.list:
             log_msg = self.wins.log_win.list[-1]
             # do not put new conversation event in last_read
-            if log_msg.sender == "<event>" and \
-               log_msg.msg == "<Started new conversation.>":
+            if log_msg.sender == "<event>":
                 log_msg = None
                 if len(self.wins.log_win.list) > 1:
                     log_msg = self.wins.log_win.list[-2]
