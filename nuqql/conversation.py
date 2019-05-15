@@ -102,6 +102,14 @@ class Conversation:
         if tstamp is None:
             tstamp = datetime.datetime.now()
         log_msg = nuqql.history.LogMessage(tstamp, sender, msg, own=own)
+        if self.history.log:
+            last_msg = self.history.log[-1]
+            if last_msg.tstamp.date() != tstamp.date():
+                date_change_msg = nuqql.history.LogMessage(
+                    log_msg.tstamp, "<event>", "<Date changed to {}>".format(
+                        log_msg.tstamp.date()), own=True)
+                date_change_msg.is_read = True
+                self.history.log.append(date_change_msg)
         self.history.log.append(log_msg)
 
         # if conversation is already active, redraw the log window

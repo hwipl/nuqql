@@ -265,10 +265,22 @@ def init_log_from_file(conv):
     lines = []
     with open(conv.history.log_file, newline="\r\n") as in_file:
         lines = in_file.readlines()
+        prev_msg = None
         for line in lines:
-            # add log message to the conversation's log
+            # parse log line and create log message
             log_msg = parse_log_line(line)
             log_msg.is_read = is_read
+
+            # check if date changed between two messages, and print event
+            if prev_msg and prev_msg.tstamp.date() != log_msg.tstamp.date():
+                date_change_msg = LogMessage(
+                    log_msg.tstamp, "<event>", "<Date changed to {}>".format(
+                        log_msg.tstamp.date()), own=True)
+                date_change_msg.is_read = True
+                conv.history.log.append(date_change_msg)
+            prev_msg = log_msg
+
+            # add log message to the conversation's log
             conv.history.log.append(log_msg)
 
             # if this is the last read message, following message will be
