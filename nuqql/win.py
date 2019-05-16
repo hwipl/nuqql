@@ -1083,7 +1083,13 @@ class LogDialogInputWin(InputWin):
         # self.msg = conversation.wins.log_win.search_text
 
     def _go_back(self, *args):
+        # do not use window any more
         self.conversation.wins.log_win.dialog = None
+
+        # clear pad and redraw other windows
+        self.pad.clear()
+        self.conversation.wins.input_win.redraw()
+        self.conversation.wins.log_win.redraw()
 
     def _send_msg(self, *args):
         # do not send empty messages
@@ -1093,10 +1099,5 @@ class LogDialogInputWin(InputWin):
         # set search string
         self.conversation.wins.log_win.search_text = self.msg
 
-        # do not use window any more
-        self.conversation.wins.log_win.dialog = None
-
-        # clear pad and redraw other windows
-        self.pad.clear()
-        self.conversation.wins.input_win.redraw()
-        self.conversation.wins.log_win.redraw()
+        # go back to log window
+        self._go_back()
