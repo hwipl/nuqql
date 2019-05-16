@@ -751,7 +751,7 @@ class LogWin(Win):
 
         self.dialog.process_input(char)
 
-    def _search_next(self):
+    def search_next(self):
         """
         Search for next match
         """
@@ -816,7 +816,7 @@ class LogWin(Win):
         """
 
         if char == "n":
-            self._search_next()
+            self.search_next()
             return True
         if char == "p":
             self._search_prev()
@@ -1101,3 +1101,6 @@ class LogDialogInputWin(InputWin):
         # do not search for empty text
         if self.msg == "":
             return
+
+        # jump to first match
+        self.conversation.wins.log_win.search_next()
