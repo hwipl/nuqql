@@ -270,6 +270,13 @@ class Win:
 
         # implemented in sub classes
 
+    def _zoom_win_url(self, *args):
+        """
+        User input: zoom current window
+        """
+
+        # implemented in sub classes
+
     def _init_keyfunc(self):
         """
         Initialize key to function mapping
@@ -290,6 +297,7 @@ class Win:
             "DEL_LINE_END": self._delete_line_end,
             "DEL_LINE": self._delete_line,
             "WIN_ZOOM": self._zoom_win,
+            "WIN_ZOOM_URL": self._zoom_win_url,
         }
 
 
@@ -1058,6 +1066,16 @@ class InputWin(Win):
 
         self.state.active = False
         self.conversation.wins.log_win.state.active = True
+
+    def _zoom_win_url(self, *args):
+        """
+        Jump to log, zoom window and search for next url
+        """
+
+        self._go_log()
+        self.conversation.wins.log_win.keyfunc["WIN_ZOOM"]()
+        self.conversation.wins.log_win.search_text = "http"
+        self.conversation.wins.log_win.search_next()
 
     def process_input(self, char):
         """
