@@ -487,6 +487,12 @@ class LogWin(Win):
         # list entries/message log
         self.list = []
 
+        # dialog window for user input
+        self.dialog = None
+
+        # string to search for
+        self.search_text = ""
+
     def add(self, entry):
         """
         Add entry to internal list
@@ -728,12 +734,117 @@ class LogWin(Win):
         self.state.active = True
         self.conversation.wins.input_win.state.active = True
 
+    def _start_dialog(self):
+        """
+        Start a new dialog
+        """
+
+        self.dialog = LogDialogInputWin(
+            self.conversation.wins.input_win.config, self.conversation,
+            "Search History")
+        self.dialog.redraw()
+
+    def _process_dialog_input(self, char):
+        """
+        Process user input in dialog mode
+        """
+
+        self.dialog.process_input(char)
+
+    def _search_next(self):
+        """
+        Search for next match
+        """
+
+        # init search
+        props = self._get_properties()
+        search_y, search_x = self.state.cur_y, self.state.cur_x
+
+        # search for text until first line
+        while search_y > 0:
+            cur_text = self.pad.instr(search_y, 0, search_x).decode()
+            index = cur_text.find(self.search_text)
+
+            # found it, stop here
+            if index != -1:
+                self.pad.move(search_y, index)
+                self.state.cur_y, self.state.cur_x = self.pad.getyx()
+
+                self._pad_refresh(props)
+                return
+
+            # keep searching
+            search_y -= 1
+            search_x = props.pad_size_x     # set it to maximum line length
+
+    def _search_prev(self):
+        """
+        Search for previous match
+        """
+
+        # init search
+        props = self._get_properties()
+        lines = self._get_num_log_lines(props.pad_size_x)
+        search_y, search_x = self.state.cur_y, self.state.cur_x
+
+        # if we are already on a match, skip it
+        if self.pad.instr(search_y, search_x,
+                          len(self.search_text)).decode() == self.search_text:
+            search_x += len(self.search_text)
+
+        # search for text until end of log
+        while search_y < lines:
+            cur_text = self.pad.instr(search_y, search_x,
+                                      props.pad_size_x).decode()
+            index = cur_text.find(self.search_text)
+
+            # found it, stop here
+            if index != -1:
+                self.pad.move(search_y, index)
+                self.state.cur_y, self.state.cur_x = self.pad.getyx()
+
+                self._pad_refresh(props)
+                return
+
+            # keep searching
+            search_y += 1
+            search_x = 0    # set it to first position in line
+
+    def _process_search_input(self, char):
+        """
+        Process user input in search mode
+        """
+
+        if char == "n":
+            self._search_next()
+            return True
+        if char == "p":
+            self._search_prev()
+            return True
+
+        # unknown key, continue regular key handling
+        return False
+
     def process_input(self, char):
         """
         Process user input
         """
 
         self.state.cur_y, self.state.cur_x = self.pad.getyx()
+
+        # dialog mode
+        if self.dialog:
+            self._process_dialog_input(char)
+            return
+
+        if char == "/":
+            self._start_dialog()
+            return
+
+        # search mode
+        if self.search_text != "" and char in ("n", "p"):
+            if self._process_search_input(char):
+                return
 
         # look for special key mappings in keymap or process as text
         if char in self.config.keymap:
@@ -957,3 +1068,35 @@ class InputWin(Win):
                 self.pad.move(self.state.cur_y, self.state.cur_x + 1)
         # display changes in the pad
         self.redraw_pad()
+
+
+class LogDialogInputWin(InputWin):
+    """
+    Class for dialog input from user
+    """
+
+    def __init__(self, config, conversation, title):
+        InputWin.__init__(self, config, conversation, title)
+
+        # init displayed msg to last search text
+        # TODO: this needs some extra work to properly display the msg
+        # self.msg = conversation.wins.log_win.search_text
+
+    def _go_back(self, *args):
+        self.conversation.wins.log_win.dialog = None
+
+    def _send_msg(self, *args):
+        # do not send empty messages
+        if self.msg == "":
+            return
+
+        # set search string
+        self.conversation.wins.log_win.search_text = self.msg
+
+        # do not use window any more
+        self.conversation.wins.log_win.dialog = None
+
+        # clear pad and redraw other windows
+        self.pad.clear()
+        self.conversation.wins.input_win.redraw()
+        self.conversation.wins.log_win.redraw()
