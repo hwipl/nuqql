@@ -1092,12 +1092,12 @@ class LogDialogInputWin(InputWin):
         self.conversation.wins.log_win.redraw()
 
     def _send_msg(self, *args):
-        # do not send empty messages
-        if self.msg == "":
-            return
-
         # set search string
         self.conversation.wins.log_win.search_text = self.msg
 
         # go back to log window
         self._go_back()
+
+        # do not search for empty text
+        if self.msg == "":
+            return
