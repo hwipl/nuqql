@@ -889,6 +889,9 @@ class InputWin(Win):
                           min(self.state.cur_x,
                               len(segment[self.state.cur_y - 1])))
 
+        # display changes in the pad
+        self.redraw_pad()
+
     def _cursor_down(self, *args):
         # pad properties
         pad_y_max, unused_pad_x_max = self.pad.getmaxyx()
@@ -900,9 +903,15 @@ class InputWin(Win):
                           min(self.state.cur_x,
                               len(segment[self.state.cur_y + 1])))
 
+        # display changes in the pad
+        self.redraw_pad()
+
     def _cursor_left(self, *args):
         if self.state.cur_x > 0:
             self.pad.move(self.state.cur_y, self.state.cur_x - 1)
+
+        # display changes in the pad
+        self.redraw_pad()
 
     def _cursor_right(self, *args):
         # pad properties
@@ -913,9 +922,15 @@ class InputWin(Win):
            self.state.cur_x < len(segment[self.state.cur_y]):
             self.pad.move(self.state.cur_y, self.state.cur_x + 1)
 
+        # display changes in the pad
+        self.redraw_pad()
+
     def _cursor_line_start(self, *args):
         if self.state.cur_x > 0:
             self.pad.move(self.state.cur_y, 0)
+
+        # display changes in the pad
+        self.redraw_pad()
 
     def _cursor_line_end(self, *args):
         # pad properties
@@ -926,15 +941,24 @@ class InputWin(Win):
            self.state.cur_x < len(segment[self.state.cur_y]):
             self.pad.move(self.state.cur_y, len(segment[self.state.cur_y]))
 
+        # display changes in the pad
+        self.redraw_pad()
+
     def _cursor_msg_start(self, *args):
         if self.state.cur_y > 0 or self.state.cur_x > 0:
             self.pad.move(0, 0)
+
+        # display changes in the pad
+        self.redraw_pad()
 
     def _cursor_msg_end(self, *args):
         segment = args[0]
         if self.state.cur_y < len(segment) - 1 or \
            self.state.cur_x < len(segment[-1]):
             self.pad.move(len(segment) - 1, len(segment[-1]))
+
+        # display changes in the pad
+        self.redraw_pad()
 
     def _send_msg(self, *args):
         # do not send empty messages
@@ -951,6 +975,9 @@ class InputWin(Win):
         # reset pad size
         win_size_y, win_size_x = self.win.getmaxyx()
         self.pad.resize(win_size_y - 2, win_size_x - 2)
+
+        # display changes in the pad
+        self.redraw_pad()
 
     def _delete_char(self, *args):
         segment = args[0]
@@ -976,6 +1003,9 @@ class InputWin(Win):
         elif self.state.cur_y > 0:
             self.pad.move(self.state.cur_y - 1, old_prev_len)
 
+        # display changes in the pad
+        self.redraw_pad()
+
     def _delete_line_end(self, *args):
         segment = args[0]
 
@@ -987,6 +1017,9 @@ class InputWin(Win):
         self.msg = "\n".join(segment)
         self.pad.erase()
         self.pad.addstr(self.msg)
+
+        # display changes in the pad
+        self.redraw_pad()
 
     def _delete_line(self, *args):
         segment = args[0]
@@ -1007,6 +1040,9 @@ class InputWin(Win):
         elif len(segment[self.state.cur_y]) < self.state.cur_x:
             self.state.cur_x = len(segment[self.state.cur_y])
         self.pad.move(self.state.cur_y, self.state.cur_x)
+
+        # display changes in the pad
+        self.redraw_pad()
 
     def _go_back(self, *args):
         self.state.active = False
@@ -1066,8 +1102,8 @@ class InputWin(Win):
                 self.pad.move(self.state.cur_y + 1, 0)
             else:
                 self.pad.move(self.state.cur_y, self.state.cur_x + 1)
-        # display changes in the pad
-        self.redraw_pad()
+            # display changes in the pad
+            self.redraw_pad()
 
 
 class LogDialogInputWin(InputWin):
