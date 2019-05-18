@@ -344,6 +344,12 @@ class Backend:
                     if len(sender_parts) > 1:
                         resource = sender_parts[1]
                     break
+                elif tmp_acc.type == "matrix":
+                    # TODO: improve?
+                    sender = sender[1:].split(":")[0]
+                    resource = sender
+                    sender = parsed_msg[2]
+                    break
 
         # let ui handle the message
         nuqql.ui.handle_message(self, acc_id, tstamp, sender, msg, resource)
