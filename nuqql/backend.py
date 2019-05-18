@@ -836,6 +836,25 @@ def start_slixmppd():
                   backend_sockfile)
 
 
+def start_matrixd():
+    """
+    Helper for starting the "matrixd" backend
+    """
+
+    ##################
+    # nuqql-matrixd #
+    ##################
+
+    backend_name = "matrixd"
+    backend_exe = "matrixd.py"
+    backend_path = str(Path.home()) + "/.config/nuqql/backend/matrixd"
+    backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile matrixd.sock"
+    backend_sockfile = backend_path + "/matrixd.sock"
+
+    start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
+                  backend_sockfile)
+
+
 def start_backends():
     """
     Helper for starting all backends
@@ -845,6 +864,7 @@ def start_backends():
     start_purpled()
     start_based()
     start_slixmppd()
+    start_matrixd()
 
 
 def stop_backends():
