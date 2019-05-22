@@ -360,6 +360,10 @@ class ListWin(Win):
         self.pad.attron(curses.color_pair(2))
 
         # store last selected entry
+        if self.state.cur_y >= len(self.list):
+            # make sure cur_y is still "within" the list. Length difference
+            # should be only 1, because buddies get removed individually
+            self.state.cur_y = max(0, self.state.cur_y - 1)
         last_selected = self.list[self.state.cur_y]
 
         # sort list
