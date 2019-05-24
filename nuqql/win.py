@@ -1094,6 +1094,9 @@ class InputWin(Win):
         if char in self.config.keymap:
             func = self.keyfunc[self.config.keybinds[self.config.keymap[char]]]
             func(segments)
+        elif char == "\t":
+            for _i in range(4):
+                self.process_input(" ")
         elif char == curses.ascii.ctrl("o"):
             self._go_log()
         else:
