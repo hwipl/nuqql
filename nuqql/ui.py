@@ -83,24 +83,52 @@ def update_buddy(buddy):
             conv.wins.list_win.redraw()
 
 
+def add_buddy_to_temporary_conv(buddy):
+    """
+    Try to find a temporary conversation for this buddy and add the buddy to it
+    """
+
+    for conv in nuqql.conversation.CONVERSATIONS:
+        if not isinstance(conv, nuqql.conversation.BuddyConversation):
+            continue
+        if not conv.temporary:
+            continue
+
+        if conv.backend == buddy.backend and \
+           conv.account == buddy.account and \
+           conv.name == buddy.name:
+            conv.peers.append(buddy)
+            # conversation/buddy is now in backend, remove temporary flag
+            conv.temporary = False
+            return conv
+
+    # nothing found, tell caller
+    return None
+
+
 def add_buddy(buddy):
     """
     Add a new buddy to UI
     """
 
-    # add new conversation for the buddy
-    if buddy.status == "grp":
-        # this "buddy" is a group chat
-        conv = nuqql.conversation.GroupConversation(buddy.backend,
-                                                    buddy.account,
-                                                    buddy.name)
-    else:
-        # this is a regular buddy
-        conv = nuqql.conversation.BuddyConversation(buddy.backend,
-                                                    buddy.account,
-                                                    buddy.name)
-    conv.peers.append(buddy)
-    conv.wins.list_win.add(conv)
+    # add new conversation for the buddy if necessary
+    conv = add_buddy_to_temporary_conv(buddy)
+    if not conv:
+        # no temporary conversation found, add new one
+        if buddy.status == "grp":
+            # this "buddy" is a group chat
+            conv = nuqql.conversation.GroupConversation(buddy.backend,
+                                                        buddy.account,
+                                                        buddy.name)
+        else:
+            # this is a regular buddy
+            conv = nuqql.conversation.BuddyConversation(buddy.backend,
+                                                        buddy.account,
+                                                        buddy.name)
+        conv.peers.append(buddy)
+        conv.wins.list_win.add(conv)
+
+    # redraw list to show update
     conv.wins.list_win.redraw()
 
     # check if there are unread messages for this new buddy in the history
@@ -125,6 +153,9 @@ def remove_buddy(buddy):
 
         conv_buddy = conv.peers[0]
         if conv_buddy is buddy:
+            if conv.temporary:
+                # skip temporary conversations/buddies
+                return
             del nuqql.conversation.CONVERSATIONS[index]
             conv.wins.list_win.redraw()
 

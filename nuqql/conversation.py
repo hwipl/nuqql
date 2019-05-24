@@ -224,6 +224,9 @@ class BuddyConversation(Conversation):
     def __init__(self, backend, account, name):
         Conversation.__init__(self, backend, account, name)
 
+        # conv already in backend or new (temporary) conv in nuqql only
+        self.temporary = False
+
         self.peers = []
         self.wins.list_win = nuqql.win.MAIN_WINS["list"]
         self.history.logger, self.history.log_file = nuqql.history.init_logger(
@@ -259,8 +262,10 @@ class BuddyConversation(Conversation):
         else:
             notify = ""
 
-        peer = self.peers[0]
-        return "{0}[{1}] {2}".format(notify, peer.status, peer.alias)
+        if self.peers:
+            peer = self.peers[0]
+            return "{0}[{1}] {2}".format(notify, peer.status, peer.alias)
+        return "{0}[{1}] {2}".format(notify, "off", self.name)
 
     def get_key(self):
         """
@@ -273,12 +278,13 @@ class BuddyConversation(Conversation):
         sort_status = 0
         sort_name = self.name
 
-        peer = self.peers[0]
-        try:
-            sort_status = self.status_key[peer.status]
-        except KeyError:
-            sort_status = len(self.status_key) + 1
-        sort_name = peer.alias
+        if self.peers:
+            peer = self.peers[0]
+            try:
+                sort_status = self.status_key[peer.status]
+            except KeyError:
+                sort_status = len(self.status_key) + 1
+            sort_name = peer.alias
 
         # return tuple of sort keys
         return sort_notify, sort_type, sort_status, sort_name
@@ -394,6 +400,70 @@ class BackendConversation(Conversation):
         # return tuple of sort keys
         return sort_notify, sort_type, sort_status, sort_name
 
+    @staticmethod
+    def _check_chat_command(backend, account, cmd, name):
+        """
+        Check for chat commands
+        """
+
+        # check for existing conversation
+        existing_conv = None
+        existing_conv_index = -1
+        for index, conv in enumerate(CONVERSATIONS):
+            if not isinstance(conv, nuqql.conversation.BuddyConversation):
+                continue
+            if conv.backend == backend and \
+               conv.account == account and \
+               conv.name == name:
+                existing_conv = conv
+                existing_conv_index = index
+                break
+
+        # join: account <id> chat join <name>
+        if cmd == "join":
+            # make sure the conversation does not already exist
+            if existing_conv:
+                return
+
+            # create temporary group conversation
+            conv = nuqql.conversation.GroupConversation(backend, account, name)
+            conv.temporary = True
+            conv.wins.list_win.add(conv)
+            conv.wins.list_win.redraw()
+
+        # part: account <id> chat part <name>
+        if cmd == "part":
+            # if it is (still) a temporary group conversation, remove it again
+            if existing_conv and existing_conv.temporary:
+                del CONVERSATIONS[existing_conv_index]
+                existing_conv.wins.list_win.redraw()
+
+    def _check_command(self, msg):
+        """
+        Check if msg is a special command we want to handle in nuqql before
+        sending it to the backend
+        """
+
+        parts = msg.split(" ")
+        # check for account commands
+        if len(parts) < 3:
+            return
+        if parts[0] == "account":
+            # get account for this command
+            account = None
+            for acc in self.backend.accounts.values():
+                if acc.aid == parts[1]:
+                    account = acc
+            if not account:
+                return
+
+        # check for chat commands
+        if parts[2] == "chat":
+            if len(parts) < 5:
+                return
+            # account <id> chat <join/part> <name>
+            self._check_chat_command(self.backend, account, parts[3], parts[4])
+
     def send_msg(self, msg):
         """
         Send message coming from the UI/input window
@@ -407,6 +477,9 @@ class BackendConversation(Conversation):
 
         # send command message to backend
         if self.backend is not None:
+            # check for special commands to handle in nuqql first
+            self._check_command(msg)
+
             self.backend.client.send_command(msg)
 
 
