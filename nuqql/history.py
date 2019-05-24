@@ -119,7 +119,8 @@ def get_logger(name, file_name):
     fileh.setFormatter(formatter)
 
     # add handler to logger
-    logger.addHandler(fileh)
+    if not logger.hasHandlers():
+        logger.addHandler(fileh)
 
     # return logger to caller
     return logger
