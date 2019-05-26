@@ -341,7 +341,15 @@ class GroupConversation(BuddyConversation):
             msg = "account {} chat users {}".format(self.account.aid,
                                                     self.name)
             # send command message to backend
-            if self.backend is not None:
+            if self.backend:
+                self.backend.client.send_command(msg)
+            return
+
+        if msg == "/part":
+            # create chat part command
+            msg = "account {} chat part {}".format(self.account.aid, self.name)
+            # send command message to backend
+            if self.backend:
                 self.backend.client.send_command(msg)
             return
 
