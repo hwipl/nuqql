@@ -365,6 +365,15 @@ class GroupConversation(BuddyConversation):
                     self.backend.client.send_command(msg)
                 return
 
+        if msg == "/join":
+            # TODO: allow specification of another group chat?
+            # create chat join command
+            msg = "account {} chat join {}".format(self.account.aid, self.name)
+            # send command message to backend
+            if self.backend:
+                self.backend.client.send_command(msg)
+            return
+
         # send and log  group chat message
         self.backend.client.send_group_msg(self.account.aid, self.name, msg)
         nuqql.history.log(self, log_msg)
