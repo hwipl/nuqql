@@ -353,6 +353,18 @@ class GroupConversation(BuddyConversation):
                 self.backend.client.send_command(msg)
             return
 
+        if msg.startswith("/invite "):
+            parts = msg.split()
+            if len(parts) > 1:
+                # create chat invite command
+                user = parts[1]
+                msg = "account {} chat invite {} {}".format(self.account.aid,
+                                                            self.name, user)
+                # send command message to backend
+                if self.backend:
+                    self.backend.client.send_command(msg)
+                return
+
         # send and log  group chat message
         self.backend.client.send_group_msg(self.account.aid, self.name, msg)
         nuqql.history.log(self, log_msg)
