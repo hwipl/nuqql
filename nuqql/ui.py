@@ -139,7 +139,7 @@ def add_buddy(buddy):
     conv = add_buddy_to_temporary_conv(buddy)
     if not conv:
         # no temporary conversation found, add new one
-        if buddy.status == "grp":
+        if buddy.status in ("grp", "grp_invite"):
             # this "buddy" is a group chat
             conv = nuqql.conversation.GroupConversation(buddy.backend,
                                                         buddy.account,

@@ -549,6 +549,7 @@ class Buddy:
         "available": "on",
         "away": "afk",
         "group_chat": "grp",
+        "group_chat_invite": "grp_invite",
     }
 
     def set_status(self, status):
