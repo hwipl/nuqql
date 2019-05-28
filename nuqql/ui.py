@@ -77,6 +77,8 @@ def update_buddy(buddy):
     for conv in nuqql.conversation.CONVERSATIONS:
         if not isinstance(conv, nuqql.conversation.BuddyConversation):
             continue
+        if conv.temporary:
+            continue
 
         conv_buddy = conv.peers[0]
         if conv_buddy is buddy:
