@@ -367,15 +367,6 @@ class Backend:
 
         # invite message
         if ctype == "invite:":
-            for account in self.accounts.values():
-                if account.aid == acc_id:
-                    conv = nuqql.ui.add_temporary_conv(self, account, nick[0])
-                    conv.log("<event>", "<You have been invited to {} ({}). "
-                             "Enter \"/join\" to accept or \"/part\" to "
-                             "decline the invite.>".format(nick[0], nick[1]),
-                             own=True)
-                    conv.notify()
-
             text = "account {} chat: {} {} ({}) {} ({})".format(
                 acc_id, ctype, chat[0], chat[1], nick[0], nick[1])
             self.conversation.log("nuqql", text)

@@ -77,8 +77,6 @@ def update_buddy(buddy):
     for conv in nuqql.conversation.CONVERSATIONS:
         if not isinstance(conv, nuqql.conversation.BuddyConversation):
             continue
-        if conv.temporary:
-            continue
 
         conv_buddy = conv.peers[0]
         if conv_buddy is buddy:
@@ -106,28 +104,6 @@ def add_buddy_to_temporary_conv(buddy):
 
     # nothing found, tell caller
     return None
-
-
-def add_temporary_conv(backend, account, name):
-    """
-    Add a temporary conversation
-    """
-
-    for conv in nuqql.conversation.CONVERSATIONS:
-        if not isinstance(conv, nuqql.conversation.BuddyConversation):
-            continue
-        if conv.backend == backend and \
-           conv.account == account and \
-           conv.name == name:
-            # conversation already exists, stop
-            return conv
-
-    # create temporary group conversation
-    conv = nuqql.conversation.GroupConversation(backend, account, name)
-    conv.temporary = True
-    conv.wins.list_win.add(conv)
-    conv.wins.list_win.redraw()
-    return conv
 
 
 def add_buddy(buddy):
