@@ -365,13 +365,6 @@ class Backend:
         chat = parsed_msg[3]
         nick = parsed_msg[4]
 
-        # invite message
-        if ctype == "invite:":
-            text = "account {} chat: {} {} ({}) {} ({})".format(
-                acc_id, ctype, chat[0], chat[1], nick[0], nick[1])
-            self.conversation.log("nuqql", text)
-            return
-
         # if there is a conversation for this type and group chat, log to it
         if ctype == "user:" and \
            nuqql.ui.handle_chat_message(self, acc_id, ctype, chat, nick):
@@ -688,12 +681,8 @@ def parse_chat_msg(orig_msg):
     part = orig_msg.split(" ")
     ctype = part[0]
     acc = part[1]
-    if ctype == "invite:" and len(part) > 5:
-        chat = part[2], part[3]
-        nick = part[4], part[5]
-    else:
-        chat = part[2]
-        nick = part[3]
+    chat = part[2]
+    nick = part[3]
 
     return "chat", ctype, acc, chat, nick
 
