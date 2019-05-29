@@ -326,6 +326,20 @@ class GroupConversation(BuddyConversation):
     Class for group chat conversations
     """
 
+    def create_windows(self):
+        # call method of super class
+        BuddyConversation.create_windows(self)
+
+        # if this conversation belongs to a group chat invite, display special
+        # event to the user
+        if self.peers:
+            buddy = self.peers[0]
+            if buddy.status == "grp_invite":
+                msg = "<You are invited to this group chat. " \
+                        "Enter \"/join\" to accept or \"/part\" to decline " \
+                        "this invite.>"
+                self.log("<event>", msg, own=True)
+
     def send_msg(self, msg):
         """
         Send message coming from the UI/input window
