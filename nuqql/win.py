@@ -2,6 +2,7 @@
 Nuqql UI Windows
 """
 
+import unicodedata
 import curses
 import math
 
@@ -1102,6 +1103,8 @@ class InputWin(Win):
         else:
             # insert new character into segments
             if not isinstance(char, str):
+                return
+            if char != "\n" and unicodedata.category(char)[0] == "C":
                 return
             # make sure new char fits in the pad
             if len(segments) == pad_size_y - 1 and char == "\n":
