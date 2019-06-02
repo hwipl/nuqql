@@ -363,14 +363,26 @@ class Backend:
         ctype = parsed_msg[1]
         acc_id = parsed_msg[2]
         chat = parsed_msg[3]
-        nick = parsed_msg[4]
 
-        # if there is a conversation for this type and group chat, log to it
-        if ctype == "user:" and \
-           nuqql.ui.handle_chat_message(self, acc_id, ctype, chat, nick):
-            return
+        # user message
+        if ctype == "user:":
+            nick = parsed_msg[4]
+            alias = parsed_msg[5]
+            status = parsed_msg[6]
+            # if there is a conversation for this type and group chat, log to
+            # it. Otherwise, just log to backend conversation later
+            if nuqql.ui.handle_chat_message(self, acc_id, ctype, chat, nick,
+                                            alias, status):
+                return
 
-        # otherwise, just log to backend conversation
+        # list message
+        if ctype == "list:":
+            chat_alias = parsed_msg[4]
+            nick = parsed_msg[5]
+            if chat != chat_alias:
+                chat = "{} ({})".format(chat_alias, chat)
+
+        # log to backend conversation
         text = "account {} chat: {} {} {}".format(acc_id, ctype, chat, nick)
         self.conversation.log("nuqql", text)
 
@@ -676,15 +688,32 @@ def parse_chat_msg(orig_msg):
     """
 
     orig_msg = orig_msg[6:]
-    # list: <acc> <chat> <nick>
-    # user: <acc> <chat> <user>
+    # list: <acc> <chat> <chat_alias> <nick>
+    # user: <acc> <chat> <user> <user_alias> <status>
     part = orig_msg.split(" ")
+    if len(part) < 5:
+        # TODO: return a parsing error or something similar?
+        return ("", )
+
+    # common entries
     ctype = part[0]
     acc = part[1]
     chat = part[2]
-    nick = part[3]
 
-    return "chat", ctype, acc, chat, nick
+    # list message
+    if ctype == "list:":
+        chat_alias = part[3]
+        nick = part[4]
+        return "chat", ctype, acc, chat, chat_alias, nick
+
+    # user message
+    if ctype == "user:" and len(part) >= 6:
+        user = part[3]
+        user_alias = part[4]
+        status = part[5]
+        return "chat", ctype, acc, chat, user, user_alias, status
+
+    return ("", )
 
 
 # dictionary for parsing functions, used by parse_msg()

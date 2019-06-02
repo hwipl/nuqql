@@ -45,7 +45,7 @@ def handle_message(backend, acc_id, tstamp, sender, msg, resource):
     backend.conversation.log(sender, msg, tstamp=tstamp)
 
 
-def handle_chat_message(backend, acc_id, ctype, chat, nick):
+def handle_chat_message(backend, acc_id, ctype, chat, nick, alias, status):
     """
     Handle chat message from backend
     """
@@ -56,7 +56,12 @@ def handle_chat_message(backend, acc_id, ctype, chat, nick):
            conv.account and conv.account.aid == acc_id and \
            conv.name == chat:
             # log chat message/event
-            log_msg = conv.log(chat, "{} {}".format(ctype, nick))
+            if alias == nick:
+                log_msg = conv.log(chat, "{} {} [{}]".format(ctype, nick,
+                                                             status))
+            else:
+                log_msg = conv.log(chat, "{} {} ({}) [{}]".format(
+                    ctype, alias, nick, status))
             nuqql.history.log(conv, log_msg)
 
             # if window is not already active notify user
