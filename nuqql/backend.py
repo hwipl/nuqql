@@ -53,8 +53,9 @@ class BackendServer:
         self.proc = subprocess.Popen(
             self.server_cmd,
             shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            # TODO: write stdout and stderr to a file?
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             start_new_session=True,     # dont send SIGINT from nuqql to
                                         # subprocess
         )
