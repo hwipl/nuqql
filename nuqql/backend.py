@@ -29,6 +29,9 @@ BUDDY_UPDATE_TIMER = 5
 # dictionary for all active backends
 BACKENDS = {}
 
+# enable/disable logging of subprocess output
+SUBPROCESS_LOGGING = True
+
 
 class BackendServer:
     """
@@ -41,6 +44,10 @@ class BackendServer:
         self.server_path = path
         self.server_cmd = cmd
 
+        # subprocess output logging files
+        self.stdout_file = subprocess.DEVNULL
+        self.stderr_file = subprocess.DEVNULL
+
     def start(self):
         """
         Start the backend's server process
@@ -49,13 +56,20 @@ class BackendServer:
         # make sure server's working directory exists
         Path(self.server_path).mkdir(parents=True, exist_ok=True)
 
+        # if logging is enabled for subprocess output, open log files
+        if SUBPROCESS_LOGGING:
+            Path(self.server_path + "/logs").mkdir(parents=True, exist_ok=True)
+            self.stdout_file = open(self.server_path +
+                                    "/logs/backend-stdout.log", "a")
+            self.stderr_file = open(self.server_path +
+                                    "/logs/backend-stderr.log", "a")
+
         # start server process
         self.proc = subprocess.Popen(
             self.server_cmd,
             shell=True,
-            # TODO: write stdout and stderr to a file?
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            stdout=self.stdout_file,
+            stderr=self.stderr_file,
             start_new_session=True,     # dont send SIGINT from nuqql to
                                         # subprocess
         )
@@ -69,6 +83,11 @@ class BackendServer:
 
         # stop running server
         self.proc.terminate()
+
+        # close subprocess log files if logging is enabled
+        if SUBPROCESS_LOGGING:
+            self.stdout_file.close()
+            self.stderr_file.close()
 
 
 class BackendClient:
