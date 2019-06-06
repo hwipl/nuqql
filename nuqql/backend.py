@@ -813,11 +813,12 @@ def start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
 
     BACKENDS[backend_name] = backend
 
-    # add conversation
+    # add conversation and show it in list window
     conv = nuqql.conversation.BackendConversation(backend, None, backend.name)
     conv.create_windows()
     nuqql.conversation.CONVERSATIONS.append(conv)
     backend.conversation = conv
+    conv.wins.list_win.redraw()
 
     # request accounts from backend
     backend.client.send_accounts()
