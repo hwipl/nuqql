@@ -63,7 +63,7 @@ class Win:
         self.win.clear()
 
         # color settings on
-        curses.init_pair(1, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(1, curses.COLOR_BLUE, -1)
         self.win.attron(curses.color_pair(1) | curses.A_BOLD)
 
         # window border
@@ -357,7 +357,7 @@ class ListWin(Win):
             pad_size_x = win_size_x - 2
 
         # set colors
-        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_GREEN, -1)
         self.pad.attron(curses.color_pair(2))
 
         # store last selected entry
@@ -556,8 +556,8 @@ class LogWin(Win):
         for msg in self.list:
             # define colors for own and buddy's messages
             # TODO: move all color definitions to config part?
-            curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-            curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)
+            curses.init_pair(3, curses.COLOR_YELLOW, -1)
+            curses.init_pair(4, curses.COLOR_CYAN, -1)
 
             # set colors and attributes for message:
             # * unread messages are bold
