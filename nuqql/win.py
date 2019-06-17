@@ -63,7 +63,6 @@ class Win:
         self.win.clear()
 
         # color settings on
-        curses.use_default_colors()
         curses.init_pair(1, curses.COLOR_BLUE, -1)
         self.win.attron(curses.color_pair(1) | curses.A_BOLD)
 

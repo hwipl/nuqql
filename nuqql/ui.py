@@ -274,6 +274,9 @@ def start(stdscr, func):
     stdscr.clear()
     stdscr.refresh()
 
+    # load default colors
+    curses.use_default_colors()
+
     # make sure window config is loaded
     nuqql.config.init_win(stdscr)
 
