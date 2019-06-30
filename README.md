@@ -131,6 +131,18 @@ just use *master*.
 
 ## Changes
 
+* devel:
+  * Add group chat support and helper commands for group chats:
+    * `/names`: get list of users in current group chat
+    * `/invite <user>`: invite user to current group chat
+    * `/join`: join the current group chat (after getting invited)
+    * `/part`: leave current group chat
+  * Add history searching: search the history with `/` and then jump to next
+    match with `n` and previous match with `p`
+  * Add `F10` hotkey to jump from a conversation to first URL starting with
+    http in its history and also switch to zoomed view
+  * Add support for the nuqql-matrixd backend
+  * Cleanups, fixes, and improvements
 * v0.4:
   * Add additional keybinds in Input Window:
     * `ctrl-a`: go to beginning of line
