@@ -4,11 +4,14 @@ nuqql is a command line instant messenger inspired by
 [centericq](http://thekonst.net/centericq/) and
 [centerim](http://www.centerim.org) written in Python and using ncurses.
 
-Currently, nuqql requires [purpled](https://github.com/hwipl/purpled) or
-[nuqql-slixmppd](https://github.com/hwipl/nuqql-slixmppd) as a backend. purpled
-is a daemon that uses libpurple and allows nuqql to connect to multiple chat
-networks. nuqql-slixmppd uses slixmpp and allows nuqql to connect to XMPP chat
-networks.
+nuqql uses so-called backends for connecting to chat networks.
+Currently, nuqql supports [purpled](https://github.com/hwipl/purpled),
+[nuqql-slixmppd](https://github.com/hwipl/nuqql-slixmppd), and
+[nuqql-matrixd](https://github.com/hwipl/nuqql-matrixd) as backends.
+purpled uses libpurple and allows nuqql to connect to multiple chat networks.
+nuqql-slixmppd uses slixmpp and allows nuqql to connect to XMPP chat networks.
+nuqql-matrixd uses the Matrix Python SDK and allows nuqql to connect to Matrix
+chat networks.
 
 
 ## Usage
@@ -46,8 +49,10 @@ The layout of nuqql is as follows:
 
 The Conversation List shows your buddies and special conversations for your
 backend commands and nuqql commands. Buddies are shown with their status (on,
-afk, off) and their name, e.g., `[on] buddy@jabber.org`. Backend and the nuqql
-command conversations are shown with `{` and `}` around them, e.g., `{nuqql}`.
+afk, off) and their name, e.g., `[on] buddy@jabber.org`. Group chats and
+invites to group chats are shown with `[grp]` and `[grp_invite]` as a special
+status. The nuqql and backend command conversations are shown as `{nuqql}` and
+with `{backend}` in front of their name, e.g., `{backend} slixmppd`.
 
 ### Controls
 
@@ -60,14 +65,17 @@ Basic controls of nuqql are:
   * Enter your message/command
   * Send message/command with `CTRL-x`
   * Switch to chat log window with `CTRL-o`
+    * Search chat log with `/`
+    * Zoom chat log with `F9`
   * Leave conversation with the `ESC` key
 * Exit nuqql with the `q` key when you are in no conversation
 
 
 ## Setup
 
-The basic setup of nuqql consists of installing a backend (purpled and/or
-nuqql-slixmppd) and adding your instant messaging accounts to it.
+The basic setup of nuqql consists of installing a backend (purpled,
+nuqql-slixmppd, and/or nuqql-matrixd) and adding your instant messaging
+accounts to it.
 
 ### Installing backends
 
@@ -94,6 +102,16 @@ done already, install nuqql-slixmppd with the following steps:
 * Download [nuqql-slixmppd](https://github.com/hwipl/nuqql-slixmppd)
 * nuqql looks for nuqql-slixmppd in your $PATH and the current directory. So, a
   good way is symlinking the *slixmppd.py* executable from the nuqql-slixmppd
+  folder into your nuqql folder.
+
+#### nuqql-matrixd
+
+nuqql can use nuqql-matrixd to connect to Matrix chat networks. If you have not
+done already, install nuqql-matrixd with the following steps:
+
+* Download [nuqql-matrixd](https://github.com/hwipl/nuqql-matrixd)
+* nuqql looks for nuqql-matrixd in your $PATH and the current directory. So, a
+  good way is symlinking the *matrixd.py* executable from the nuqql-matrixd
   folder into your nuqql folder.
 
 
@@ -131,7 +149,7 @@ just use *master*.
 
 ## Changes
 
-* devel:
+* v0.5:
   * Add group chat support and helper commands for group chats:
     * `/names`: get list of users in current group chat
     * `/invite <user>`: invite user to current group chat
@@ -143,6 +161,7 @@ just use *master*.
     http in its history and also switch to zoomed view
   * Add support for the nuqql-matrixd backend
   * Cleanups, fixes, and improvements
+  * Requires purpled v.4, nuqql-slixmppd v0.3, or nuqql-matrixd v0.1
 * v0.4:
   * Add additional keybinds in Input Window:
     * `ctrl-a`: go to beginning of line
