@@ -23,6 +23,7 @@ class Conversation:
     def __init__(self, backend, account, name):
         # general
         self.name = name
+        self.last_used = 0
         self.notification = 0
 
         # backend info
@@ -53,6 +54,7 @@ class Conversation:
             self.wins.log_win.state.active = False
             self.wins.log_win.redraw()
             self.clear_notifications()
+            self.last_used = datetime.datetime.now().timestamp()
             return
 
     def activate_log(self):
@@ -274,6 +276,7 @@ class BuddyConversation(Conversation):
 
         # defaults
         sort_notify = 0 - self.notification
+        sort_used = 0 - self.last_used
         sort_type = 0
         sort_status = 0
         sort_name = self.name
@@ -287,7 +290,7 @@ class BuddyConversation(Conversation):
             sort_name = peer.alias
 
         # return tuple of sort keys
-        return sort_notify, sort_type, sort_status, sort_name
+        return sort_notify, sort_used, sort_type, sort_status, sort_name
 
     def send_msg(self, msg):
         """
@@ -435,13 +438,14 @@ class BackendConversation(Conversation):
 
         # defaults
         sort_notify = 0 - self.notification
+        sort_used = 0 - self.last_used
         sort_type = 0
         sort_status = 0
         sort_name = self.name
         sort_type = 1
 
         # return tuple of sort keys
-        return sort_notify, sort_type, sort_status, sort_name
+        return sort_notify, sort_used, sort_type, sort_status, sort_name
 
     @staticmethod
     def _check_chat_command(backend, account, cmd, name):
@@ -576,13 +580,14 @@ class NuqqlConversation(Conversation):
 
         # defaults
         sort_notify = 0 - self.notification
+        sort_used = 0 - self.last_used
         sort_type = 0
         sort_status = 0
         sort_name = self.name
         sort_type = 2
 
         # return tuple of sort keys
-        return sort_notify, sort_type, sort_status, sort_name
+        return sort_notify, sort_used, sort_type, sort_status, sort_name
 
     def send_msg(self, msg):
         """
