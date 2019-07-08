@@ -147,7 +147,9 @@ class Conversation:
     status_key = {
         "on": 0,
         "afk": 1,
-        "off": 2,
+        "grp": 2,
+        "grp_invite": 3,
+        "off": 4,
     }
 
     def get_key(self):
