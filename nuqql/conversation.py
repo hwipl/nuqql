@@ -438,7 +438,7 @@ class BackendConversation(Conversation):
 
         # defaults
         sort_notify = 0 - self.notification
-        sort_used = 0 - self.last_used
+        sort_used = 0
         sort_type = 0
         sort_status = 0
         sort_name = self.name
