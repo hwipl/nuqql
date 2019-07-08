@@ -276,13 +276,15 @@ class BuddyConversation(Conversation):
 
         # defaults
         sort_notify = 0 - self.notification
-        sort_used = 0 - self.last_used
+        sort_used = 0
         sort_type = 0
         sort_status = 0
         sort_name = self.name
 
         if self.peers:
             peer = self.peers[0]
+            if peer.status != "off":
+                sort_used = 0 - self.last_used
             try:
                 sort_status = self.status_key[peer.status]
             except KeyError:
