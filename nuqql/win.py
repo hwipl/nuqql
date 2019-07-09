@@ -645,7 +645,7 @@ class LogWin(Win):
         # TODO: use other method and keybind with more fitting name?
         # jump to last line in log
         props = self._get_properties()
-        lines = self._get_num_log_lines(props.pad_size_x)
+        lines = self.pad.getmaxyx()[0] - 1
         if self.state.cur_y < lines:
             self.pad.move(lines, self.state.cur_x)
             self._pad_refresh(props)
@@ -667,7 +667,7 @@ class LogWin(Win):
         # TODO: use other method and keybind with more fitting name?
         # move cursor down one page until last entry in log
         props = self._get_properties()
-        lines = self._get_num_log_lines(props.pad_size_x)
+        lines = self.pad.getmaxyx()[0] - 1
         if self.state.cur_y < lines:
             if self.state.cur_y + props.win_size_y - props.pad_y_delta < lines:
                 self.pad.move(self.state.cur_y + props.win_size_y -
@@ -687,7 +687,7 @@ class LogWin(Win):
     def _cursor_down(self, *args):
         # move cursor down until end of list
         props = self._get_properties()
-        lines = self._get_num_log_lines(props.pad_size_x)
+        lines = self.pad.getmaxyx()[0] - 1
         if self.state.cur_y < lines:
             self.pad.move(self.state.cur_y + 1, self.state.cur_x)
             self.state.cur_y, self.state.cur_x = self.pad.getyx()
@@ -782,7 +782,7 @@ class LogWin(Win):
 
         # init search
         props = self._get_properties()
-        lines = self._get_num_log_lines(props.pad_size_x)
+        lines = self.pad.getmaxyx()[0] - 1
         search_y, search_x = self.state.cur_y, self.state.cur_x
 
         # if we are already on a match, skip it
