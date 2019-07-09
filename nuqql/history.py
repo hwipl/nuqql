@@ -193,8 +193,7 @@ def get_lastread(conv):
 
     try:
         with open(lastread_file, newline="\r\n") as in_file:
-            lines = in_file.readlines()
-            for line in lines:
+            for line in in_file:
                 log_msg = parse_log_line(line)
                 log_msg.is_read = True
                 return log_msg
@@ -265,9 +264,8 @@ def init_log_from_file(conv):
 
     lines = []
     with open(conv.history.log_file, newline="\r\n") as in_file:
-        lines = in_file.readlines()
         prev_msg = None
-        for line in lines:
+        for line in in_file:
             # parse log line and create log message
             log_msg = parse_log_line(line)
             log_msg.is_read = is_read
