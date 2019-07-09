@@ -63,8 +63,7 @@ class Win:
         self.win.clear()
 
         # color settings on
-        curses.init_pair(1, curses.COLOR_BLUE, -1)
-        self.win.attron(curses.color_pair(1) | curses.A_BOLD)
+        self.win.attrset(self.config.attr["win_border"])
 
         # window border
         max_y, max_x = MAIN_WINS["screen"].getmaxyx()
@@ -77,9 +76,6 @@ class Win:
         if title != "":
             title = title[:-1] + " "
         self.win.addstr(0, 2, title)
-
-        # color settings off
-        self.win.attroff(curses.color_pair(1) | curses.A_BOLD)
 
         self.win.refresh()
 
@@ -357,8 +353,7 @@ class ListWin(Win):
             pad_size_x = win_size_x - 2
 
         # set colors
-        curses.init_pair(2, curses.COLOR_GREEN, -1)
-        self.pad.attron(curses.color_pair(2))
+        self.pad.attrset(self.config.attr["list_win_text"])
 
         # store last selected entry
         if self.state.cur_y >= len(self.list):
@@ -393,9 +388,6 @@ class ListWin(Win):
             else:
                 # just show the conversation in list
                 self.pad.addstr(name)
-
-        # reset colors
-        self.pad.attroff(curses.color_pair(2))
 
         # move cursor back to original or active conversation's position
         self.pad.move(self.state.cur_y, self.state.cur_x)
@@ -554,34 +546,23 @@ class LogWin(Win):
             self.pad.resize(lines + 1, props.pad_size_x)
 
         for msg in self.list:
-            # define colors for own and buddy's messages
-            # TODO: move all color definitions to config part?
-            curses.init_pair(3, curses.COLOR_YELLOW, -1)
-            curses.init_pair(4, curses.COLOR_CYAN, -1)
-
             # set colors and attributes for message:
-            # * unread messages are bold
-            # * read messages are normal
             if not msg.own:
                 # message from buddy
                 if msg.is_read:
                     # old message
-                    self.pad.attroff(curses.A_BOLD)
-                    self.pad.attron(curses.color_pair(3) | curses.A_NORMAL)
+                    self.pad.attrset(self.config.attr["log_win_text_peer_old"])
                 else:
                     # new message
-                    self.pad.attroff(curses.A_NORMAL)
-                    self.pad.attron(curses.color_pair(3) | curses.A_BOLD)
+                    self.pad.attrset(self.config.attr["log_win_text_peer_new"])
             else:
                 # message from you
                 if msg.is_read:
                     # old message
-                    self.pad.attroff(curses.A_BOLD)
-                    self.pad.attron(curses.color_pair(4) | curses.A_NORMAL)
+                    self.pad.attrset(self.config.attr["log_win_text_self_old"])
                 else:
                     # new message
-                    self.pad.attroff(curses.A_NORMAL)
-                    self.pad.attron(curses.color_pair(4) | curses.A_BOLD)
+                    self.pad.attrset(self.config.attr["log_win_text_self_new"])
 
             # output message
             self.pad.addstr(msg.read())

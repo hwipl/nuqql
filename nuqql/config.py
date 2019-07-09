@@ -86,6 +86,31 @@ class WinConfig:
         self.rel_x = rel_x
         self.keymap = None
         self.keybinds = None
+        self.attr = {}  # window colors/attributes
+
+    def init_colors(self):
+        """
+        Initialize colors
+        """
+
+        # allow usage of default colors and initialize color pairs
+        curses.use_default_colors()
+        curses.init_pair(1, curses.COLOR_BLUE, -1)
+        curses.init_pair(2, curses.COLOR_GREEN, -1)
+        curses.init_pair(3, curses.COLOR_YELLOW, -1)
+        curses.init_pair(4, curses.COLOR_CYAN, -1)
+
+        # set window colors/attributes
+        self.attr["win_border"] = curses.color_pair(1) | curses.A_BOLD
+        self.attr["list_win_text"] = curses.color_pair(2)
+        self.attr["log_win_text_peer_old"] = \
+            curses.color_pair(3) | curses.A_NORMAL
+        self.attr["log_win_text_peer_new"] = \
+            curses.color_pair(3) | curses.A_BOLD
+        self.attr["log_win_text_self_old"] = \
+            curses.color_pair(4) | curses.A_NORMAL
+        self.attr["log_win_text_self_new"] = \
+            curses.color_pair(4) | curses.A_BOLD
 
     def init_keymap(self):
         """
@@ -198,6 +223,10 @@ def init_win(screen):
     list_win = WinConfig("list_win", LIST_WIN_Y_PER, LIST_WIN_X_PER)
     log_win = WinConfig("log_win", LOG_WIN_Y_PER, LOG_WIN_X_PER)
     input_win = WinConfig("input_win", INPUT_WIN_Y_PER, INPUT_WIN_X_PER)
+
+    list_win.init_colors()
+    log_win.init_colors()
+    input_win.init_colors()
 
     list_win.init_keymap()
     log_win.init_keymap()
