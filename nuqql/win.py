@@ -345,7 +345,6 @@ class ListWin(Win):
         win_size_y, win_size_x = self.win.getmaxyx()
         pad_size_y, pad_size_x = self.pad.getmaxyx()
         self.state.cur_y, self.state.cur_x = self.pad.getyx()
-        self.pad.clear()
 
         # make sure pad has correct width (after resize)
         if pad_size_x != win_size_x - 2:
@@ -388,10 +387,10 @@ class ListWin(Win):
             # print name
             if index == self.state.cur_y:
                 # cursor is on conversation, highlight it in list
-                self.pad.addstr(name, curses.A_REVERSE)
+                self.pad.addstr(index, 0, name, curses.A_REVERSE)
             else:
                 # just show the conversation in list
-                self.pad.addstr(name)
+                self.pad.addstr(index, 0, name)
 
         # move cursor back to original or active conversation's position
         self.pad.move(self.state.cur_y, self.state.cur_x)
@@ -1044,6 +1043,10 @@ class InputWin(Win):
     def _go_back(self, *args):
         self.state.active = False
         self.conversation.wins.log_win.state.active = False
+
+        # redraw main windows
+        MAIN_WINS["input"].redraw()
+        MAIN_WINS["log"].redraw()
 
         # assume user read all messages and set lastread to last message
         self.conversation.set_lastread()
