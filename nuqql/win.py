@@ -352,9 +352,6 @@ class ListWin(Win):
             self.pad.resize(pad_size_y, win_size_x - 2)
             pad_size_x = win_size_x - 2
 
-        # set colors
-        self.pad.attrset(self.config.attr["list_win_text"])
-
         # store last selected entry
         if self.state.cur_y >= len(self.list):
             # make sure cur_y is still "within" the list. Length difference
@@ -380,6 +377,13 @@ class ListWin(Win):
             # get name of element; cut if it's too long
             name = conv.get_name()
             name = name[:pad_size_x-1] + "\n"
+
+            # set colors depending on backend name
+            if conv.backend:
+                self.pad.attrset(self.config.attr["list_win_text"][
+                    conv.backend.name])
+            else:
+                self.pad.attrset(self.config.attr["list_win_text"]["default"])
 
             # print name
             if index == self.state.cur_y:

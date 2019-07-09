@@ -106,7 +106,12 @@ class WinConfig:
 
         # set window colors/attributes
         self.attr["win_border"] = curses.color_pair(2) | curses.A_BOLD
-        self.attr["list_win_text"] = curses.color_pair(4)
+        self.attr["list_win_text"] = {}
+        self.attr["list_win_text"]["default"] = curses.color_pair(8)
+        self.attr["list_win_text"]["slixmppd"] = curses.color_pair(4)
+        self.attr["list_win_text"]["matrixd"] = curses.color_pair(6)
+        self.attr["list_win_text"]["purpled"] = curses.color_pair(5)
+        self.attr["list_win_text"]["based"] = curses.color_pair(7)
         self.attr["log_win_text_peer_old"] = \
             curses.color_pair(8) | curses.A_NORMAL
         self.attr["log_win_text_peer_new"] = \
