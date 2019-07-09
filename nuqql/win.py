@@ -546,8 +546,7 @@ class LogWin(Win):
 
         # make sure lines fit into pad
         lines = self._get_num_log_lines(props.pad_size_x)
-        if lines >= props.pad_size_y:
-            self.pad.resize(lines + 1, props.pad_size_x)
+        self.pad.resize(lines + 1, props.pad_size_x)
 
         for msg in self.list:
             # set colors and attributes for message:
