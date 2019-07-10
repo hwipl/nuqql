@@ -501,6 +501,13 @@ class LogWin(Win):
         # string to search for
         self.search_text = ""
 
+        # history/log caching
+        self.log_cache = SimpleNamespace(
+            lines=0,
+            index=0,
+            size_x=-1
+        )
+
     def add(self, entry):
         """
         Add entry to internal list
@@ -529,13 +536,27 @@ class LogWin(Win):
         many lines each message uses.
         """
 
+        # init line count and start index
         lines = 0
-        for msg in self.list:
+        start = 0
+
+        # get previous results from cache
+        if self.log_cache.size_x == pad_size_x:
+            lines = self.log_cache.lines
+            start = self.log_cache.index
+
+        for msg in self.list[start:]:
             parts = msg.read(mark_read=False).split("\n")
             lines += len(parts) - 1
             for part in parts:
                 if len(part) >= pad_size_x:
                     lines += math.floor(len(part) / pad_size_x)
+
+        # cache results
+        self.log_cache.size_x = pad_size_x
+        self.log_cache.index = len(self.list)
+        self.log_cache.lines = lines
+
         return lines
 
     def _print_log(self, props):
