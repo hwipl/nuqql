@@ -987,7 +987,7 @@ class InputWin(Win):
 
         # reset input
         self.msg = ""
-        self.pad.clear()
+        self.pad.erase()
 
         # reset pad size
         win_size_y, win_size_x = self.win.getmaxyx()
