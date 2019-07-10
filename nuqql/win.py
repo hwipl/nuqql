@@ -60,7 +60,7 @@ class Win:
 
         # screen/window properties
         win_size_y, win_size_x = self.win.getmaxyx()
-        self.win.clear()
+        self.win.erase()
 
         # color settings on
         self.win.attrset(self.config.attr["win_border"])
