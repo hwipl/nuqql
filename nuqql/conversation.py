@@ -114,9 +114,9 @@ class Conversation:
                 self.history.log.append(date_change_msg)
         self.history.log.append(log_msg)
 
-        # if conversation is already active, redraw the log window
+        # if conversation is already active, redraw the log
         if self.is_active():
-            self.wins.log_win.redraw()
+            self.wins.log_win.redraw_pad()
 
         return log_msg
 
