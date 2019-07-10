@@ -624,7 +624,7 @@ class LogWin(Win):
             self.state.pad_y = 0  # reset pad position
 
         # print log
-        self.pad.clear()
+        self.pad.erase()
         self._print_log(props)
 
         # check if visible part of pad needs to be moved and display it
