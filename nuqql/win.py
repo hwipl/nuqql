@@ -567,7 +567,7 @@ class LogWin(Win):
         lines = self._get_num_log_lines(props.pad_size_x)
         self.pad.resize(lines + 1, props.pad_size_x)
 
-        for msg in self.list:
+        for index, msg in enumerate(self.list):
             # set colors and attributes for message:
             if not msg.own:
                 # message from buddy
@@ -587,7 +587,10 @@ class LogWin(Win):
                     self.pad.attrset(self.config.attr["log_win_text_self_new"])
 
             # output message
-            self.pad.addstr(msg.read())
+            if index < len(self.list) - 1:
+                self.pad.addstr(msg.read())
+            else:
+                self.pad.addstr(msg.read()[:-1])
 
     def _get_properties(self):
         """
