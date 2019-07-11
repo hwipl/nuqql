@@ -117,6 +117,8 @@ class Conversation:
         # if conversation is already active, redraw the log
         if self.is_active():
             self.wins.log_win.redraw_pad()
+            if self.wins.input_win.state.active:
+                self.wins.input_win.redraw_pad()    # keep cursor in input_win
 
         return log_msg
 
