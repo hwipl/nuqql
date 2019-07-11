@@ -4,7 +4,6 @@ Nuqql UI Windows
 
 import unicodedata
 import curses
-import math
 
 from types import SimpleNamespace
 
@@ -550,7 +549,7 @@ class LogWin(Win):
             lines += len(parts) - 1
             for part in parts:
                 if len(part) >= pad_size_x:
-                    lines += math.floor(len(part) / pad_size_x)
+                    lines += len(part) // pad_size_x
 
         # cache results
         self.log_cache.size_x = pad_size_x
