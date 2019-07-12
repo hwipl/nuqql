@@ -168,18 +168,36 @@ class Conversation:
 
         # implemented in sub classes
 
-    def is_active(self):
+    def is_log_win_active(self):
         """
-        Check if this conversation is currently active, and return True if it
-        is the case; otherwise, return False.
+        Check if conversation's log window is active
+        """
+
+        # check if log win is active
+        if self.wins.log_win and self.wins.log_win.state.active:
+            return True
+
+        return False
+
+    def is_input_win_active(self):
+        """
+        Check if conversation's input window is active
         """
 
         # check if input win is active
         if self.wins.input_win and self.wins.input_win.state.active:
             return True
 
-        # check if log win is active
-        if self.wins.log_win and self.wins.log_win.state.active:
+        return False
+
+    def is_active(self):
+        """
+        Check if this conversation is currently active, and return True if it
+        is the case; otherwise, return False.
+        """
+
+        # check if input win and/or log win is active
+        if self.is_input_win_active() or self.is_log_win_active():
             return True
 
         return False
