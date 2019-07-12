@@ -37,7 +37,7 @@ def handle_message(backend, acc_id, tstamp, sender, msg, resource):
             nuqql.history.log(conv, log_msg)
 
             # if window is not already active notify user
-            if not conv.is_active():
+            if not conv.is_input_win_active():
                 conv.notify()
             return
 
@@ -65,7 +65,7 @@ def handle_chat_message(backend, acc_id, ctype, chat, nick, alias, status):
             nuqql.history.log(conv, log_msg)
 
             # if window is not already active notify user
-            if not conv.is_active():
+            if not conv.is_input_win_active():
                 conv.notify()
             return True
 

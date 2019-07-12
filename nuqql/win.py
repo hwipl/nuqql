@@ -753,6 +753,12 @@ class LogWin(Win):
         self.state.active = True
         self.conversation.wins.input_win.state.active = True
 
+        # redraw pad to display messages received in the meantime...
+        self.redraw_pad()
+
+        # ...and clear notifications for these messages
+        self.conversation.clear_notifications()
+
     def _start_dialog(self):
         """
         Start a new dialog
