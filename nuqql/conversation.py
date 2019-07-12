@@ -23,8 +23,11 @@ class Conversation:
     def __init__(self, backend, account, name):
         # general
         self.name = name
-        self.last_used = 0
         self.notification = 0
+
+        # statistics
+        self.stats = SimpleNamespace()
+        self.stats.last_used = 0
 
         # backend info
         self.backend = backend
@@ -54,7 +57,7 @@ class Conversation:
             self.wins.log_win.state.active = False
             self.wins.log_win.redraw()
             self.clear_notifications()
-            self.last_used = datetime.datetime.now().timestamp()
+            self.stats.last_used = datetime.datetime.now().timestamp()
             return
 
     def activate_log(self):
@@ -312,7 +315,7 @@ class BuddyConversation(Conversation):
         if self.peers:
             peer = self.peers[0]
             if peer.status != "off":
-                sort_used = 0 - self.last_used
+                sort_used = 0 - self.stats.last_used
             try:
                 sort_status = self.status_key[peer.status]
             except KeyError:
