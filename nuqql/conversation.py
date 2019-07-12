@@ -28,6 +28,7 @@ class Conversation:
         # statistics
         self.stats = SimpleNamespace()
         self.stats.last_used = 0
+        self.stats.last_send = 0
 
         # backend info
         self.backend = backend
@@ -333,6 +334,9 @@ class BuddyConversation(Conversation):
         # send message and log it in the history file
         self.backend.client.send_msg(self.account.aid, self.name, msg)
 
+        # save timestamp in last_send
+        self.stats.last_send = datetime.datetime.now().timestamp()
+
         # log message
         log_msg = self.log("you", msg, own=True)
         nuqql.history.log(self, log_msg)
@@ -383,6 +387,9 @@ class GroupConversation(BuddyConversation):
 
         # log message
         log_msg = self.log("you", msg, own=True)
+
+        # save timestamp in last_send
+        self.stats.last_send = datetime.datetime.now().timestamp()
 
         # check for special commands
         if msg == "/names":
@@ -555,6 +562,9 @@ class BackendConversation(Conversation):
         log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
         self.wins.log_win.add(log_msg)
 
+        # save timestamp in last_send
+        self.stats.last_send = datetime.datetime.now().timestamp()
+
         # send command message to backend
         if self.backend is not None:
             # check for special commands to handle in nuqql first
@@ -632,6 +642,9 @@ class NuqqlConversation(Conversation):
         tstamp = datetime.datetime.now()
         log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
         self.wins.log_win.add(log_msg)
+
+        # save timestamp in last_send
+        self.stats.last_send = datetime.datetime.now().timestamp()
 
         # handle nuqql command
         handle_nuqql_command(self, msg)
