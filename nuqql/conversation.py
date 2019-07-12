@@ -100,10 +100,17 @@ class Conversation:
         Log message to conversation's history/log window
         """
 
-        # create a log message and put it into conversation's history
+        # create a log message
         if tstamp is None:
             tstamp = datetime.datetime.now()
         log_msg = nuqql.history.LogMessage(tstamp, sender, msg, own=own)
+
+        # if conversation has not been initialized yet, stop here.
+        # Messages must be loaded from the history file first
+        if not self.wins.log_win:
+            return log_msg
+
+        # put message into conversation's history
         if self.history.log:
             last_msg = self.history.log[-1]
             if last_msg.tstamp.date() != tstamp.date():
