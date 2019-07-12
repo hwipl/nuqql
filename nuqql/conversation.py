@@ -424,7 +424,7 @@ class GroupConversation(BuddyConversation):
                 self.backend.client.send_command(msg)
             return
 
-        # send and log  group chat message
+        # send and log group chat message
         self.backend.client.send_group_msg(self.account.aid, self.name, msg)
         nuqql.history.log(self, log_msg)
 
