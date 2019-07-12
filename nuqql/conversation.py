@@ -316,7 +316,7 @@ class BuddyConversation(Conversation):
         if self.peers:
             peer = self.peers[0]
             if peer.status != "off":
-                sort_used = 0 - self.stats.last_used
+                sort_used = 0 - self.stats.last_send
             try:
                 sort_status = self.status_key[peer.status]
             except KeyError:
@@ -334,8 +334,9 @@ class BuddyConversation(Conversation):
         # send message and log it in the history file
         self.backend.client.send_msg(self.account.aid, self.name, msg)
 
-        # save timestamp in last_send
+        # save timestamp in last_send and redraw list_win
         self.stats.last_send = datetime.datetime.now().timestamp()
+        self.wins.list_win.redraw_pad()
 
         # log message
         log_msg = self.log("you", msg, own=True)
@@ -388,8 +389,9 @@ class GroupConversation(BuddyConversation):
         # log message
         log_msg = self.log("you", msg, own=True)
 
-        # save timestamp in last_send
+        # save timestamp in last_send and redraw list_win
         self.stats.last_send = datetime.datetime.now().timestamp()
+        self.wins.list_win.redraw_pad()
 
         # check for special commands
         if msg == "/names":
@@ -562,8 +564,9 @@ class BackendConversation(Conversation):
         log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
         self.wins.log_win.add(log_msg)
 
-        # save timestamp in last_send
+        # save timestamp in last_send and redraw list_win
         self.stats.last_send = datetime.datetime.now().timestamp()
+        self.wins.list_win.redraw_pad()
 
         # send command message to backend
         if self.backend is not None:
@@ -643,8 +646,9 @@ class NuqqlConversation(Conversation):
         log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
         self.wins.log_win.add(log_msg)
 
-        # save timestamp in last_send
+        # save timestamp in last_send and redraw list_win
         self.stats.last_send = datetime.datetime.now().timestamp()
+        self.wins.list_win.redraw_pad()
 
         # handle nuqql command
         handle_nuqql_command(self, msg)
