@@ -370,6 +370,9 @@ class ListWin(Win):
             if conv.is_active() or conv is last_selected:
                 self.state.cur_y = index
 
+        # is there a zoomed log window?
+        zoomed_log_win = None
+
         # print names in list window
         for index, conv in enumerate(self.list):
             # get name of element; cut if it's too long
@@ -391,12 +394,19 @@ class ListWin(Win):
                 # just show the conversation in list
                 self.pad.addstr(index, 0, name)
 
+            # check if there is a zoomed conversation
+            # TODO: move this into a separate helper?
+            if conv.wins.log_win and conv.wins.log_win.zoomed:
+                zoomed_log_win = conv.wins.log_win
+
         # move cursor back to original or active conversation's position
         self.pad.move(self.state.cur_y, self.state.cur_x)
 
         # check if visible part of pad needs to be moved and display it
         self._move_pad()
         self._check_borders()
+        if zoomed_log_win:
+            return
         self.pad.refresh(self.state.pad_y, self.state.pad_x,
                          pos_y + 1, pos_x + 1,
                          pos_y + win_size_y - 2,
