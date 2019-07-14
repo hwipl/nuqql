@@ -27,6 +27,7 @@ class Conversation:
 
         # statistics
         self.stats = {}
+        self.stats["sort_key"] = "last_send"    # TODO: move to config.py?
         self.stats["last_used"] = 0
         self.stats["last_send"] = 0
         self.stats["num_send"] = 0
@@ -316,8 +317,8 @@ class BuddyConversation(Conversation):
 
         if self.peers:
             peer = self.peers[0]
-            if peer.status != "off":
-                sort_used = 0 - self.stats["last_send"]
+            if peer.status != "off" and self.stats["sort_key"]:
+                sort_used = 0 - self.stats[self.stats["sort_key"]]
             try:
                 sort_status = self.status_key[peer.status]
             except KeyError:
