@@ -26,10 +26,10 @@ class Conversation:
         self.notification = 0
 
         # statistics
-        self.stats = SimpleNamespace()
-        self.stats.last_used = 0
-        self.stats.last_send = 0
-        self.stats.num_send = 0
+        self.stats = {}
+        self.stats["last_used"] = 0
+        self.stats["last_send"] = 0
+        self.stats["num_send"] = 0
 
         # backend info
         self.backend = backend
@@ -59,7 +59,7 @@ class Conversation:
             self.wins.log_win.state.active = False
             self.wins.log_win.redraw()
             self.clear_notifications()
-            self.stats.last_used = datetime.datetime.now().timestamp()
+            self.stats["last_used"] = datetime.datetime.now().timestamp()
             return
 
     def activate_log(self):
@@ -317,7 +317,7 @@ class BuddyConversation(Conversation):
         if self.peers:
             peer = self.peers[0]
             if peer.status != "off":
-                sort_used = 0 - self.stats.last_send
+                sort_used = 0 - self.stats["last_send"]
             try:
                 sort_status = self.status_key[peer.status]
             except KeyError:
@@ -336,8 +336,8 @@ class BuddyConversation(Conversation):
         self.backend.client.send_msg(self.account.aid, self.name, msg)
 
         # statistics
-        self.stats.last_send = datetime.datetime.now().timestamp()
-        self.stats.num_send += 1
+        self.stats["last_send"] = datetime.datetime.now().timestamp()
+        self.stats["num_send"] += 1
 
         # redraw list_win in case sorting is affected by stats update above
         self.wins.list_win.redraw_pad()
@@ -394,8 +394,8 @@ class GroupConversation(BuddyConversation):
         log_msg = self.log("you", msg, own=True)
 
         # statistics
-        self.stats.last_send = datetime.datetime.now().timestamp()
-        self.stats.num_send += 1
+        self.stats["last_send"] = datetime.datetime.now().timestamp()
+        self.stats["num_send"] += 1
 
         # redraw list_win in case sorting is affected by stats update above
         self.wins.list_win.redraw_pad()
@@ -572,8 +572,8 @@ class BackendConversation(Conversation):
         self.wins.log_win.add(log_msg)
 
         # statistics
-        self.stats.last_send = datetime.datetime.now().timestamp()
-        self.stats.num_send += 1
+        self.stats["last_send"] = datetime.datetime.now().timestamp()
+        self.stats["num_send"] += 1
 
         # redraw list_win in case sorting is affected by stats update above
         self.wins.list_win.redraw_pad()
@@ -657,8 +657,8 @@ class NuqqlConversation(Conversation):
         self.wins.log_win.add(log_msg)
 
         # statistics
-        self.stats.last_send = datetime.datetime.now().timestamp()
-        self.stats.num_send += 1
+        self.stats["last_send"] = datetime.datetime.now().timestamp()
+        self.stats["num_send"] += 1
 
         # redraw list_win in case sorting is affected by stats update above
         self.wins.list_win.redraw_pad()
