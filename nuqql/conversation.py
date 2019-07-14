@@ -29,6 +29,7 @@ class Conversation:
         self.stats = SimpleNamespace()
         self.stats.last_used = 0
         self.stats.last_send = 0
+        self.stats.num_send = 0
 
         # backend info
         self.backend = backend
@@ -334,8 +335,11 @@ class BuddyConversation(Conversation):
         # send message and log it in the history file
         self.backend.client.send_msg(self.account.aid, self.name, msg)
 
-        # save timestamp in last_send and redraw list_win
+        # statistics
         self.stats.last_send = datetime.datetime.now().timestamp()
+        self.stats.num_send += 1
+
+        # redraw list_win in case sorting is affected by stats update above
         self.wins.list_win.redraw_pad()
 
         # log message
@@ -389,8 +393,11 @@ class GroupConversation(BuddyConversation):
         # log message
         log_msg = self.log("you", msg, own=True)
 
-        # save timestamp in last_send and redraw list_win
+        # statistics
         self.stats.last_send = datetime.datetime.now().timestamp()
+        self.stats.num_send += 1
+
+        # redraw list_win in case sorting is affected by stats update above
         self.wins.list_win.redraw_pad()
 
         # check for special commands
@@ -564,8 +571,11 @@ class BackendConversation(Conversation):
         log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
         self.wins.log_win.add(log_msg)
 
-        # save timestamp in last_send and redraw list_win
+        # statistics
         self.stats.last_send = datetime.datetime.now().timestamp()
+        self.stats.num_send += 1
+
+        # redraw list_win in case sorting is affected by stats update above
         self.wins.list_win.redraw_pad()
 
         # send command message to backend
@@ -646,8 +656,11 @@ class NuqqlConversation(Conversation):
         log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
         self.wins.log_win.add(log_msg)
 
-        # save timestamp in last_send and redraw list_win
+        # statistics
         self.stats.last_send = datetime.datetime.now().timestamp()
+        self.stats.num_send += 1
+
+        # redraw list_win in case sorting is affected by stats update above
         self.wins.list_win.redraw_pad()
 
         # handle nuqql command
