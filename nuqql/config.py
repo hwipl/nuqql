@@ -2,7 +2,10 @@
 Nuqql's User Interface configuration
 """
 
+import configparser
 import curses
+
+from pathlib import Path
 
 #############
 # UI Config #
@@ -123,7 +126,35 @@ class WinConfig:
         Initialize/get color configuration
         """
 
-        return DEFAULT_COLORS, DEFAULT_ATTRIBS
+        # init configuration from defaults
+        color_config = DEFAULT_COLORS
+        attrib_config = DEFAULT_ATTRIBS
+
+        # read config file if it exists
+        config_file = Path.home() / ".config/nuqql/colors.ini"
+        config = configparser.ConfigParser()
+        config.read(config_file)
+
+        # parse config read from file
+        for section in config.sections():
+            if section == "colors":
+                # overwrite default color config entries
+                for key in config["colors"]:
+                    if key in color_config:
+                        color_config[key] = config["colors"][key]
+            if section == "attributes":
+                # overwrite default attribute config entries
+                for key in config["attributes"]:
+                    if key in attrib_config:
+                        attrib_config[key] = config["attributes"][key]
+
+        # write (updated) config to file again
+        config["colors"] = color_config
+        config["attributes"] = attrib_config
+        with open(config_file, "w+") as configfile:
+            config.write(configfile)
+
+        return color_config, attrib_config
 
     def init_colors(self):
         """
