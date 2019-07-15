@@ -72,6 +72,35 @@ LOG_WIN_X_PER = 0.8
 INPUT_WIN_Y_PER = 0.2
 INPUT_WIN_X_PER = 0.8
 
+# window default colors and attributes
+DEFAULT_COLORS = {
+    "background": "default",
+    "win_border": "blue",
+    "list_win_text_default": "yellow",
+    "list_win_text_slixmppd": "green",
+    "list_win_text_matrixd": "red",
+    "list_win_text_purpled": "magenta",
+    "list_win_text_based": "white",
+    "log_win_text_peer_old": "yellow",
+    "log_win_text_peer_new": "yellow",
+    "log_win_text_self_old": "cyan",
+    "log_win_text_self_new": "cyan",
+}
+
+DEFAULT_ATTRIBS = {
+    "win_border": "bold",
+    "list_win_text_default": "normal",
+    "list_win_text_slixmppd": "normal",
+    "list_win_text_matrixd": "normal",
+    "list_win_text_purpled": "normal",
+    "list_win_text_based": "normal",
+    "log_win_text_peer_old": "normal",
+    "log_win_text_peer_new": "bold",
+    "log_win_text_self_old": "normal",
+    "log_win_text_self_new": "bold",
+}
+
+# configurations
 CONFIGS = {}
 
 
@@ -88,13 +117,21 @@ class WinConfig:
         self.keybinds = None
         self.attr = {}  # window colors/attributes
 
+    @staticmethod
+    def _get_color_config():
+        """
+        Initialize/get color configuration
+        """
+
+        return DEFAULT_COLORS, DEFAULT_ATTRIBS
+
     def init_colors(self):
         """
         Initialize colors
         """
 
-        # configure background colors
-        background = "default"
+        # configure background color
+        background = DEFAULT_COLORS["background"]
         bg_colors = {
             "default":  int(-1),
             "black":    curses.COLOR_BLACK,
@@ -137,27 +174,28 @@ class WinConfig:
             "normal":   curses.A_NORMAL,
         }
 
-        # set window colors/attributes
-        self.attr["win_border"] = colors["blue"] | attribs["bold"]
+        # get color and attrib configuration
+        color_config, attrib_config = self._get_color_config()
+
+        # actually create color/attrib config for later use
+        self.attr = {}
         self.attr["list_win_text"] = {}
-        self.attr["list_win_text"]["default"] = \
-            colors["yellow"] | attribs["normal"]
-        self.attr["list_win_text"]["slixmppd"] = \
-            colors["green"] | attribs["normal"]
-        self.attr["list_win_text"]["matrixd"] = \
-            colors["red"] | attribs["normal"]
-        self.attr["list_win_text"]["purpled"] = \
-            colors["magenta"] | attribs["normal"]
-        self.attr["list_win_text"]["based"] = \
-            colors["white"] | attribs["normal"]
-        self.attr["log_win_text_peer_old"] = \
-            colors["yellow"] | attribs["normal"]
-        self.attr["log_win_text_peer_new"] = \
-            colors["yellow"] | attribs["bold"]
-        self.attr["log_win_text_self_old"] = \
-            colors["cyan"] | attribs["normal"]
-        self.attr["log_win_text_self_new"] = \
-            colors["cyan"] | attribs["bold"]
+
+        for key, value in color_config.items():
+            # read attribute if it exists (e.g., background only has a color)
+            attrib = 0
+            if key in attrib_config:
+                attrib = attribs[attrib_config[key]]
+
+            # list_win_text needs special handling
+            if key.startswith("list_win_text_"):
+                self.attr["list_win_text"][key[14:]] = \
+                    colors[value] | attrib
+                # skip to next key
+                continue
+
+            # set color and attrib in configuration
+            self.attr[key] = colors[value] | attrib
 
     def init_keymap(self):
         """
