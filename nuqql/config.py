@@ -93,33 +93,71 @@ class WinConfig:
         Initialize colors
         """
 
+        # configure background colors
+        background = "default"
+        bg_colors = {
+            "default":  int(-1),
+            "black":    curses.COLOR_BLACK,
+            "blue":     curses.COLOR_BLUE,
+            "cyan":     curses.COLOR_CYAN,
+            "green":    curses.COLOR_GREEN,
+            "magenta":  curses.COLOR_MAGENTA,
+            "red":      curses.COLOR_RED,
+            "white":    curses.COLOR_WHITE,
+            "yellow":   curses.COLOR_YELLOW,
+        }
+
         # allow usage of default colors and initialize color pairs
         curses.use_default_colors()
-        curses.init_pair(1, curses.COLOR_BLACK, -1)
-        curses.init_pair(2, curses.COLOR_BLUE, -1)
-        curses.init_pair(3, curses.COLOR_CYAN, -1)
-        curses.init_pair(4, curses.COLOR_GREEN, -1)
-        curses.init_pair(5, curses.COLOR_MAGENTA, -1)
-        curses.init_pair(6, curses.COLOR_RED, -1)
-        curses.init_pair(7, curses.COLOR_WHITE, -1)
-        curses.init_pair(8, curses.COLOR_YELLOW, -1)
+        curses.init_pair(1, curses.COLOR_BLACK, bg_colors[background])
+        curses.init_pair(2, curses.COLOR_BLUE, bg_colors[background])
+        curses.init_pair(3, curses.COLOR_CYAN, bg_colors[background])
+        curses.init_pair(4, curses.COLOR_GREEN, bg_colors[background])
+        curses.init_pair(5, curses.COLOR_MAGENTA, bg_colors[background])
+        curses.init_pair(6, curses.COLOR_RED, bg_colors[background])
+        curses.init_pair(7, curses.COLOR_WHITE, bg_colors[background])
+        curses.init_pair(8, curses.COLOR_YELLOW, bg_colors[background])
+
+        # mapping from color names to color pairs
+        colors = {
+            "default":  curses.color_pair(0),
+            "black":    curses.color_pair(1),
+            "blue":     curses.color_pair(2),
+            "cyan":     curses.color_pair(3),
+            "green":    curses.color_pair(4),
+            "magenta":  curses.color_pair(5),
+            "red":      curses.color_pair(6),
+            "white":    curses.color_pair(7),
+            "yellow":   curses.color_pair(8),
+        }
+
+        # text attributes
+        attribs = {
+            "bold":     curses.A_BOLD,
+            "normal":   curses.A_NORMAL,
+        }
 
         # set window colors/attributes
-        self.attr["win_border"] = curses.color_pair(2) | curses.A_BOLD
+        self.attr["win_border"] = colors["blue"] | attribs["bold"]
         self.attr["list_win_text"] = {}
-        self.attr["list_win_text"]["default"] = curses.color_pair(8)
-        self.attr["list_win_text"]["slixmppd"] = curses.color_pair(4)
-        self.attr["list_win_text"]["matrixd"] = curses.color_pair(6)
-        self.attr["list_win_text"]["purpled"] = curses.color_pair(5)
-        self.attr["list_win_text"]["based"] = curses.color_pair(7)
+        self.attr["list_win_text"]["default"] = \
+            colors["yellow"] | attribs["normal"]
+        self.attr["list_win_text"]["slixmppd"] = \
+            colors["green"] | attribs["normal"]
+        self.attr["list_win_text"]["matrixd"] = \
+            colors["red"] | attribs["normal"]
+        self.attr["list_win_text"]["purpled"] = \
+            colors["magenta"] | attribs["normal"]
+        self.attr["list_win_text"]["based"] = \
+            colors["white"] | attribs["normal"]
         self.attr["log_win_text_peer_old"] = \
-            curses.color_pair(8) | curses.A_NORMAL
+            colors["yellow"] | attribs["normal"]
         self.attr["log_win_text_peer_new"] = \
-            curses.color_pair(8) | curses.A_BOLD
+            colors["yellow"] | attribs["bold"]
         self.attr["log_win_text_self_old"] = \
-            curses.color_pair(3) | curses.A_NORMAL
+            colors["cyan"] | attribs["normal"]
         self.attr["log_win_text_self_new"] = \
-            curses.color_pair(3) | curses.A_BOLD
+            colors["cyan"] | attribs["bold"]
 
     def init_keymap(self):
         """
