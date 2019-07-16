@@ -251,6 +251,27 @@ class WinConfig:
 
         # init configuration from defaults
         keymap_config = DEFAULT_KEYMAP
+
+        # read config file if it exists
+        config_file = Path.home() / ".config/nuqql/keys.ini"
+        config = configparser.ConfigParser()
+        config.optionxform = lambda option: option
+        config.read(config_file)
+
+        # parse config read from file
+        for section in config.sections():
+            if section == "keymap":
+                # overwrite default keymap config entries
+                for key in config["keymap"]:
+                    if key in keymap_config:
+                        keymap_config[key] = config["keymap"][key]
+
+        # write (updated) config to file again
+        config["keymap"] = keymap_config
+        with open(config_file, "w+") as configfile:
+            config.write(configfile)
+
+        # create and return internally used keymap
         keymap = {}
         for key, value in keymap_config.items():
             keymap[value] = key
