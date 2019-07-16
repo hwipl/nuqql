@@ -13,24 +13,24 @@ from pathlib import Path
 
 # default keymap for special keys
 DEFAULT_KEYMAP = {
-    chr(curses.ascii.ESC):  "KEY_ESC",
-    curses.KEY_RIGHT:       "KEY_RIGHT",
-    curses.KEY_LEFT:        "KEY_LEFT",
-    curses.KEY_DOWN:        "KEY_DOWN",
-    curses.KEY_UP:          "KEY_UP",
-    curses.ascii.ctrl("a"): "KEY_CTRL_A",
-    curses.ascii.ctrl("e"): "KEY_CTRL_E",
-    curses.ascii.ctrl("k"): "KEY_CTRL_K",
-    curses.ascii.ctrl("u"): "KEY_CTRL_U",
-    curses.ascii.ctrl("x"): "KEY_CTRL_X",
-    chr(curses.ascii.DEL):  "KEY_DEL",
-    curses.KEY_DC:          "KEY_DEL",
-    curses.KEY_HOME:        "KEY_HOME",
-    curses.KEY_END:         "KEY_END",
-    curses.KEY_PPAGE:       "KEY_PAGE_UP",
-    curses.KEY_NPAGE:       "KEY_PAGE_DOWN",
-    curses.KEY_F9:          "KEY_F9",
-    curses.KEY_F10:         "KEY_F10",
+    "KEY_ESC":          chr(curses.ascii.ESC),
+    "KEY_RIGHT":        curses.KEY_RIGHT,
+    "KEY_LEFT":         curses.KEY_LEFT,
+    "KEY_DOWN":         curses.KEY_DOWN,
+    "KEY_UP":           curses.KEY_UP,
+    "KEY_CTRL_A":       curses.ascii.ctrl("a"),
+    "KEY_CTRL_E":       curses.ascii.ctrl("e"),
+    "KEY_CTRL_K":       curses.ascii.ctrl("k"),
+    "KEY_CTRL_U":       curses.ascii.ctrl("u"),
+    "KEY_CTRL_X":       curses.ascii.ctrl("x"),
+    "KEY_DEL":          chr(curses.ascii.DEL),
+    # "KEY_DC":           curses.KEY_DC,    # TODO: implement
+    "KEY_HOME":         curses.KEY_HOME,
+    "KEY_END":          curses.KEY_END,
+    "KEY_PAGE_UP":      curses.KEY_PPAGE,
+    "KEY_PAGE_DOWN":    curses.KEY_NPAGE,
+    "KEY_F9":           curses.KEY_F9,
+    "KEY_F10":          curses.KEY_F10,
 }
 
 # default key bindings for input windows
@@ -243,12 +243,25 @@ class WinConfig:
             # set color and attrib in configuration
             self.attr[key] = colors[value] | attrib
 
+    @staticmethod
+    def _get_keymap_config():
+        """
+        Initialize/get keymap configuration
+        """
+
+        # init configuration from defaults
+        keymap_config = DEFAULT_KEYMAP
+        keymap = {}
+        for key, value in keymap_config.items():
+            keymap[value] = key
+        return keymap
+
     def init_keymap(self):
         """
         Initialzize keymap
         """
 
-        self.keymap = DEFAULT_KEYMAP
+        self.keymap = self._get_keymap_config()
 
     def init_keybinds(self):
         """
