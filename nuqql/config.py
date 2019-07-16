@@ -201,8 +201,23 @@ class WinConfig:
 
         # text attributes
         attribs = {
-            "bold":     curses.A_BOLD,
-            "normal":   curses.A_NORMAL,
+            "alt":          curses.A_ALTCHARSET,
+            "blink":        curses.A_BLINK,
+            "bold":         curses.A_BOLD,
+            "dim":          curses.A_DIM,
+            "invisible":    curses.A_INVIS,
+            "italic":       curses.A_ITALIC,
+            "normal":       curses.A_NORMAL,
+            "protect":      curses.A_PROTECT,
+            "reverse":      curses.A_REVERSE,
+            "standout":     curses.A_STANDOUT,
+            "underline":    curses.A_UNDERLINE,
+            "horizontal":   curses.A_HORIZONTAL,
+            "left":         curses.A_LEFT,
+            "low":          curses.A_LOW,
+            "right":        curses.A_RIGHT,
+            "top":          curses.A_TOP,
+            "vertical":     curses.A_VERTICAL,
         }
 
         # get color and attrib configuration
