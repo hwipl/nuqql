@@ -13,17 +13,17 @@ from pathlib import Path
 
 # default keymap for special keys
 DEFAULT_KEYMAP = {
-    "KEY_ESC":          chr(curses.ascii.ESC),
+    "KEY_ESC":          curses.ascii.ESC,
     "KEY_RIGHT":        curses.KEY_RIGHT,
     "KEY_LEFT":         curses.KEY_LEFT,
     "KEY_DOWN":         curses.KEY_DOWN,
     "KEY_UP":           curses.KEY_UP,
-    "KEY_CTRL_A":       curses.ascii.ctrl("a"),
-    "KEY_CTRL_E":       curses.ascii.ctrl("e"),
-    "KEY_CTRL_K":       curses.ascii.ctrl("k"),
-    "KEY_CTRL_U":       curses.ascii.ctrl("u"),
-    "KEY_CTRL_X":       curses.ascii.ctrl("x"),
-    "KEY_DEL":          chr(curses.ascii.DEL),
+    "KEY_CTRL_A":       ord(curses.ascii.ctrl("a")),
+    "KEY_CTRL_E":       ord(curses.ascii.ctrl("e")),
+    "KEY_CTRL_K":       ord(curses.ascii.ctrl("k")),
+    "KEY_CTRL_U":       ord(curses.ascii.ctrl("u")),
+    "KEY_CTRL_X":       ord(curses.ascii.ctrl("x")),
+    "KEY_DEL":          curses.ascii.DEL,
     # "KEY_DC":           curses.KEY_DC,    # TODO: implement
     "KEY_HOME":         curses.KEY_HOME,
     "KEY_END":          curses.KEY_END,

@@ -468,8 +468,12 @@ class ListWin(Win):
         self.state.cur_y, self.state.cur_x = self.pad.getyx()
 
         # look for special key mappings in keymap or process as text
-        if char in self.config.keymap:
-            func = self.keyfunc[self.config.keybinds[self.config.keymap[char]]]
+        try:
+            cint = ord(char)
+        except (TypeError, ValueError):
+            cint = char
+        if cint in self.config.keymap:
+            func = self.keyfunc[self.config.keybinds[self.config.keymap[cint]]]
             func()
         elif char == "q":
             self.state.active = False
@@ -882,8 +886,12 @@ class LogWin(Win):
                 return
 
         # look for special key mappings in keymap or process as text
-        if char in self.config.keymap:
-            func = self.keyfunc[self.config.keybinds[self.config.keymap[char]]]
+        try:
+            cint = ord(char)
+        except (TypeError, ValueError):
+            cint = char
+        if cint in self.config.keymap:
+            func = self.keyfunc[self.config.keybinds[self.config.keymap[cint]]]
             func()
 
         # display changes in the pad
@@ -1118,8 +1126,12 @@ class InputWin(Win):
         pad_size_y, pad_size_x = self.pad.getmaxyx()
 
         # look for special key mappings in keymap or process as text
-        if char in self.config.keymap:
-            func = self.keyfunc[self.config.keybinds[self.config.keymap[char]]]
+        try:
+            cint = ord(char)
+        except (TypeError, ValueError):
+            cint = char
+        if cint in self.config.keymap:
+            func = self.keyfunc[self.config.keybinds[self.config.keymap[cint]]]
             func(segments)
         elif char == "\t":
             for _i in range(4):
