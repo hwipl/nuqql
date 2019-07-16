@@ -264,7 +264,10 @@ class WinConfig:
                 # overwrite default keymap config entries
                 for key in config["keymap"]:
                     if key in keymap_config:
-                        keymap_config[key] = config["keymap"][key]
+                        try:
+                            keymap_config[key] = int(config["keymap"][key])
+                        except ValueError:
+                            keymap_config[key] = config["keymap"][key]
 
         # write (updated) config to file again
         config["keymap"] = keymap_config
