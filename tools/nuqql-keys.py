@@ -51,7 +51,7 @@ def go_restore_default_keymap(win):
     Restore default nuqql keymap configuration
     """
 
-    win.clear()
+    win.erase()
     try:
         win.addstr(("<Press any key to restore default keymap, "
                     "CTRL-C to abort>"))
@@ -71,7 +71,7 @@ def go_configure_keymap(win):
     keymap = {}
     for key in DEFAULT_KEYMAP:
         # clear screen and get next key
-        win.clear()
+        win.erase()
         win.addstr("Enter key {}:".format(key))
         try:
             char = win.get_wch()
@@ -93,7 +93,7 @@ def go_configure_keymap(win):
         keymap[key] = key_num
 
     # print keymap
-    win.clear()
+    win.erase()
     for key, value in keymap.items():
         try:
             win.addstr("Key {} (default: {}): {}\n".format(
@@ -126,7 +126,7 @@ def go_key_numbers(win):
     enter_text = "<enter key>"
 
     # clear old window content
-    win.clear()
+    win.erase()
     win.addstr(abort_text)
     win.addstr(enter_text)
 
@@ -150,7 +150,7 @@ def go_key_numbers(win):
             msg = key_fmt.format(char)
 
         # ... and print it
-        win.clear()
+        win.erase()
         win.addstr(abort_text)
         win.addstr(msg)
 
@@ -172,7 +172,7 @@ def go_menu(win):
     while True:
         try:
             # output menu
-            win.clear()
+            win.erase()
             win.addstr("\n".join(menu_text))
 
             # get user input
