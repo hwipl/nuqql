@@ -2,6 +2,9 @@
 
 import curses
 import curses.ascii
+import configparser
+
+from pathlib import Path
 
 # default keymap for special keys
 DEFAULT_KEYMAP = {
@@ -24,6 +27,23 @@ DEFAULT_KEYMAP = {
     "KEY_F9":           curses.KEY_F9,
     "KEY_F10":          curses.KEY_F10,
 }
+
+
+def _write_keymap_to_file(keymap):
+    """
+    Write keymap to nuqql keymap configuration file
+    """
+
+    # read config file if it exists
+    config_file = Path.home() / ".config/nuqql/keys.ini"
+    config = configparser.ConfigParser()
+    config.optionxform = lambda option: option
+    config.read(config_file)
+
+    # write (updated) config to file again
+    config["keymap"] = keymap
+    with open(config_file, "w+") as configfile:
+        config.write(configfile)
 
 
 def go_configure_keymap(win):
@@ -62,14 +82,19 @@ def go_configure_keymap(win):
             win.addstr("Key {} (default: {}): {}\n".format(
                 key, DEFAULT_KEYMAP[key], value))
         except curses.error:
-            return
+            pass
 
     # wait for keypress and return
     try:
-        win.addstr("<Press any key to return to menu>")
+        win.addstr("<Press any key to write config, CTRL-C to abort>")
         char = win.get_wch()
     except curses.error:
+        pass
+    except KeyboardInterrupt:
         return
+
+    # write keymap to config file
+    _write_keymap_to_file(keymap)
 
 
 def go_key_numbers(win):
