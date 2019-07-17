@@ -217,6 +217,13 @@ class Win:
 
         # implemented in sub classes
 
+    def _delete_char_right(self, *args):
+        """
+        User input: delete character on the right of current cursor position
+        """
+
+        # implemented in sub classes
+
     def _cursor_msg_start(self, *args):
         """
         User input: move cursor to message start
@@ -286,6 +293,7 @@ class Win:
             "CURSOR_UP": self._cursor_up,
             "SEND_MSG": self._send_msg,
             "DEL_CHAR": self._delete_char,
+            "DEL_CHAR_RIGHT": self._delete_char_right,
             "CURSOR_MSG_START": self._cursor_msg_start,
             "CURSOR_MSG_END": self._cursor_msg_end,
             "CURSOR_LINE_START": self._cursor_line_start,
@@ -1045,6 +1053,33 @@ class InputWin(Win):
             self.pad.move(self.state.cur_y, self.state.cur_x - 1)
         elif self.state.cur_y > 0:
             self.pad.move(self.state.cur_y - 1, old_prev_len)
+
+        # display changes in the pad
+        self.redraw_pad()
+
+    def _delete_char_right(self, *args):
+        # argument is segemented message, i.e. lines of the message
+        segment = args[0]
+
+        # delete character
+        if self.state.cur_x < len(segment[self.state.cur_y]):
+            # delete charater within a line
+            segment[self.state.cur_y] = \
+                segment[self.state.cur_y][:self.state.cur_x] +\
+                segment[self.state.cur_y][self.state.cur_x + 1:]
+        elif self.state.cur_y < len(segment) - 1:
+            # delete newline
+            segment[self.state.cur_y] = segment[self.state.cur_y] +\
+                segment[self.state.cur_y + 1]
+            del segment[self.state.cur_y + 1]
+
+        # reconstruct and display message
+        self.msg = "\n".join(segment)
+        self.pad.erase()
+        self.pad.addstr(self.msg)
+
+        # move cursor to new position
+        self.pad.move(self.state.cur_y, self.state.cur_x)
 
         # display changes in the pad
         self.redraw_pad()

@@ -46,7 +46,7 @@ DEFAULT_INPUT_WIN_KEYBINDS = {
     "KEY_CTRL_U":       "DEL_LINE",
     "KEY_CTRL_X":       "SEND_MSG",
     "KEY_DEL":          "DEL_CHAR",
-    "KEY_DC":           "DEL_CHAR",     # TODO: implement own function
+    "KEY_DC":           "DEL_CHAR_RIGHT",
     "KEY_HOME":         "CURSOR_MSG_START",
     "KEY_END":          "CURSOR_MSG_END",
     "KEY_PAGE_UP":      "CURSOR_LINE_START",
