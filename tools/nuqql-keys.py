@@ -19,7 +19,7 @@ DEFAULT_KEYMAP = {
     "KEY_CTRL_U":       ord(curses.ascii.ctrl("u")),
     "KEY_CTRL_X":       ord(curses.ascii.ctrl("x")),
     "KEY_DEL":          curses.ascii.DEL,
-    # "KEY_DC":           curses.KEY_DC,    # TODO: implement
+    "KEY_DC":           curses.KEY_DC,
     "KEY_HOME":         curses.KEY_HOME,
     "KEY_END":          curses.KEY_END,
     "KEY_PAGE_UP":      curses.KEY_PPAGE,

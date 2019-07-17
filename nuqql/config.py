@@ -24,7 +24,7 @@ DEFAULT_KEYMAP = {
     "KEY_CTRL_U":       ord(curses.ascii.ctrl("u")),
     "KEY_CTRL_X":       ord(curses.ascii.ctrl("x")),
     "KEY_DEL":          curses.ascii.DEL,
-    # "KEY_DC":           curses.KEY_DC,    # TODO: implement
+    "KEY_DC":           curses.KEY_DC,
     "KEY_HOME":         curses.KEY_HOME,
     "KEY_END":          curses.KEY_END,
     "KEY_PAGE_UP":      curses.KEY_PPAGE,
@@ -46,6 +46,7 @@ DEFAULT_INPUT_WIN_KEYBINDS = {
     "KEY_CTRL_U":       "DEL_LINE",
     "KEY_CTRL_X":       "SEND_MSG",
     "KEY_DEL":          "DEL_CHAR",
+    "KEY_DC":           "DEL_CHAR",     # TODO: implement own function
     "KEY_HOME":         "CURSOR_MSG_START",
     "KEY_END":          "CURSOR_MSG_END",
     "KEY_PAGE_UP":      "CURSOR_LINE_START",
