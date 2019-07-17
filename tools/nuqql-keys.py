@@ -196,6 +196,7 @@ def main(stdscr):
     Main function
     """
 
+    curses.curs_set(0)  # invisible cursor
     try:
         go_menu(stdscr)
     except KeyboardInterrupt:
