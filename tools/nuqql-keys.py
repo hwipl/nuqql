@@ -46,6 +46,23 @@ def _write_keymap_to_file(keymap):
         config.write(configfile)
 
 
+def go_restore_default_keymap(win):
+    """
+    Restore default nuqql keymap configuration
+    """
+
+    win.clear()
+    try:
+        win.addstr(("<Press any key to restore default keymap, "
+                    "CTRL-C to abort>"))
+        win.get_wch()
+    except (curses.error, KeyboardInterrupt):
+        return
+
+    # write keymap to config file
+    _write_keymap_to_file(DEFAULT_KEYMAP)
+
+
 def go_configure_keymap(win):
     """
     Configure nuqql keymap
@@ -146,8 +163,9 @@ def go_menu(win):
     # text to display
     menu_text = (
         "Menu:",
+        "p)  print key numbers",
         "c)  configure keymap",
-        "p)  print keys",
+        "r)  restore default keymap",
         "q)  quit"
     )
 
@@ -169,6 +187,8 @@ def go_menu(win):
             go_key_numbers(win)
         if char == "q":
             return
+        if char == "r":
+            go_restore_default_keymap(win)
 
 
 def main(stdscr):
