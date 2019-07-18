@@ -69,13 +69,16 @@ DEFAULT_LIST_WIN_KEYBINDS = DEFAULT_INPUT_WIN_KEYBINDS
 #   ...
 # }
 
-# window x and y sizes in percent
-LIST_WIN_Y_PER = 1
-LIST_WIN_X_PER = 0.2
-LOG_WIN_Y_PER = 0.8
-LOG_WIN_X_PER = 0.8
-INPUT_WIN_Y_PER = 0.2
-INPUT_WIN_X_PER = 0.8
+# default ui layout
+DEFAULT_LAYOUT = {
+    # window x and y sizes in percent
+    "LIST_WIN_Y_PER":   1,
+    "LIST_WIN_X_PER":   0.2,
+    "LOG_WIN_Y_PER":    0.8,
+    "LOG_WIN_X_PER":    0.8,
+    "INPUT_WIN_Y_PER":  0.2,
+    "INPUT_WIN_X_PER":  0.8,
+}
 
 # window default colors and attributes
 DEFAULT_COLORS = {
@@ -114,13 +117,40 @@ class WinConfig:
     Class for window configuration
     """
 
-    def __init__(self, wtype, rel_y, rel_x):
+    def __init__(self, wtype):
         self.type = wtype
-        self.rel_y = rel_y
-        self.rel_x = rel_x
+        self.rel_y = 0
+        self.rel_x = 0
         self.keymap = None
         self.keybinds = None
         self.attr = {}  # window colors/attributes
+
+    @staticmethod
+    def _get_layout_config():
+        """
+        Initialize/get layout configuration
+        """
+
+        return DEFAULT_LAYOUT
+
+    def init_layout(self):
+        """
+        Init UI/Window layout
+        """
+
+        # get layout
+        layout = self._get_layout_config()
+
+        # set window layout
+        if self.type == "list_win":
+            self.rel_y = layout["LIST_WIN_Y_PER"]
+            self.rel_x = layout["LIST_WIN_X_PER"]
+        if self.type == "log_win":
+            self.rel_y = layout["LOG_WIN_Y_PER"]
+            self.rel_x = layout["LOG_WIN_X_PER"]
+        if self.type == "input_win":
+            self.rel_y = layout["INPUT_WIN_Y_PER"]
+            self.rel_x = layout["INPUT_WIN_X_PER"]
 
     @staticmethod
     def _get_color_config():
@@ -393,9 +423,13 @@ def init_win(screen):
     Initialize window configurations
     """
 
-    list_win = WinConfig("list_win", LIST_WIN_Y_PER, LIST_WIN_X_PER)
-    log_win = WinConfig("log_win", LOG_WIN_Y_PER, LOG_WIN_X_PER)
-    input_win = WinConfig("input_win", INPUT_WIN_Y_PER, INPUT_WIN_X_PER)
+    list_win = WinConfig("list_win")
+    log_win = WinConfig("log_win")
+    input_win = WinConfig("input_win")
+
+    list_win.init_layout()
+    log_win.init_layout()
+    input_win.init_layout()
 
     list_win.init_colors()
     log_win.init_colors()
