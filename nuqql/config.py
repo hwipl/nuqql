@@ -36,24 +36,22 @@ DEFAULT_KEYMAP = {
 
 # default key bindings for input windows
 DEFAULT_INPUT_WIN_KEYBINDS = {
-    "KEY_ESC":          "GO_BACK",
-    "KEY_RIGHT":        "CURSOR_RIGHT",
-    "KEY_LEFT":         "CURSOR_LEFT",
-    "KEY_DOWN":         "CURSOR_DOWN",
-    "KEY_UP":           "CURSOR_UP",
-    "KEY_CTRL_A":       "CURSOR_MSG_START",
-    "KEY_CTRL_E":       "CURSOR_MSG_END",
-    "KEY_CTRL_K":       "DEL_LINE_END",
-    "KEY_CTRL_U":       "DEL_LINE",
-    "KEY_CTRL_X":       "SEND_MSG",
-    "KEY_DEL":          "DEL_CHAR",
-    "KEY_DC":           "DEL_CHAR_RIGHT",
-    "KEY_HOME":         "CURSOR_MSG_START",
-    "KEY_END":          "CURSOR_MSG_END",
-    "KEY_PAGE_UP":      "CURSOR_LINE_START",
-    "KEY_PAGE_DOWN":    "CURSOR_LINE_END",
-    "KEY_F9":           "WIN_ZOOM",
-    "KEY_F10":          "WIN_ZOOM_URL",
+    "GO_BACK":              "KEY_ESC",
+    "CURSOR_RIGHT":         "KEY_RIGHT",
+    "CURSOR_LEFT":          "KEY_LEFT",
+    "CURSOR_DOWN":          "KEY_DOWN",
+    "CURSOR_UP":            "KEY_UP",
+    "CURSOR_MSG_START":     ("KEY_HOME", "KEY_CTRL_A"),
+    "CURSOR_MSG_END":       ("KEY_END", "KEY_CTRL_E"),
+    "DEL_LINE_END":         "KEY_CTRL_K",
+    "DEL_LINE":             "KEY_CTRL_U",
+    "SEND_MSG":             "KEY_CTRL_X",
+    "DEL_CHAR":             "KEY_DEL",
+    "DEL_CHAR_RIGHT":       "KEY_DC",
+    "CURSOR_LINE_START":    "KEY_PAGE_UP",
+    "CURSOR_LINE_END":      "KEY_PAGE_DOWN",
+    "WIN_ZOOM":             "KEY_F9",
+    "WIN_ZOOM_URL":         "KEY_F10",
 }
 
 # default key bindings for log windows
@@ -383,10 +381,25 @@ class WinConfig:
             config.write(configfile)
 
         # create and return internally used keymap
+        # swap keys and values in config dictionaries
+        tmp_keybinds = {}
+        for win_binds in ("list_win_keybinds", "log_win_keybinds",
+                          "input_win_keybinds"):
+            tmp_keybinds[win_binds] = {}
+            for key, value in keybinds_config[win_binds].items():
+                if isinstance(value, tuple):
+                    # multiple keys bound to same function
+                    for entry in value:
+                        tmp_keybinds[win_binds][entry] = key
+                else:
+                    # only one key bound to function
+                    tmp_keybinds[win_binds][value] = key
+
+        # construct keybinds as used later
         keybinds = {}
-        keybinds["list_win"] = keybinds_config["list_win_keybinds"]
-        keybinds["log_win"] = keybinds_config["log_win_keybinds"]
-        keybinds["input_win"] = keybinds_config["input_win_keybinds"]
+        keybinds["list_win"] = tmp_keybinds["list_win_keybinds"]
+        keybinds["log_win"] = tmp_keybinds["log_win_keybinds"]
+        keybinds["input_win"] = tmp_keybinds["input_win_keybinds"]
 
         return keybinds
 
