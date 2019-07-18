@@ -348,17 +348,25 @@ class WinConfig:
 
         self.keymap = self._get_keymap_config()
 
+    @staticmethod
+    def _get_keybinds_config():
+        """
+        Initialize/get keybind configuration
+        """
+        keybinds = {}
+        keybinds["list_win"] = DEFAULT_LIST_WIN_KEYBINDS
+        keybinds["log_win"] = DEFAULT_LOG_WIN_KEYBINDS
+        keybinds["input_win"] = DEFAULT_INPUT_WIN_KEYBINDS
+
+        return keybinds
+
     def init_keybinds(self):
         """
         Initialize keybindings depending on window type
         """
 
-        if self.type == "log_win":
-            self.keybinds = DEFAULT_LOG_WIN_KEYBINDS
-        if self.type == "input_win":
-            self.keybinds = DEFAULT_INPUT_WIN_KEYBINDS
-        if self.type == "list_win":
-            self.keybinds = DEFAULT_LIST_WIN_KEYBINDS
+        keybinds = self._get_keybinds_config()
+        self.keybinds = keybinds[self.type]
 
     def get_win_size(self, max_y, max_x):
         """
