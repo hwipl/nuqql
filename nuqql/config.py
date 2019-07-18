@@ -41,8 +41,8 @@ DEFAULT_INPUT_WIN_KEYBINDS = {
     "CURSOR_LEFT":          "KEY_LEFT",
     "CURSOR_DOWN":          "KEY_DOWN",
     "CURSOR_UP":            "KEY_UP",
-    "CURSOR_MSG_START":     ("KEY_HOME", "KEY_CTRL_A"),
-    "CURSOR_MSG_END":       ("KEY_END", "KEY_CTRL_E"),
+    "CURSOR_MSG_START":     "KEY_HOME, KEY_CTRL_A",
+    "CURSOR_MSG_END":       "KEY_END, KEY_CTRL_E",
     "DEL_LINE_END":         "KEY_CTRL_K",
     "DEL_LINE":             "KEY_CTRL_U",
     "SEND_MSG":             "KEY_CTRL_X",
@@ -387,13 +387,9 @@ class WinConfig:
                           "input_win_keybinds"):
             tmp_keybinds[win_binds] = {}
             for key, value in keybinds_config[win_binds].items():
-                if isinstance(value, tuple):
-                    # multiple keys bound to same function
-                    for entry in value:
-                        tmp_keybinds[win_binds][entry] = key
-                else:
-                    # only one key bound to function
-                    tmp_keybinds[win_binds][value] = key
+                # might be comma separated list of keys bound to same function
+                for entry in value.split(","):
+                    tmp_keybinds[win_binds][entry.strip()] = key
 
         # construct keybinds as used later
         keybinds = {}
