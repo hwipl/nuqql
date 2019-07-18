@@ -72,12 +72,12 @@ DEFAULT_LIST_WIN_KEYBINDS = DEFAULT_INPUT_WIN_KEYBINDS
 # default ui layout
 DEFAULT_LAYOUT = {
     # window x and y sizes in percent
-    "LIST_WIN_Y_PER":   1,
-    "LIST_WIN_X_PER":   0.2,
-    "LOG_WIN_Y_PER":    0.8,
-    "LOG_WIN_X_PER":    0.8,
-    "INPUT_WIN_Y_PER":  0.2,
-    "INPUT_WIN_X_PER":  0.8,
+    "LIST_WIN_Y_PER":   100,
+    "LIST_WIN_X_PER":   20,
+    "LOG_WIN_Y_PER":    80,
+    "LOG_WIN_X_PER":    80,
+    "INPUT_WIN_Y_PER":  20,
+    "INPUT_WIN_X_PER":  80,
 }
 
 # window default colors and attributes
@@ -153,7 +153,11 @@ class WinConfig:
         with open(config_file, "w+") as configfile:
             config.write(configfile)
 
-        return layout_config
+        # create and return internally used layout configuration
+        layout = {}
+        for key, value in layout_config.items():
+            layout[key] = value / 100
+        return layout
 
     def init_layout(self):
         """
