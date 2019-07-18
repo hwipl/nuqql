@@ -4,6 +4,7 @@ Nuqql's User Interface configuration
 
 import configparser
 import curses
+import sys
 
 from pathlib import Path
 
@@ -201,13 +202,16 @@ class WinConfig:
         }
 
         # text attributes
+        attrib_italic = curses.A_NORMAL     # italic was added in python 3.7
+        if sys.version_info >= (3, 7):
+            attrib_italic = curses.A_ITALIC
         attribs = {
             "alt":          curses.A_ALTCHARSET,
             "blink":        curses.A_BLINK,
             "bold":         curses.A_BOLD,
             "dim":          curses.A_DIM,
             "invisible":    curses.A_INVIS,
-            "italic":       curses.A_ITALIC,
+            "italic":       attrib_italic,  # italic was added in python 3.7
             "normal":       curses.A_NORMAL,
             "protect":      curses.A_PROTECT,
             "reverse":      curses.A_REVERSE,
