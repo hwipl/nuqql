@@ -353,10 +353,40 @@ class WinConfig:
         """
         Initialize/get keybind configuration
         """
+
+        # init configuration from defaults
+        keybinds_config = {}
+        keybinds_config["list_win_keybinds"] = DEFAULT_LIST_WIN_KEYBINDS
+        keybinds_config["log_win_keybinds"] = DEFAULT_LOG_WIN_KEYBINDS
+        keybinds_config["input_win_keybinds"] = DEFAULT_INPUT_WIN_KEYBINDS
+
+        # read config file if it exists
+        config_file = Path.home() / ".config/nuqql/keys.ini"
+        config = configparser.ConfigParser()
+        config.optionxform = lambda option: option
+        config.read(config_file)
+
+        # parse config read from file
+        for section in config.sections():
+            if section in ("list_win_keybinds", "log_win_keybinds",
+                           "input_win_keybinds"):
+                # overwrite default keymap config entries
+                for key in config[section]:
+                    if key in keybinds_config[section]:
+                        keybinds_config[key] = config[section][key]
+
+        # write (updated) config to file again
+        for win_binds in ("list_win_keybinds", "log_win_keybinds",
+                          "input_win_keybinds"):
+            config[win_binds] = keybinds_config[win_binds]
+        with open(config_file, "w+") as configfile:
+            config.write(configfile)
+
+        # create and return internally used keymap
         keybinds = {}
-        keybinds["list_win"] = DEFAULT_LIST_WIN_KEYBINDS
-        keybinds["log_win"] = DEFAULT_LOG_WIN_KEYBINDS
-        keybinds["input_win"] = DEFAULT_INPUT_WIN_KEYBINDS
+        keybinds["list_win"] = keybinds_config["list_win_keybinds"]
+        keybinds["log_win"] = keybinds_config["log_win_keybinds"]
+        keybinds["input_win"] = keybinds_config["input_win_keybinds"]
 
         return keybinds
 
