@@ -131,7 +131,29 @@ class WinConfig:
         Initialize/get layout configuration
         """
 
-        return DEFAULT_LAYOUT
+        # init configuration from defaults
+        layout_config = DEFAULT_LAYOUT
+
+        # read config file if it exists
+        config_file = Path.home() / ".config/nuqql/ui.ini"
+        config = configparser.ConfigParser()
+        config.optionxform = lambda option: option
+        config.read(config_file)
+
+        # parse config read from file
+        for section in config.sections():
+            if section == "layout":
+                # overwrite default color config entries
+                for key in config["layout"]:
+                    if key in layout_config:
+                        layout_config[key] = float(config["layout"][key])
+
+        # write (updated) config to file again
+        config["layout"] = layout_config
+        with open(config_file, "w+") as configfile:
+            config.write(configfile)
+
+        return layout_config
 
     def init_layout(self):
         """
