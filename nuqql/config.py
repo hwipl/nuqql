@@ -217,8 +217,11 @@ class WinConfig:
         Initialize colors
         """
 
+        # get color and attrib configuration
+        color_config, attrib_config = self._get_color_config()
+
         # configure background color
-        background = DEFAULT_COLORS["background"]
+        background = color_config["background"]
         bg_colors = {
             "default":  int(-1),
             "black":    curses.COLOR_BLACK,
@@ -287,9 +290,6 @@ class WinConfig:
             "top":          curses.A_TOP,
             "vertical":     curses.A_VERTICAL,
         }
-
-        # get color and attrib configuration
-        color_config, attrib_config = self._get_color_config()
 
         # actually create color/attrib config for later use
         self.attr = {}
