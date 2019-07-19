@@ -230,6 +230,9 @@ class WinConfig:
             "white":    curses.COLOR_WHITE,
             "yellow":   curses.COLOR_YELLOW,
         }
+        # allow definition of color numbers
+        for i in range(0, 16):
+            bg_colors["color{}".format(i)] = i
 
         # allow usage of default colors and initialize color pairs
         curses.use_default_colors()
@@ -241,6 +244,9 @@ class WinConfig:
         curses.init_pair(6, curses.COLOR_RED, bg_colors[background])
         curses.init_pair(7, curses.COLOR_WHITE, bg_colors[background])
         curses.init_pair(8, curses.COLOR_YELLOW, bg_colors[background])
+        # allow definition of additional (unnamed) colors
+        for i in range(8, 16):
+            curses.init_pair(i + 1, i, bg_colors[background])
 
         # mapping from color names to color pairs
         colors = {
@@ -254,6 +260,9 @@ class WinConfig:
             "white":    curses.color_pair(7),
             "yellow":   curses.color_pair(8),
         }
+        # allow definition of color numbers
+        for i in range(0, 16):
+            colors["color{}".format(i)] = curses.color_pair(i + 1)
 
         # text attributes
         attrib_italic = curses.A_NORMAL     # italic was added in python 3.7
