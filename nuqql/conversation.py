@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from pathlib import Path
 
 import nuqql.history
+import nuqql.config
 import nuqql.win
 
 
@@ -27,7 +28,6 @@ class Conversation:
 
         # statistics
         self.stats = {}
-        self.stats["sort_key"] = "last_send"    # TODO: move to config.py?
         self.stats["last_used"] = 0
         self.stats["last_send"] = 0
         self.stats["num_send"] = 0
@@ -315,10 +315,14 @@ class BuddyConversation(Conversation):
         sort_status = 0
         sort_name = self.name
 
+        # get sort key from config
+        config = nuqql.config.get("conversations")
+        sort_key = config["sort_key"]
+
         if self.peers:
             peer = self.peers[0]
-            if peer.status != "off" and self.stats["sort_key"]:
-                sort_used = 0 - self.stats[self.stats["sort_key"]]
+            if peer.status != "off" and self.stats[sort_key]:
+                sort_used = 0 - self.stats[sort_key]
             try:
                 sort_status = self.status_key[peer.status]
             except KeyError:

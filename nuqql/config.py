@@ -107,6 +107,11 @@ DEFAULT_ATTRIBS = {
     "log_win_text_self_new": "bold",
 }
 
+# default conversation settings
+DEFAULT_CONVERSATION_CONFIG = {
+    "sort_key": "last_send",
+}
+
 # configurations
 CONFIGS = {}
 
@@ -534,9 +539,27 @@ def init_win(screen):
     CONFIGS["screen"] = screen
 
 
+def _get_conversation_config():
+    """
+    Initialize/get conversation configuration
+    """
+
+    return DEFAULT_CONVERSATION_CONFIG
+
+
+def init_conversation_settings():
+    """
+    Initialize conversation settings
+    """
+
+    settings = _get_conversation_config()
+    CONFIGS["conversations"] = settings
+
+
 def init(screen):
     """
     Initialize configurations
     """
 
     init_win(screen)
+    init_conversation_settings()
