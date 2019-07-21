@@ -321,7 +321,7 @@ class BuddyConversation(Conversation):
 
         if self.peers:
             peer = self.peers[0]
-            if peer.status != "off" and self.stats[sort_key]:
+            if peer.status != "off" and sort_key in self.stats:
                 sort_used = 0 - self.stats[sort_key]
             try:
                 sort_status = self.status_key[peer.status]
