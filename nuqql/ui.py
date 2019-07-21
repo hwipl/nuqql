@@ -272,8 +272,8 @@ def start(stdscr, func):
     stdscr.clear()
     stdscr.refresh()
 
-    # make sure window config is loaded
-    nuqql.config.init_win(stdscr)
+    # make sure configs are loaded
+    nuqql.config.init(stdscr)
 
     # create main windows, if terminal size is valid, otherwise just stop here
     if not nuqql.config.WinConfig.is_terminal_valid():

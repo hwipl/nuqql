@@ -532,3 +532,11 @@ def init_win(screen):
 
     # special "config" for main screen/window
     CONFIGS["screen"] = screen
+
+
+def init(screen):
+    """
+    Initialize configurations
+    """
+
+    init_win(screen)
