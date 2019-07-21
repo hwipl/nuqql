@@ -544,7 +544,30 @@ def _get_conversation_config():
     Initialize/get conversation configuration
     """
 
-    return DEFAULT_CONVERSATION_CONFIG
+    # init configuration from defaults
+    conversation_config = DEFAULT_CONVERSATION_CONFIG
+
+    # read config file if it exists
+    config_file = Path.home() / ".config/nuqql/ui.ini"
+    config = configparser.ConfigParser()
+    config.optionxform = lambda option: option
+    config.read(config_file)
+
+    # parse config read from file
+    for section in config.sections():
+        if section == "conversations":
+            # overwrite default keymap config entries
+            for key in config["conversations"]:
+                if key in conversation_config:
+                    conversation_config[key] = config["conversations"][key]
+
+    # write (updated) config to file again
+    config["conversations"] = conversation_config
+    with open(config_file, "w+") as configfile:
+        config.write(configfile)
+
+    # return config
+    return conversation_config
 
 
 def init_conversation_settings():
