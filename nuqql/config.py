@@ -3,6 +3,7 @@ Nuqql's User Interface configuration
 """
 
 import configparser
+import curses.ascii
 import curses
 import sys
 
