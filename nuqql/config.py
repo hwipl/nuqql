@@ -504,6 +504,10 @@ class WinConfig:
         log_y, log_x = get("log_win").get_win_size(max_y, max_x)
         input_y, input_x = get("input_win").get_win_size(max_y, max_x)
 
+        # make sure input and log win use all available space
+        if input_y + log_y < max_y:
+            log_y += max_y - input_y
+
         # reduce log window height if necessary
         if input_y + log_y > max_y:
             log_y = max(max_y - input_y, 3)
