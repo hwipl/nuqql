@@ -35,7 +35,7 @@ def _write_keymap_to_file(keymap):
     """
 
     # read config file if it exists
-    config_file = Path.home() / ".config/nuqql/keys.ini"
+    config_file = Path.home() / ".config/nuqql/config.ini"
     config = configparser.ConfigParser()
     config.optionxform = lambda option: option
     config.read(config_file)
