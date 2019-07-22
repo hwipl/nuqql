@@ -112,6 +112,14 @@ DEFAULT_CONVERSATION_CONFIG = {
     "sort_key": "last_send",
 }
 
+# default window settings
+DEFAULT_LIST_WIN_CONFIG = {
+    "show_title": True,
+}
+
+DEFAULT_LOG_WIN_CONFIG = DEFAULT_LIST_WIN_CONFIG
+DEFAULT_INPUT_WIN_CONFIG = DEFAULT_LIST_WIN_CONFIG
+
 # configurations
 CONFIGS = {}
 
@@ -128,6 +136,7 @@ class WinConfig:
         self.keymap = None
         self.keybinds = None
         self.attr = {}  # window colors/attributes
+        self.settings = {}  # window settings
 
     @staticmethod
     def _get_layout_config():
@@ -181,6 +190,34 @@ class WinConfig:
         if self.type == "input_win":
             self.rel_y = layout["INPUT_WIN_Y_PER"]
             self.rel_x = layout["INPUT_WIN_X_PER"]
+
+    @staticmethod
+    def _get_window_config():
+        """
+        Initialize/get window configuration
+        """
+
+        list_win_config = DEFAULT_LIST_WIN_CONFIG
+        log_win_config = DEFAULT_LOG_WIN_CONFIG
+        input_win_config = DEFAULT_INPUT_WIN_CONFIG
+
+        return list_win_config, log_win_config, input_win_config
+
+    def init_window_settings(self):
+        """
+        Init window specific settings
+        """
+
+        # get window configurations
+        list_win_config, log_win_config, input_win_config = \
+            self._get_window_config()
+
+        if self.type == "list_win":
+            self.settings = list_win_config
+        if self.type == "log_win":
+            self.settings = log_win_config
+        if self.type == "input_win":
+            self.settings = input_win_config
 
     @staticmethod
     def _get_color_config():
@@ -518,6 +555,10 @@ def init_win(screen):
     list_win.init_layout()
     log_win.init_layout()
     input_win.init_layout()
+
+    list_win.init_window_settings()
+    log_win.init_window_settings()
+    input_win.init_window_settings()
 
     list_win.init_colors()
     log_win.init_colors()

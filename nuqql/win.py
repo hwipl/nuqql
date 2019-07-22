@@ -74,7 +74,8 @@ class Win:
         title = self.title[:max_title_len]
         if title != "":
             title = title[:-1] + " "
-        self.win.addstr(0, 2, title)
+        if self.config.settings["show_title"]:
+            self.win.addstr(0, 2, title)
 
         self.win.refresh()
 
