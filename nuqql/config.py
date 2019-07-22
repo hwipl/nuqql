@@ -197,11 +197,38 @@ class WinConfig:
         Initialize/get window configuration
         """
 
-        list_win_config = DEFAULT_LIST_WIN_CONFIG
-        log_win_config = DEFAULT_LOG_WIN_CONFIG
-        input_win_config = DEFAULT_INPUT_WIN_CONFIG
+        # init configuration from defaults
+        win_config = {}
+        win_config["list_win"] = DEFAULT_LIST_WIN_CONFIG
+        win_config["log_win"] = DEFAULT_LOG_WIN_CONFIG
+        win_config["input_win"] = DEFAULT_INPUT_WIN_CONFIG
 
-        return list_win_config, log_win_config, input_win_config
+        # read config file if it exists
+        config_file = Path.home() / ".config/nuqql/ui.ini"
+        config = configparser.ConfigParser()
+        config.optionxform = lambda option: option
+        config.read(config_file)
+
+        # parse config read from file
+        for section in config.sections():
+            if section in ("list_win", "log_win", "input_win"):
+                # overwrite default config entries
+                for key in config[section]:
+                    if key in win_config[section]:
+                        try:
+                            # try to read setting as bool
+                            win_config[section][key] = \
+                                    config[section].getboolean(key)
+                        except ValueError:
+                            win_config[section][key] = config[section][key]
+
+        # write (updated) config to file again
+        for win_type in ("list_win", "log_win", "input_win"):
+            config[win_type] = win_config[win_type]
+        with open(config_file, "w+") as configfile:
+            config.write(configfile)
+
+        return win_config
 
     def init_window_settings(self):
         """
@@ -209,15 +236,10 @@ class WinConfig:
         """
 
         # get window configurations
-        list_win_config, log_win_config, input_win_config = \
-            self._get_window_config()
+        win_config = self._get_window_config()
 
-        if self.type == "list_win":
-            self.settings = list_win_config
-        if self.type == "log_win":
-            self.settings = log_win_config
-        if self.type == "input_win":
-            self.settings = input_win_config
+        # use settings depending on window type
+        self.settings = win_config[self.type]
 
     @staticmethod
     def _get_color_config():
