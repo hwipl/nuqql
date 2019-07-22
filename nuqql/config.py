@@ -148,7 +148,7 @@ class WinConfig:
         layout_config = DEFAULT_LAYOUT
 
         # read config file if it exists
-        config_file = Path.home() / ".config/nuqql/ui.ini"
+        config_file = Path.home() / ".config/nuqql/config.ini"
         config = configparser.ConfigParser()
         config.optionxform = lambda option: option
         config.read(config_file)
@@ -204,7 +204,7 @@ class WinConfig:
         win_config["input_win"] = DEFAULT_INPUT_WIN_CONFIG
 
         # read config file if it exists
-        config_file = Path.home() / ".config/nuqql/ui.ini"
+        config_file = Path.home() / ".config/nuqql/config.ini"
         config = configparser.ConfigParser()
         config.optionxform = lambda option: option
         config.read(config_file)
@@ -252,7 +252,7 @@ class WinConfig:
         attrib_config = DEFAULT_ATTRIBS
 
         # read config file if it exists
-        config_file = Path.home() / ".config/nuqql/colors.ini"
+        config_file = Path.home() / ".config/nuqql/config.ini"
         config = configparser.ConfigParser()
         config.read(config_file)
 
@@ -386,7 +386,7 @@ class WinConfig:
         keymap_config = DEFAULT_KEYMAP
 
         # read config file if it exists
-        config_file = Path.home() / ".config/nuqql/keys.ini"
+        config_file = Path.home() / ".config/nuqql/config.ini"
         config = configparser.ConfigParser()
         config.optionxform = lambda option: option
         config.read(config_file)
@@ -433,7 +433,7 @@ class WinConfig:
         keybinds_config["input_win_keybinds"] = DEFAULT_INPUT_WIN_KEYBINDS
 
         # read config file if it exists
-        config_file = Path.home() / ".config/nuqql/keys.ini"
+        config_file = Path.home() / ".config/nuqql/config.ini"
         config = configparser.ConfigParser()
         config.optionxform = lambda option: option
         config.read(config_file)
@@ -611,7 +611,7 @@ def _get_conversation_config():
     conversation_config = DEFAULT_CONVERSATION_CONFIG
 
     # read config file if it exists
-    config_file = Path.home() / ".config/nuqql/ui.ini"
+    config_file = Path.home() / ".config/nuqql/config.ini"
     config = configparser.ConfigParser()
     config.optionxform = lambda option: option
     config.read(config_file)
