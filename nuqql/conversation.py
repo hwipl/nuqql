@@ -234,6 +234,19 @@ class Conversation:
 
         return None
 
+    def get_next(self):
+        """
+        Check if there is any newer used conversation and return it
+        """
+
+        for conv in CONVERSATIONS:
+            if conv.stats["last_used"] == 0:
+                continue
+            if conv.stats["last_used"] > self.stats["last_used"]:
+                return conv
+
+        return None
+
     def get_prev(self):
         """
         Check if there is any previously used conversation and return it
