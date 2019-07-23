@@ -48,7 +48,7 @@ DEFAULT_INPUT_WIN_KEYBINDS = {
     "CURSOR_MSG_END":       "KEY_END, KEY_CTRL_E",
     "DEL_LINE_END":         "KEY_CTRL_K",
     "DEL_LINE":             "KEY_CTRL_U",
-    "GO_NEW":               "KEY_CTRL_N",
+    "GO_NEXT":              "KEY_CTRL_N",
     "GO_PREV":              "KEY_CTRL_B",
     "SEND_MSG":             "KEY_CTRL_X",
     "DEL_CHAR":             "KEY_DEL",

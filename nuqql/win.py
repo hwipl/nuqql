@@ -281,7 +281,7 @@ class Win:
 
         # implemented in sub classes
 
-    def _go_new(self, *args):
+    def _go_next(self, *args):
         """
         User input: go to conversation with new message
         """
@@ -317,7 +317,7 @@ class Win:
             "DEL_LINE": self._delete_line,
             "WIN_ZOOM": self._zoom_win,
             "WIN_ZOOM_URL": self._zoom_win_url,
-            "GO_NEW": self._go_new,
+            "GO_NEXT": self._go_next,
             "GO_PREV": self._go_prev,
         }
 
@@ -485,7 +485,7 @@ class ListWin(Win):
         if self.state.cur_y < len(self.list) - 1:
             self.pad.move(self.state.cur_y + 1, self.state.cur_x)
 
-    def _go_new(self, *args):
+    def _go_next(self, *args):
         # find a new conversation and jump into it
         new = self.conversation.get_new()
         if not new:
@@ -1193,7 +1193,7 @@ class InputWin(Win):
         self.conversation.wins.log_win.search_text = "http"
         self.conversation.wins.log_win.search_next()
 
-    def _go_new(self, *args):
+    def _go_next(self, *args):
         """
         Jump to a conversation with new messages
         """
