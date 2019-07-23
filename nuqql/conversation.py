@@ -48,7 +48,7 @@ class Conversation:
         self.history.logger = None
         self.history.log_file = None
 
-    def activate(self):
+    def activate(self, set_last_used=True):
         """
         Activate windows of conversation
         """
@@ -60,7 +60,8 @@ class Conversation:
             self.wins.log_win.state.active = False
             self.wins.log_win.redraw()
             self.clear_notifications()
-            self.stats["last_used"] = datetime.datetime.now().timestamp()
+            if set_last_used:
+                self.stats["last_used"] = datetime.datetime.now().timestamp()
             return
 
     def activate_log(self):
@@ -229,6 +230,19 @@ class Conversation:
 
         for conv in CONVERSATIONS:
             if conv.notification > 0:
+                return conv
+
+        return None
+
+    def get_prev(self):
+        """
+        Check if there is any previously used conversation and return it
+        """
+
+        for conv in CONVERSATIONS:
+            if conv.stats["last_used"] == 0:
+                continue
+            if conv.stats["last_used"] < self.stats["last_used"]:
                 return conv
 
         return None

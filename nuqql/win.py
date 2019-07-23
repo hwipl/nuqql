@@ -288,6 +288,13 @@ class Win:
 
         # implemented in sub classes
 
+    def _go_prev(self, *args):
+        """
+        User input: go to previously used conversation
+        """
+
+        # implemented in sub classes
+
     def _init_keyfunc(self):
         """
         Initialize key to function mapping
@@ -311,6 +318,7 @@ class Win:
             "WIN_ZOOM": self._zoom_win,
             "WIN_ZOOM_URL": self._zoom_win_url,
             "GO_NEW": self._go_new,
+            "GO_PREV": self._go_prev,
         }
 
 
@@ -517,7 +525,7 @@ class ListWin(Win):
         # display changes in the pad
         self.redraw_pad()
 
-    def jump_to_conv(self, conversation):
+    def jump_to_conv(self, conversation, set_last_used=True):
         """
         Jump directly into specified conversation
         """
@@ -533,7 +541,7 @@ class ListWin(Win):
                 self.pad.move(self.state.cur_y, self.state.cur_x)
 
         # finally, activate conversation
-        conversation.activate()
+        conversation.activate(set_last_used=set_last_used)
 
 
 class LogWin(Win):
@@ -1198,6 +1206,19 @@ class InputWin(Win):
         # deactivate this and switch to other conversation
         self._go_back()
         new.wins.list_win.jump_to_conv(new)
+
+    def _go_prev(self, *args):
+        """
+        Jump to a previously used conversation
+        """
+
+        prev = self.conversation.get_prev()
+        if not prev:
+            return
+
+        # deactivate this and switch to other conversation
+        self._go_back()
+        prev.wins.list_win.jump_to_conv(prev, set_last_used=False)
 
     def process_input(self, char):
         """
