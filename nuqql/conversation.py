@@ -221,6 +221,18 @@ class Conversation:
 
         return False
 
+    @staticmethod
+    def get_new():
+        """
+        Check if there is any conversation with new messages and return it
+        """
+
+        for conv in CONVERSATIONS:
+            if conv.notification > 0:
+                return conv
+
+        return None
+
     def process_input(self, char):
         """
         Process user input in active window

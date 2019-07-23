@@ -281,6 +281,13 @@ class Win:
 
         # implemented in sub classes
 
+    def _go_new(self, *args):
+        """
+        User input: go to conversation with new message
+        """
+
+        # implemented in sub classes
+
     def _init_keyfunc(self):
         """
         Initialize key to function mapping
@@ -303,6 +310,7 @@ class Win:
             "DEL_LINE": self._delete_line,
             "WIN_ZOOM": self._zoom_win,
             "WIN_ZOOM_URL": self._zoom_win_url,
+            "GO_NEW": self._go_new,
         }
 
 
@@ -469,6 +477,13 @@ class ListWin(Win):
         if self.state.cur_y < len(self.list) - 1:
             self.pad.move(self.state.cur_y + 1, self.state.cur_x)
 
+    def _go_new(self, *args):
+        # find a new conversation and jump into it
+        new = self.conversation.get_new()
+        if not new:
+            return
+        self.jump_to_conv(new)
+
     def process_input(self, char):
         """
         Process input from user (character)
@@ -501,6 +516,24 @@ class ListWin(Win):
             self.list[self.state.cur_y].activate_log()
         # display changes in the pad
         self.redraw_pad()
+
+    def jump_to_conv(self, conversation):
+        """
+        Jump directly into specified conversation
+        """
+
+        # create conversation's windows if necessary
+        if not conversation.has_windows():
+            conversation.create_windows()
+
+        # move cursor to this conversation
+        for index, conv in enumerate(self.list):
+            if conv is conversation:
+                self.state.cur_y = index
+                self.pad.move(self.state.cur_y, self.state.cur_x)
+
+        # finally, activate conversation
+        conversation.activate()
 
 
 class LogWin(Win):
@@ -1151,6 +1184,20 @@ class InputWin(Win):
         self.conversation.wins.log_win.keyfunc["WIN_ZOOM"]()
         self.conversation.wins.log_win.search_text = "http"
         self.conversation.wins.log_win.search_next()
+
+    def _go_new(self, *args):
+        """
+        Jump to a conversation with new messages
+        """
+
+        # find next new conversation
+        new = self.conversation.get_new()
+        if not new:
+            return
+
+        # deactivate this and switch to other conversation
+        self._go_back()
+        new.wins.list_win.jump_to_conv(new)
 
     def process_input(self, char):
         """
