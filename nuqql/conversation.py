@@ -257,13 +257,18 @@ class Conversation:
         Check if there is any previously used conversation and return it
         """
 
+        prev_conv = None
         for conv in CONVERSATIONS:
             if conv.stats["last_used"] == 0:
                 continue
             if conv.stats["last_used"] < self.stats["last_used"]:
-                return conv
+                if prev_conv and \
+                   prev_conv.stats["last_used"] > conv.stats["last_used"]:
+                    # already found a next older conversation
+                    continue
+                prev_conv = conv
 
-        return None
+        return prev_conv
 
     def process_input(self, char):
         """
