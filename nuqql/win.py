@@ -283,7 +283,8 @@ class Win:
 
     def _go_next(self, *args):
         """
-        User input: go to conversation with new message
+        User input: go to conversation with new messages or more recently used
+        conversation
         """
 
         # implemented in sub classes
@@ -486,11 +487,13 @@ class ListWin(Win):
             self.pad.move(self.state.cur_y + 1, self.state.cur_x)
 
     def _go_next(self, *args):
-        # find a new conversation and jump into it
-        new = self.conversation.get_new()
-        if not new:
+        # find a new(er) conversation and jump into it
+        conv = self.conversation.get_new()
+        if not conv:
+            conv = self.conversation.get_next()
+        if not conv:
             return
-        self.jump_to_conv(new)
+        self.jump_to_conv(conv)
 
     def process_input(self, char):
         """
@@ -1195,17 +1198,22 @@ class InputWin(Win):
 
     def _go_next(self, *args):
         """
-        Jump to a conversation with new messages
+        Jump to a conversation with new messages or more recently used
+        conversation
         """
 
         # find next new conversation
-        new = self.conversation.get_new()
-        if not new:
+        conv = self.conversation.get_new()
+        if not conv:
+            # no new messages, try to go to next conversation
+            conv = self.conversation.get_next()
+        if not conv:
+            # nothing found, return
             return
 
         # deactivate this and switch to other conversation
         self._go_back()
-        new.wins.list_win.jump_to_conv(new)
+        conv.wins.list_win.jump_to_conv(conv)
 
     def _go_prev(self, *args):
         """
