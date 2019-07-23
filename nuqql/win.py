@@ -488,12 +488,14 @@ class ListWin(Win):
 
     def _go_next(self, *args):
         # find a new(er) conversation and jump into it
+        set_last_used = True
         conv = self.conversation.get_new()
         if not conv:
             conv = self.list[self.state.cur_y].get_next()
+            set_last_used = False
         if not conv:
             return
-        self.jump_to_conv(conv)
+        self.jump_to_conv(conv, set_last_used=set_last_used)
 
     def _go_prev(self, *args):
         # find older conversation and jump into it
@@ -1212,17 +1214,19 @@ class InputWin(Win):
         """
 
         # find next new conversation
+        set_last_used = True
         conv = self.conversation.get_new()
         if not conv:
             # no new messages, try to go to next conversation
             conv = self.conversation.get_next()
+            set_last_used = False
         if not conv:
             # nothing found, return
             return
 
         # deactivate this and switch to other conversation
         self._go_back()
-        conv.wins.list_win.jump_to_conv(conv)
+        conv.wins.list_win.jump_to_conv(conv, set_last_used=set_last_used)
 
     def _go_prev(self, *args):
         """
