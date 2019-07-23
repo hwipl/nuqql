@@ -490,7 +490,7 @@ class ListWin(Win):
         # find a new(er) conversation and jump into it
         conv = self.conversation.get_new()
         if not conv:
-            conv = self.conversation.get_next()
+            conv = self.list[self.state.cur_y].get_next()
         if not conv:
             return
         self.jump_to_conv(conv)
