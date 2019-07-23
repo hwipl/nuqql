@@ -495,6 +495,15 @@ class ListWin(Win):
             return
         self.jump_to_conv(conv)
 
+    def _go_prev(self, *args):
+        # find older conversation and jump into it
+        prev = self.list[self.state.cur_y].get_prev()
+        if not prev:
+            return
+
+        # deactivate this and switch to other conversation
+        prev.wins.list_win.jump_to_conv(prev, set_last_used=False)
+
     def process_input(self, char):
         """
         Process input from user (character)
