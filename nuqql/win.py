@@ -339,6 +339,9 @@ class ListWin(Win):
     def __init__(self, config, conversation, title):
         Win.__init__(self, config, conversation, title)
 
+        # filter for conversation list
+        self.filter = ""
+
         # list entries/message log
         self.list = []
 
@@ -363,6 +366,21 @@ class ListWin(Win):
             if self.conversation.is_any_active():
                 return
             self.redraw()
+
+    def _match_filter(self, name):
+        """
+        check if name matches the currently active filter
+        """
+
+        # no filter -> everything matches
+        if not self.filter:
+            return True
+
+        # simple check if filter is in name
+        if self.filter[1:] in name:
+            return True
+
+        return False
 
     def redraw_pad(self):
         """
@@ -426,7 +444,10 @@ class ListWin(Win):
                 self.pad.addstr(index, 0, name, curses.A_REVERSE)
             else:
                 # just show the conversation in list
-                self.pad.addstr(index, 0, name)
+                if self._match_filter(conv.get_name()):
+                    self.pad.addstr(index, 0, name)
+                else:
+                    self.pad.addstr(index, 0, name, curses.A_DIM)
 
             # check if there is a zoomed conversation
             # TODO: move this into a separate helper?
@@ -445,6 +466,10 @@ class ListWin(Win):
                          pos_y + 1, pos_x + 1,
                          pos_y + win_size_y - 2,
                          pos_x + win_size_x - 2)
+
+        # if in filter mode, show the filter string as well
+        if self.filter:
+            self._process_filter_show()
 
     def _cursor_msg_start(self, *args):
         # TODO: use other method and keybind with more fitting name?
@@ -514,12 +539,138 @@ class ListWin(Win):
         # deactivate this and switch to other conversation
         prev.wins.list_win.jump_to_conv(prev, set_last_used=False)
 
+    def _go_conv(self, *args):
+        # filter conversations and find specific conversation
+        self.filter = "/"
+
+    def _process_filter_up(self):
+        # move cursor up to next filter match
+        conv_index = self.state.cur_y
+        for index, conv in enumerate(self.list[:self.state.cur_y]):
+            if self._match_filter(conv.get_name()):
+                conv_index = index
+
+        self.pad.move(conv_index, self.state.cur_x)
+
+    def _process_filter_down(self):
+        # move cursor down to next filter match
+        for index, conv in enumerate(self.list[self.state.cur_y + 1:]):
+            if self._match_filter(conv.get_name()):
+                self.pad.move(index + self.state.cur_y + 1, self.state.cur_x)
+                return
+
+    def _process_filter_nearest(self):
+        # move cursor do nearest filter match
+        above = -1
+        below = -1
+
+        # find matches
+        for index, conv in enumerate(self.list):
+            if index <= self.state.cur_y and \
+               self._match_filter(conv.get_name()):
+                above = index
+            if index > self.state.cur_y and \
+               self._match_filter(conv.get_name()):
+                below = index
+
+        # is there a match above current cursor position?
+        if above != -1:
+            if below == -1:
+                self.pad.move(above, self.state.cur_x)
+            else:
+                # matches above and below, what is nearer to current cursor?
+                above_diff = above - self.state.cur_y
+                below_diff = self.state.cur_y - below
+                if above_diff < below_diff:
+                    self.pad.move(above, self.state.cur_x)
+                else:
+                    self.pad.move(below, self.state.cur_x)
+            return
+
+        # nothing above current cursor position, below?
+        if below != -1:
+            self.pad.move(below, self.state.cur_x)
+
+    def _process_filter_show(self):
+        """
+        Show current filter string
+        """
+
+        if not self.filter:
+            # show window border again
+            self.redraw()
+            return
+
+        # TODO: use config get_size or something?
+        max_y, max_x = self.win.getmaxyx()
+        show = self.filter.ljust(max_x - 4, " ")
+        self.win.addnstr(max_y - 1, 2, show, max_x - 4)
+        self.win.refresh()
+
+    def _process_filter_input(self, char):
+        """
+        Process input from user in filter mode
+        """
+
+        # look for special key mappings in keymap or process as text
+        # TODO: add another keybind dict or spawn a special listwin instance
+        # or something?
+        if char == curses.KEY_UP:
+            # go to next match above
+            self._process_filter_up()
+
+        elif char == curses.KEY_DOWN:
+            # go to next match below
+            self._process_filter_down()
+
+        elif char == chr(curses.ascii.ESC):
+            # reset filter
+            self.filter = ""
+            self._process_filter_show()
+
+        elif char == "\n":
+            # create windows, if they do not exists
+            if not self.list[self.state.cur_y].has_windows():
+                self.list[self.state.cur_y].create_windows()
+
+            # activate conversation
+            self.list[self.state.cur_y].activate()
+
+            # reset filter
+            self.filter = ""
+            self._process_filter_show()
+
+        elif char == chr(curses.ascii.DEL):
+            # delete character from filter
+            self.filter = self.filter[:-1]
+            self._process_filter_nearest()
+            if not self.filter:
+                # if filter is now empty, make sure it is not shown any more
+                self._process_filter_show()
+
+        else:
+            # add character to filter
+            try:
+                self.filter += char
+                self._process_filter_nearest()
+                # self._process_filter_show()
+            except (ValueError, TypeError):
+                pass
+
+        # display changes in the pad
+        self.redraw_pad()
+
     def process_input(self, char):
         """
         Process input from user (character)
         """
 
         self.state.cur_y, self.state.cur_x = self.pad.getyx()
+
+        # check if we are in filter mode
+        if self.filter:
+            self._process_filter_input(char)
+            return
 
         # look for special key mappings in keymap or process as text
         try:
@@ -539,6 +690,8 @@ class ListWin(Win):
                 self.list[self.state.cur_y].create_windows()
             # activate conversation
             self.list[self.state.cur_y].activate()
+            # reset filter
+            self.filter = ""
         elif char == "h":
             # create windows, if they do not exists
             if not self.list[self.state.cur_y].has_windows():
