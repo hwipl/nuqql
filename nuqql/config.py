@@ -40,6 +40,7 @@ DEFAULT_KEYMAP = {
     "KEY_PAGE_DOWN":    curses.KEY_NPAGE,
     "KEY_F9":           curses.KEY_F9,
     "KEY_F10":          curses.KEY_F10,
+    "KEY_/":            ord("/"),
 }
 
 # default key bindings for input windows
@@ -76,6 +77,7 @@ DEFAULT_LOG_WIN_KEYBINDS["CURSOR_RIGHT"] = "KEY_RIGHT, KEY_L"
 DEFAULT_LIST_WIN_KEYBINDS = dict(DEFAULT_INPUT_WIN_KEYBINDS)
 DEFAULT_LIST_WIN_KEYBINDS["CURSOR_DOWN"] = "KEY_DOWN, KEY_J"
 DEFAULT_LIST_WIN_KEYBINDS["CURSOR_UP"] = "KEY_UP, KEY_K"
+DEFAULT_LIST_WIN_KEYBINDS["GO_CONV"] = "KEY_CTRL_V, KEY_/"
 
 # default_list_win_keybinds = {
 #   ...
