@@ -20,6 +20,10 @@ DEFAULT_KEYMAP = {
     "KEY_LEFT":         curses.KEY_LEFT,
     "KEY_DOWN":         curses.KEY_DOWN,
     "KEY_UP":           curses.KEY_UP,
+    "KEY_H":            ord("h"),
+    "KEY_J":            ord("j"),
+    "KEY_K":            ord("k"),
+    "KEY_L":            ord("l"),
     "KEY_CTRL_A":       ord(curses.ascii.ctrl("a")),
     "KEY_CTRL_B":       ord(curses.ascii.ctrl("b")),
     "KEY_CTRL_E":       ord(curses.ascii.ctrl("e")),
@@ -60,11 +64,19 @@ DEFAULT_INPUT_WIN_KEYBINDS = {
 }
 
 # default key bindings for log windows
-# TODO: not used so far... do it?
-DEFAULT_LOG_WIN_KEYBINDS = DEFAULT_INPUT_WIN_KEYBINDS
+DEFAULT_LOG_WIN_KEYBINDS = dict(DEFAULT_INPUT_WIN_KEYBINDS)
+DEFAULT_LOG_WIN_KEYBINDS["CURSOR_LEFT"] = "KEY_LEFT, KEY_H"
+DEFAULT_LOG_WIN_KEYBINDS["CURSOR_DOWN"] = "KEY_DOWN, KEY_J"
+DEFAULT_LOG_WIN_KEYBINDS["CURSOR_UP"] = "KEY_UP, KEY_K"
+DEFAULT_LOG_WIN_KEYBINDS["CURSOR_RIGHT"] = "KEY_RIGHT, KEY_L"
 
 # default key bindings for list window (Buddy List)
-DEFAULT_LIST_WIN_KEYBINDS = DEFAULT_INPUT_WIN_KEYBINDS
+DEFAULT_LIST_WIN_KEYBINDS = dict(DEFAULT_INPUT_WIN_KEYBINDS)
+DEFAULT_LIST_WIN_KEYBINDS["CURSOR_LEFT"] = "KEY_LEFT, KEY_H"
+DEFAULT_LIST_WIN_KEYBINDS["CURSOR_DOWN"] = "KEY_DOWN, KEY_J"
+DEFAULT_LIST_WIN_KEYBINDS["CURSOR_UP"] = "KEY_UP, KEY_K"
+DEFAULT_LIST_WIN_KEYBINDS["CURSOR_RIGHT"] = "KEY_RIGHT, KEY_L"
+
 # default_list_win_keybinds = {
 #   ...
 #    #"q"             : "GO_BACK", # TODO: do we want something like that?
