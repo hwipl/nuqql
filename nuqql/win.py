@@ -543,6 +543,14 @@ class ListWin(Win):
         # filter conversations and find specific conversation
         self.filter = "/"
 
+    def go_conv(self):
+        """
+        Helper for other windows for setting the window in filter mode
+        """
+
+        self._go_conv()
+        self.redraw_pad()
+
     def _process_filter_up(self):
         # move cursor up to next filter match
         conv_index = self.state.cur_y
@@ -1403,6 +1411,15 @@ class InputWin(Win):
         # deactivate this and switch to other conversation
         self._go_back()
         prev.wins.list_win.jump_to_conv(prev, set_last_used=False)
+
+    def _go_conv(self, *args):
+        """
+        Go to a specific conversation
+        """
+
+        # deactivate this and switch to filter mode in list window
+        self._go_back()
+        self.conversation.wins.list_win.go_conv()
 
     def process_input(self, char):
         """
