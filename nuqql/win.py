@@ -518,7 +518,8 @@ class ListWin(Win):
             cint = ord(char)
         except (TypeError, ValueError):
             cint = char
-        if cint in self.config.keymap:
+        if cint in self.config.keymap and \
+           self.config.keymap[cint] in self.config.keybinds:
             func = self.keyfunc[self.config.keybinds[self.config.keymap[cint]]]
             func()
         elif char == "q":
@@ -954,7 +955,8 @@ class LogWin(Win):
             cint = ord(char)
         except (TypeError, ValueError):
             cint = char
-        if cint in self.config.keymap:
+        if cint in self.config.keymap and \
+           self.config.keymap[cint] in self.config.keybinds:
             func = self.keyfunc[self.config.keybinds[self.config.keymap[cint]]]
             func()
 
@@ -1255,7 +1257,8 @@ class InputWin(Win):
             cint = ord(char)
         except (TypeError, ValueError):
             cint = char
-        if cint in self.config.keymap:
+        if cint in self.config.keymap and \
+           self.config.keymap[cint] in self.config.keybinds:
             func = self.keyfunc[self.config.keybinds[self.config.keymap[cint]]]
             func(segments)
         elif char == "\t":
