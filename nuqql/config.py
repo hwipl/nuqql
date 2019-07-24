@@ -30,6 +30,7 @@ DEFAULT_KEYMAP = {
     "KEY_CTRL_K":       ord(curses.ascii.ctrl("k")),
     "KEY_CTRL_N":       ord(curses.ascii.ctrl("n")),
     "KEY_CTRL_U":       ord(curses.ascii.ctrl("u")),
+    "KEY_CTRL_V":       ord(curses.ascii.ctrl("v")),
     "KEY_CTRL_X":       ord(curses.ascii.ctrl("x")),
     "KEY_DEL":          curses.ascii.DEL,
     "KEY_DC":           curses.KEY_DC,
@@ -61,6 +62,7 @@ DEFAULT_INPUT_WIN_KEYBINDS = {
     "CURSOR_LINE_END":      "KEY_PAGE_DOWN",
     "WIN_ZOOM":             "KEY_F9",
     "WIN_ZOOM_URL":         "KEY_F10",
+    "GO_CONV":              "KEY_CTRL_V",
 }
 
 # default key bindings for log windows

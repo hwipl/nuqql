@@ -296,6 +296,13 @@ class Win:
 
         # implemented in sub classes
 
+    def _go_conv(self, *args):
+        """
+        User input: go to specific conversation
+        """
+
+        # implemented in sub classes
+
     def _init_keyfunc(self):
         """
         Initialize key to function mapping
@@ -320,6 +327,7 @@ class Win:
             "WIN_ZOOM_URL": self._zoom_win_url,
             "GO_NEXT": self._go_next,
             "GO_PREV": self._go_prev,
+            "GO_CONV": self._go_conv,
         }
 
 
