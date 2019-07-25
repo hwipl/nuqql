@@ -4,6 +4,7 @@ Nuqql UI Windows
 
 import unicodedata
 import curses
+import re
 
 from types import SimpleNamespace
 
@@ -376,8 +377,13 @@ class ListWin(Win):
         if not self.filter:
             return True
 
-        # simple check if filter is in name
-        if self.filter[1:] in name:
+        # construct regurlar expression
+        regex = ".*"
+        for char in self.filter[1:].lower():
+            regex += "{}.*".format(char)
+
+        # check name matches regular expression
+        if re.match(regex, name.lower()):
             return True
 
         return False
