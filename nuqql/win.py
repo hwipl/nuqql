@@ -382,9 +382,10 @@ class ListWin(Win):
         for char in self.filter[1:].lower():
             regex += "{}.*".format(char)
 
-        # check name matches regular expression
-        if re.match(regex, name.lower()):
-            return True
+        # check if any words in name match regular expression
+        for word in name.lower().split():
+            if re.match(regex, word):
+                return True
 
         return False
 
