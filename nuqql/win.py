@@ -1094,26 +1094,31 @@ class LogWin(Win):
         Search for next match
         """
 
-        # init search
+        # init
         props = self._get_properties()
-        search_y, search_x = self.state.cur_y, self.state.cur_x
 
-        # search for text until first line
-        while search_y > 0:
-            cur_text = self.pad.instr(search_y, 0, search_x).decode()
-            index = cur_text.find(self.search_text)
+        # search views for text until first view
+        while self.view.cur >= 0:
+            # search current view for text until first line
+            while self.state.cur_y >= 0:
+                cur_text = self.pad.instr(self.state.cur_y, 0,
+                                          self.state.cur_x).decode()
+                index = cur_text.rfind(self.search_text)
+                if index != -1:
+                    # found it, stop here
+                    self.pad.move(self.state.cur_y, index)
+                    self.state.cur_y, self.state.cur_x = self.pad.getyx()
 
-            # found it, stop here
-            if index != -1:
-                self.pad.move(search_y, index)
-                self.state.cur_y, self.state.cur_x = self.pad.getyx()
+                    self._pad_refresh(props)
+                    return
 
-                self._pad_refresh(props)
-                return
+                # keep searching in next line
+                self.state.cur_y -= 1
+                self.state.cur_x = props.pad_size_x
 
-            # keep searching
-            search_y -= 1
-            search_x = props.pad_size_x     # set it to maximum line length
+            # reached end of view, move view further up
+            self._cursor_line_start()
+            self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()
 
     def _search_prev(self):
         """
