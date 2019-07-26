@@ -1125,33 +1125,41 @@ class LogWin(Win):
         Search for previous match
         """
 
-        # init search
+        # init
         props = self._get_properties()
-        lines = self.pad.getmaxyx()[0] - 1
-        search_y, search_x = self.state.cur_y, self.state.cur_x
+        view_size = props.win_size_y - props.pad_y_delta
 
         # if we are already on a match, skip it
-        if self.pad.instr(search_y, search_x,
+        if self.pad.instr(self.state.cur_y, self.state.cur_x,
                           len(self.search_text)).decode() == self.search_text:
-            search_x += len(self.search_text)
+            self.state.cur_x += len(self.search_text)
 
-        # search for text until end of log
-        while search_y < lines:
-            cur_text = self.pad.instr(search_y, search_x,
-                                      props.pad_size_x).decode()
-            index = cur_text.find(self.search_text)
+        # search views for text until last view
+        while self.view.cur <= len(self.list) - view_size:
+            # search current view for text until end of view
+            while self.state.cur_y <= self.pad.getmaxyx()[0]:
+                cur_text = self.pad.instr(self.state.cur_y, self.state.cur_x,
+                                          props.pad_size_x).decode()
+                index = cur_text.find(self.search_text)
 
-            # found it, stop here
-            if index != -1:
-                self.pad.move(search_y, index)
-                self.state.cur_y, self.state.cur_x = self.pad.getyx()
+                # found it, stop here
+                if index != -1:
+                    self.pad.move(self.state.cur_y, self.state.cur_x + index)
+                    self.state.cur_y, self.state.cur_x = self.pad.getyx()
 
-                self._pad_refresh(props)
-                return
+                    self._pad_refresh(props)
+                    return
 
-            # keep searching
-            search_y += 1
-            search_x = 0    # set it to first position in line
+                # keep searching
+                self.state.cur_y += 1
+                self.state.cur_x = 0    # set it to first position in line
+
+            # reached end of view, move view further down
+            if self.view.cur == len(self.list) - view_size:
+                # reached bottom already
+                break
+            self._cursor_line_end()
+            self.state.cur_y, self.state.cur_x = 0, 0
 
     def _process_search_input(self, char):
         """
