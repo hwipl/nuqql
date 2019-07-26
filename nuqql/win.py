@@ -1011,18 +1011,18 @@ class LogWin(Win):
 
         if self.state.cur_y < lines:
             # inside current view, simply move cursor down
-            self.pad.move(self.state.cur_y + 1, self.state.cur_x)
-            self.state.cur_y, self.state.cur_x = self.pad.getyx()
-            self._pad_refresh(props)
+            self.state.cur_y, self.state.cur_x = self.state.cur_y + 1, 0
 
         elif self.view.cur < len(self.list) - view_size:
             # at bottom of current view, move view down
             self.view.begin = self.view.cur + 1
             self.redraw_pad()
             self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()[0] - 1, 0
-            self.pad.move(self.state.cur_y, self.state.cur_x)
-            props = self._get_properties()
-            self._pad_refresh(props)
+
+        # move cursor down
+        self.pad.move(self.state.cur_y, self.state.cur_x)
+        props = self._get_properties()
+        self._pad_refresh(props)
 
     def _zoom_win(self, *args):
         """
