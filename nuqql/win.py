@@ -961,18 +961,12 @@ class LogWin(Win):
             # view can be moved further towards top, so move it
             self.view.begin = max(0, self.view.cur - view_size)
             self.redraw_pad()
-            self.state.cur_y, self.state.cur_x = 0, 0
-            self.pad.move(self.state.cur_y, self.state.cur_x)
-            props = self._get_properties()
-            self._pad_refresh(props)
-        elif self.state.cur_y > 0:
-            # inside top view, move cursor to top
-            # TODO: rework this? remove first case?
-            if self.state.cur_y - view_size >= 0:
-                self.pad.move(self.state.cur_y - view_size, self.state.cur_x)
-            else:
-                self.pad.move(0, self.state.cur_x)
-            self._pad_refresh(props)
+
+        # move cursor to top
+        self.state.cur_y, self.state.cur_x = 0, 0
+        self.pad.move(self.state.cur_y, self.state.cur_x)
+        props = self._get_properties()
+        self._pad_refresh(props)
 
     def _cursor_line_end(self, *args):
         # TODO: use other method and keybind with more fitting name?
