@@ -972,7 +972,6 @@ class LogWin(Win):
         # TODO: use other method and keybind with more fitting name?
         # move cursor down one page until last entry in log
         props = self._get_properties()
-        lines = self.pad.getmaxyx()[0] - 1
         view_size = props.win_size_y - props.pad_y_delta
 
         if self.view.cur < len(self.list) - view_size:
@@ -980,19 +979,12 @@ class LogWin(Win):
             self.view.begin = min(len(self.list) - view_size,
                                   self.view.cur + view_size)
             self.redraw_pad()
-            self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()[0] - 1, 0
-            self.pad.move(self.state.cur_y, self.state.cur_x)
-            props = self._get_properties()
-            self._pad_refresh(props)
 
-        elif self.state.cur_y < lines:
-            # inside bottom view, move cursor to the bottom
-            # TODO: rework this? remove first case?
-            if self.state.cur_y + view_size < lines:
-                self.pad.move(self.state.cur_y + view_size, self.state.cur_x)
-            else:
-                self.pad.move(lines, self.state.cur_x)
-            self._pad_refresh(props)
+        # move cursor to bottom
+        self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()[0] - 1, 0
+        self.pad.move(self.state.cur_y, self.state.cur_x)
+        props = self._get_properties()
+        self._pad_refresh(props)
 
     def _cursor_up(self, *args):
         # move cursor up until first entry in list
