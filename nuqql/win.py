@@ -783,7 +783,8 @@ class LogWin(Win):
                 return
             self.redraw()
 
-    def _get_num_log_lines(self, log_slice, pad_size_x):
+    @staticmethod
+    def _get_num_log_lines(log_slice, pad_size_x):
         """
         Get number of lines in log, depending on number of messages and how
         many lines each message uses.
