@@ -990,19 +990,18 @@ class LogWin(Win):
         # move cursor up until first entry in list
         if self.state.cur_y > 0:
             # inside current view, simply move cursor up
-            self.pad.move(self.state.cur_y - 1, self.state.cur_x)
-            self.state.cur_y, self.state.cur_x = self.pad.getyx()
-            props = self._get_properties()
-            self._pad_refresh(props)
+            self.state.cur_y, self.state.cur_x = self.state.cur_y - 1, 0
 
         elif self.view.cur > 0:
             # at top of current view, move view up
             self.view.begin = self.view.cur - 1
             self.redraw_pad()
             self.state.cur_y, self.state.cur_x = 0, 0
-            self.pad.move(self.state.cur_y, self.state.cur_x)
-            props = self._get_properties()
-            self._pad_refresh(props)
+
+        # move cursor up
+        self.pad.move(self.state.cur_y, self.state.cur_x)
+        props = self._get_properties()
+        self._pad_refresh(props)
 
     def _cursor_down(self, *args):
         # move cursor down until end of list
