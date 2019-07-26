@@ -938,22 +938,18 @@ class LogWin(Win):
         # TODO: use other method and keybind with more fitting name?
         # jump to last line in log
         props = self._get_properties()
-        lines = self.pad.getmaxyx()[0] - 1
         view_size = props.win_size_y - props.pad_y_delta
 
         if self.view.cur < len(self.list) - view_size:
             # view is not at the bottom yet, so move it there
             self.view.begin = len(self.list) - view_size
             self.redraw_pad()
-            self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()[0] - 1, 0
-            self.pad.move(self.state.cur_y, self.state.cur_x)
-            props = self._get_properties()
-            self._pad_refresh(props)
 
-        elif self.state.cur_y < lines:
-            # inside bottom view, move cursor to end
-            self.pad.move(lines, self.state.cur_x)
-            self._pad_refresh(props)
+        # move cursor to bottom
+        self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()[0] - 1, 0
+        self.pad.move(self.state.cur_y, self.state.cur_x)
+        props = self._get_properties()
+        self._pad_refresh(props)
 
     def _cursor_line_start(self, *args):
         # TODO: use other method and keybind with more fitting name?
