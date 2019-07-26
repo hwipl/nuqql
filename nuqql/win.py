@@ -923,21 +923,16 @@ class LogWin(Win):
     def _cursor_msg_start(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # jump to first line in log
-
         if self.view.cur > 0:
             # view is not at the top yet, so move it there
             self.view.begin = 0
             self.redraw_pad()
-            self.state.cur_y, self.state.cur_x = 0, 0
-            self.pad.move(self.state.cur_y, self.state.cur_x)
-            props = self._get_properties()
-            self._pad_refresh(props)
 
-        elif self.state.cur_y > 0 or self.state.cur_x > 0:
-            # inside the top view, move cursor to top
-            self.pad.move(0, 0)
-            props = self._get_properties()
-            self._pad_refresh(props)
+        # move cursor to top
+        self.state.cur_y, self.state.cur_x = 0, 0
+        self.pad.move(self.state.cur_y, self.state.cur_x)
+        props = self._get_properties()
+        self._pad_refresh(props)
 
     def _cursor_msg_end(self, *args):
         # TODO: use other method and keybind with more fitting name?
