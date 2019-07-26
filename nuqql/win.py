@@ -755,11 +755,10 @@ class LogWin(Win):
         # string to search for
         self.search_text = ""
 
-        # history/log caching
-        self.log_cache = SimpleNamespace(
-            lines=0,
-            index=0,
-            size_x=-1
+        # user's view of the log
+        self.view = SimpleNamespace(
+            begin=-1,
+            cur=-1
         )
 
     def add(self, entry):
@@ -784,7 +783,7 @@ class LogWin(Win):
                 return
             self.redraw()
 
-    def _get_num_log_lines(self, pad_size_x):
+    def _get_num_log_lines(self, log_slice, pad_size_x):
         """
         Get number of lines in log, depending on number of messages and how
         many lines each message uses.
@@ -792,26 +791,37 @@ class LogWin(Win):
 
         # init line count and start index
         lines = 0
-        start = 0
 
-        # get previous results from cache
-        if self.log_cache.size_x == pad_size_x:
-            lines = self.log_cache.lines
-            start = self.log_cache.index
-
-        for msg in self.list[start:]:
+        for msg in log_slice:
             parts = msg.read(mark_read=False).split("\n")
             lines += len(parts) - 1
             for part in parts:
                 if len(part) >= pad_size_x:
                     lines += len(part) // pad_size_x
 
-        # cache results
-        self.log_cache.size_x = pad_size_x
-        self.log_cache.index = len(self.list)
-        self.log_cache.lines = lines
-
         return lines
+
+    def _get_log_view(self, props):
+        """
+        Get a slice of the log in the current view of the pad
+        """
+
+        if self.view.begin == -1:
+            start = len(self.list) - (props.win_size_y - props.pad_y_delta)
+            end = len(self.list)
+            self.view.cur = start
+        else:
+            start = self.view.begin
+            end = props.win_size_y - props.pad_y_delta
+            self.view.cur = start
+
+        log_slice = []
+        for index, msg in enumerate(self.list[start:]):
+            if index > end:
+                break
+            log_slice.append(msg)
+
+        return log_slice
 
     def _print_log(self, props):
         """
@@ -819,10 +829,11 @@ class LogWin(Win):
         """
 
         # make sure lines fit into pad
-        lines = self._get_num_log_lines(props.pad_size_x)
+        log_slice = self._get_log_view(props)
+        lines = self._get_num_log_lines(log_slice, props.pad_size_x)
         self.pad.resize(lines + 1, props.pad_size_x)
 
-        for index, msg in enumerate(self.list):
+        for index, msg in enumerate(log_slice):
             # set colors and attributes for message:
             if not msg.own:
                 # message from buddy
@@ -842,7 +853,7 @@ class LogWin(Win):
                     self.pad.attrset(self.config.attr["log_win_text_self_new"])
 
             # output message
-            if index < len(self.list) - 1:
+            if index < len(log_slice) - 1:
                 self.pad.addstr(msg.read())
             else:
                 self.pad.addstr(msg.read()[:-1])
@@ -912,7 +923,18 @@ class LogWin(Win):
     def _cursor_msg_start(self, *args):
         # TODO: use other method and keybind with more fitting name?
         # jump to first line in log
-        if self.state.cur_y > 0 or self.state.cur_x > 0:
+
+        if self.view.cur > 0:
+            # view is not at the top yet, so move it there
+            self.view.begin = 0
+            self.redraw_pad()
+            self.state.cur_y, self.state.cur_x = 0, 0
+            self.pad.move(self.state.cur_y, self.state.cur_x)
+            props = self._get_properties()
+            self._pad_refresh(props)
+
+        elif self.state.cur_y > 0 or self.state.cur_x > 0:
+            # inside the top view, move cursor to top
             self.pad.move(0, 0)
             props = self._get_properties()
             self._pad_refresh(props)
@@ -922,7 +944,19 @@ class LogWin(Win):
         # jump to last line in log
         props = self._get_properties()
         lines = self.pad.getmaxyx()[0] - 1
-        if self.state.cur_y < lines:
+        view_size = props.win_size_y - props.pad_y_delta
+
+        if self.view.cur < len(self.list) - view_size:
+            # view is not at the bottom yet, so move it there
+            self.view.begin = len(self.list) - view_size
+            self.redraw_pad()
+            self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()[0] - 1, 0
+            self.pad.move(self.state.cur_y, self.state.cur_x)
+            props = self._get_properties()
+            self._pad_refresh(props)
+
+        elif self.state.cur_y < lines:
+            # inside bottom view, move cursor to end
             self.pad.move(lines, self.state.cur_x)
             self._pad_refresh(props)
 
@@ -930,11 +964,21 @@ class LogWin(Win):
         # TODO: use other method and keybind with more fitting name?
         # move cursor up one page until first entry in log
         props = self._get_properties()
-        if self.state.cur_y > 0:
-            if self.state.cur_y - (props.win_size_y - props.pad_y_delta) >= 0:
-                self.pad.move(self.state.cur_y - (props.win_size_y -
-                                                  props.pad_y_delta),
-                              self.state.cur_x)
+        view_size = props.win_size_y - props.pad_y_delta
+
+        if self.view.cur > 0:
+            # view can be moved further towards top, so move it
+            self.view.begin = max(0, self.view.cur - view_size)
+            self.redraw_pad()
+            self.state.cur_y, self.state.cur_x = 0, 0
+            self.pad.move(self.state.cur_y, self.state.cur_x)
+            props = self._get_properties()
+            self._pad_refresh(props)
+        elif self.state.cur_y > 0:
+            # inside top view, move cursor to top
+            # TODO: rework this? remove first case?
+            if self.state.cur_y - view_size >= 0:
+                self.pad.move(self.state.cur_y - view_size, self.state.cur_x)
             else:
                 self.pad.move(0, self.state.cur_x)
             self._pad_refresh(props)
@@ -944,10 +988,23 @@ class LogWin(Win):
         # move cursor down one page until last entry in log
         props = self._get_properties()
         lines = self.pad.getmaxyx()[0] - 1
-        if self.state.cur_y < lines:
-            if self.state.cur_y + props.win_size_y - props.pad_y_delta < lines:
-                self.pad.move(self.state.cur_y + props.win_size_y -
-                              props.pad_y_delta, self.state.cur_x)
+        view_size = props.win_size_y - props.pad_y_delta
+
+        if self.view.cur < len(self.list) - view_size:
+            # view can be moved further towards bottom, so move it
+            self.view.begin = min(len(self.list) - view_size,
+                                  self.view.cur + view_size)
+            self.redraw_pad()
+            self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()[0] - 1, 0
+            self.pad.move(self.state.cur_y, self.state.cur_x)
+            props = self._get_properties()
+            self._pad_refresh(props)
+
+        elif self.state.cur_y < lines:
+            # inside bottom view, move cursor to the bottom
+            # TODO: rework this? remove first case?
+            if self.state.cur_y + view_size < lines:
+                self.pad.move(self.state.cur_y + view_size, self.state.cur_x)
             else:
                 self.pad.move(lines, self.state.cur_x)
             self._pad_refresh(props)
@@ -955,8 +1012,18 @@ class LogWin(Win):
     def _cursor_up(self, *args):
         # move cursor up until first entry in list
         if self.state.cur_y > 0:
+            # inside current view, simply move cursor up
             self.pad.move(self.state.cur_y - 1, self.state.cur_x)
             self.state.cur_y, self.state.cur_x = self.pad.getyx()
+            props = self._get_properties()
+            self._pad_refresh(props)
+
+        elif self.view.cur > 0:
+            # at top of current view, move view up
+            self.view.begin = self.view.cur - 1
+            self.redraw_pad()
+            self.state.cur_y, self.state.cur_x = 0, 0
+            self.pad.move(self.state.cur_y, self.state.cur_x)
             props = self._get_properties()
             self._pad_refresh(props)
 
@@ -964,9 +1031,21 @@ class LogWin(Win):
         # move cursor down until end of list
         props = self._get_properties()
         lines = self.pad.getmaxyx()[0] - 1
+        view_size = props.win_size_y - props.pad_y_delta
+
         if self.state.cur_y < lines:
+            # inside current view, simply move cursor down
             self.pad.move(self.state.cur_y + 1, self.state.cur_x)
             self.state.cur_y, self.state.cur_x = self.pad.getyx()
+            self._pad_refresh(props)
+
+        elif self.view.cur < len(self.list) - view_size:
+            # at bottom of current view, move view down
+            self.view.begin = self.view.cur + 1
+            self.redraw_pad()
+            self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()[0] - 1, 0
+            self.pad.move(self.state.cur_y, self.state.cur_x)
+            props = self._get_properties()
             self._pad_refresh(props)
 
     def _zoom_win(self, *args):
@@ -1007,6 +1086,9 @@ class LogWin(Win):
         # reactivate input window
         self.state.active = True
         self.conversation.wins.input_win.state.active = True
+
+        # show last messages
+        self.view.begin = -1
 
         # redraw pad to display messages received in the meantime...
         self.redraw_pad()
