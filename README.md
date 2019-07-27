@@ -149,6 +149,20 @@ just use *master*.
 
 ## Changes
 
+* devel:
+  * Rework history viewing code in log window
+  * Add additional keybinds to conversation list and input windows:
+    * `ctrl-n`: go to next unread or more recently used conversation
+    * `ctrl-b`: go back to previously used conversation
+    * `ctrl-v`: search/filter conversation list
+  * Additional conversation list keybinds:
+    * `j`, `k`: move cursor down, up
+    * `/`: search/filter conversation list
+  * Add most recently used sorting of the conversation list
+  * Add configuration file for setting ui layout, colors, keybinds, keymap,
+    window titles, conversation list sorting
+  * Improve nuqql-keys to work with nuqql config file
+  * Code cleanups, fixes, and improvements
 * v0.5:
   * Add group chat support and helper commands for group chats:
     * `/names`: get list of users in current group chat
