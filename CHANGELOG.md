@@ -1,4 +1,8 @@
-# devel:
+# Changelog
+
+This file contains changes in each version:
+
+## devel:
 * Rework history viewing code in log window
 * Add additional keybinds to conversation list and input windows:
   * `ctrl-n`: go to next unread or more recently used conversation
@@ -13,7 +17,7 @@
 * Improve nuqql-keys to work with nuqql config file
 * Code cleanups, fixes, and improvements
 
-# v0.5:
+## v0.5:
 * Add group chat support and helper commands for group chats:
   * `/names`: get list of users in current group chat
   * `/invite <user>`: invite user to current group chat
@@ -27,7 +31,7 @@
 * Cleanups, fixes, and improvements
 * Requires purpled v.4, nuqql-slixmppd v0.3, or nuqql-matrixd v0.1
 
-# v0.4:
+## v0.4:
 * Add additional keybinds in Input Window:
   * `ctrl-a`: go to beginning of line
   * `ctrl-e`: go to end of line
@@ -46,7 +50,7 @@
 * Code cleanups, fixes and reorganization
 * Requires purpled v0.3 or nuqql-slixmppd v0.2
 
-# v0.3:
+## v0.3:
 * Introduce chat history support
 * Add support for the slixmppd backend
 * Rename Buddy List to Conversation List
@@ -56,7 +60,7 @@
 * Coding style fixes and code reorganization
 * Requires purpled v0.2 or nuqql-slixmppd v0.1.
 
-#  v0.2:
+##  v0.2:
 * Make nuqql configuration easier:
   * Look for purpled in $PATH
   * Retrieve accounts from purpled
@@ -68,6 +72,6 @@
   `.config/nuqql/backend/purpled`
 * Requires purpled v0.2.
 
-# v0.1:
+## v0.1:
 * First/initial release.
 * Requires purpled v0.1.
