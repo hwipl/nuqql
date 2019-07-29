@@ -205,6 +205,34 @@ class Win:
 
         # implemented in sub classes
 
+    def _cursor_top(self, *args):
+        """
+        User input: cursor top
+        """
+
+        # implemented in sub classes
+
+    def _cursor_bottom(self, *args):
+        """
+        User input: cursor bottom
+        """
+
+        # implemented in sub classes
+
+    def _cursor_page_up(self, *args):
+        """
+        User input: cursor page up
+        """
+
+        # implemented in sub classes
+
+    def _cursor_page_down(self, *args):
+        """
+        User input: cursor page down
+        """
+
+        # implemented in sub classes
+
     def _send_msg(self, *args):
         """
         User input: send message
@@ -314,6 +342,10 @@ class Win:
             "CURSOR_LEFT": self._cursor_left,
             "CURSOR_DOWN": self._cursor_down,
             "CURSOR_UP": self._cursor_up,
+            "CURSOR_TOP": self._cursor_top,
+            "CURSOR_BOTTOM": self._cursor_bottom,
+            "CURSOR_PAGE_UP": self._cursor_page_up,
+            "CURSOR_PAGE_DOWN": self._cursor_page_down,
             "CURSOR_MSG_START": self._cursor_msg_start,
             "CURSOR_MSG_END": self._cursor_msg_end,
             "CURSOR_LINE_START": self._cursor_line_start,
@@ -478,21 +510,18 @@ class ListWin(Win):
         if self.filter:
             self._process_filter_show()
 
-    def _cursor_msg_start(self, *args):
-        # TODO: use other method and keybind with more fitting name?
+    def _cursor_top(self, *args):
         # jump to first conversation
         if self.state.cur_y > 0:
             self.pad.move(0, 0)
 
-    def _cursor_msg_end(self, *args):
-        # TODO: use other method and keybind with more fitting name?
+    def _cursor_bottom(self, *args):
         # jump to last conversation
         lines = len(self.list)
         if self.state.cur_y < lines - 1:
             self.pad.move(lines - 1, self.state.cur_x)
 
-    def _cursor_line_start(self, *args):
-        # TODO: use other method and keybind with more fitting name?
+    def _cursor_page_up(self, *args):
         # move cursor up one page until first entry in log
         win_size_y, unused_win_size_x = self.win.getmaxyx()
 
@@ -503,8 +532,7 @@ class ListWin(Win):
             else:
                 self.pad.move(0, self.state.cur_x)
 
-    def _cursor_line_end(self, *args):
-        # TODO: use other method and keybind with more fitting name?
+    def _cursor_page_down(self, *args):
         # move cursor down one page until last entry in log
         win_size_y, unused_win_size_x = self.win.getmaxyx()
 
