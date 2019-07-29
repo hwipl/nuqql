@@ -45,25 +45,25 @@ DEFAULT_KEYMAP = {
 
 # default key bindings for input windows
 DEFAULT_INPUT_WIN_KEYBINDS = {
-    "GO_BACK":              "KEY_ESC",
     "CURSOR_RIGHT":         "KEY_RIGHT",
     "CURSOR_LEFT":          "KEY_LEFT",
     "CURSOR_DOWN":          "KEY_DOWN",
     "CURSOR_UP":            "KEY_UP",
-    "CURSOR_MSG_START":     "KEY_HOME, KEY_CTRL_A",
-    "CURSOR_MSG_END":       "KEY_END, KEY_CTRL_E",
-    "DEL_LINE_END":         "KEY_CTRL_K",
-    "DEL_LINE":             "KEY_CTRL_U",
-    "GO_NEXT":              "KEY_CTRL_N",
-    "GO_PREV":              "KEY_CTRL_B",
-    "SEND_MSG":             "KEY_CTRL_X",
-    "DEL_CHAR":             "KEY_DEL",
-    "DEL_CHAR_RIGHT":       "KEY_DC",
     "CURSOR_LINE_START":    "KEY_PAGE_UP",
     "CURSOR_LINE_END":      "KEY_PAGE_DOWN",
+    "CURSOR_MSG_START":     "KEY_HOME, KEY_CTRL_A",
+    "CURSOR_MSG_END":       "KEY_END, KEY_CTRL_E",
+    "DEL_CHAR":             "KEY_DEL",
+    "DEL_CHAR_RIGHT":       "KEY_DC",
+    "DEL_LINE_END":         "KEY_CTRL_K",
+    "DEL_LINE":             "KEY_CTRL_U",
+    "GO_BACK":              "KEY_ESC",
+    "GO_NEXT":              "KEY_CTRL_N",
+    "GO_PREV":              "KEY_CTRL_B",
+    "GO_CONV":              "KEY_CTRL_V",
+    "SEND_MSG":             "KEY_CTRL_X",
     "WIN_ZOOM":             "KEY_F9",
     "WIN_ZOOM_URL":         "KEY_F10",
-    "GO_CONV":              "KEY_CTRL_V",
 }
 
 # default key bindings for log windows
