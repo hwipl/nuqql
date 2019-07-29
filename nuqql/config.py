@@ -74,10 +74,18 @@ DEFAULT_LOG_WIN_KEYBINDS["CURSOR_UP"] = "KEY_UP, KEY_K"
 DEFAULT_LOG_WIN_KEYBINDS["CURSOR_RIGHT"] = "KEY_RIGHT, KEY_L"
 
 # default key bindings for list window (Buddy List)
-DEFAULT_LIST_WIN_KEYBINDS = dict(DEFAULT_INPUT_WIN_KEYBINDS)
-DEFAULT_LIST_WIN_KEYBINDS["CURSOR_DOWN"] = "KEY_DOWN, KEY_J"
-DEFAULT_LIST_WIN_KEYBINDS["CURSOR_UP"] = "KEY_UP, KEY_K"
-DEFAULT_LIST_WIN_KEYBINDS["GO_CONV"] = "KEY_CTRL_V, KEY_/"
+DEFAULT_LIST_WIN_KEYBINDS = {
+    "GO_BACK":              "KEY_ESC",
+    "CURSOR_DOWN":          "KEY_DOWN, KEY_J",
+    "CURSOR_UP":            "KEY_UP, KEY_K",
+    "CURSOR_MSG_START":     "KEY_HOME, KEY_CTRL_A",
+    "CURSOR_MSG_END":       "KEY_END, KEY_CTRL_E",
+    "GO_NEXT":              "KEY_CTRL_N",
+    "GO_PREV":              "KEY_CTRL_B",
+    "CURSOR_LINE_START":    "KEY_PAGE_UP",
+    "CURSOR_LINE_END":      "KEY_PAGE_DOWN",
+    "GO_CONV":              "KEY_CTRL_V, KEY_/",
+}
 
 # default_list_win_keybinds = {
 #   ...
