@@ -949,8 +949,7 @@ class LogWin(Win):
         self.state.cur_y, self.state.cur_x = self.pad.getyx()
         self._pad_refresh(props)
 
-    def _cursor_msg_start(self, *args):
-        # TODO: use other method and keybind with more fitting name?
+    def _cursor_top(self, *args):
         # jump to first line in log
         if self.view.cur > 0:
             # view is not at the top yet, so move it there
@@ -963,8 +962,7 @@ class LogWin(Win):
         props = self._get_properties()
         self._pad_refresh(props)
 
-    def _cursor_msg_end(self, *args):
-        # TODO: use other method and keybind with more fitting name?
+    def _cursor_bottom(self, *args):
         # jump to last line in log
         props = self._get_properties()
         view_size = props.win_size_y - props.pad_y_delta
@@ -980,8 +978,7 @@ class LogWin(Win):
         props = self._get_properties()
         self._pad_refresh(props)
 
-    def _cursor_line_start(self, *args):
-        # TODO: use other method and keybind with more fitting name?
+    def _cursor_page_up(self, *args):
         # move cursor up one page until first entry in log
         props = self._get_properties()
         view_size = props.win_size_y - props.pad_y_delta
@@ -997,8 +994,7 @@ class LogWin(Win):
         props = self._get_properties()
         self._pad_refresh(props)
 
-    def _cursor_line_end(self, *args):
-        # TODO: use other method and keybind with more fitting name?
+    def _cursor_page_down(self, *args):
         # move cursor down one page until last entry in log
         props = self._get_properties()
         view_size = props.win_size_y - props.pad_y_delta
