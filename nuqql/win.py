@@ -310,25 +310,25 @@ class Win:
         """
 
         self.keyfunc = {
-            "GO_BACK": self._go_back,
             "CURSOR_RIGHT": self._cursor_right,
             "CURSOR_LEFT": self._cursor_left,
             "CURSOR_DOWN": self._cursor_down,
             "CURSOR_UP": self._cursor_up,
-            "SEND_MSG": self._send_msg,
-            "DEL_CHAR": self._delete_char,
-            "DEL_CHAR_RIGHT": self._delete_char_right,
             "CURSOR_MSG_START": self._cursor_msg_start,
             "CURSOR_MSG_END": self._cursor_msg_end,
             "CURSOR_LINE_START": self._cursor_line_start,
             "CURSOR_LINE_END": self._cursor_line_end,
+            "DEL_CHAR": self._delete_char,
+            "DEL_CHAR_RIGHT": self._delete_char_right,
             "DEL_LINE_END": self._delete_line_end,
             "DEL_LINE": self._delete_line,
-            "WIN_ZOOM": self._zoom_win,
-            "WIN_ZOOM_URL": self._zoom_win_url,
+            "GO_BACK": self._go_back,
             "GO_NEXT": self._go_next,
             "GO_PREV": self._go_prev,
             "GO_CONV": self._go_conv,
+            "SEND_MSG": self._send_msg,
+            "WIN_ZOOM": self._zoom_win,
+            "WIN_ZOOM_URL": self._zoom_win_url,
         }
 
 
