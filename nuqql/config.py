@@ -29,6 +29,7 @@ DEFAULT_KEYMAP = {
     "KEY_CTRL_E":       ord(curses.ascii.ctrl("e")),
     "KEY_CTRL_K":       ord(curses.ascii.ctrl("k")),
     "KEY_CTRL_N":       ord(curses.ascii.ctrl("n")),
+    "KEY_CTRL_O":       ord(curses.ascii.ctrl("o")),
     "KEY_CTRL_U":       ord(curses.ascii.ctrl("u")),
     "KEY_CTRL_V":       ord(curses.ascii.ctrl("v")),
     "KEY_CTRL_X":       ord(curses.ascii.ctrl("x")),
@@ -61,6 +62,7 @@ DEFAULT_INPUT_WIN_KEYBINDS = {
     "GO_NEXT":              "KEY_CTRL_N",
     "GO_PREV":              "KEY_CTRL_B",
     "GO_CONV":              "KEY_CTRL_V",
+    "GO_LOG":               "KEY_CTRL_O",
     "SEND_MSG":             "KEY_CTRL_X",
     "WIN_ZOOM":             "KEY_F9",
     "WIN_ZOOM_URL":         "KEY_F10",
@@ -94,6 +96,7 @@ DEFAULT_LIST_WIN_KEYBINDS = {
     "GO_NEXT":              "KEY_CTRL_N",
     "GO_PREV":              "KEY_CTRL_B",
     "GO_CONV":              "KEY_CTRL_V, KEY_/",
+    "GO_LOG":               "KEY_H",
 }
 
 # default_list_win_keybinds = {

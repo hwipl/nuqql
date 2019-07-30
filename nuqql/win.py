@@ -310,6 +310,13 @@ class Win:
 
         # implemented in sub classes
 
+    def _go_log(self, *args):
+        """
+        User input: go to the conversations log/history
+        """
+
+        # implemented in sub classes
+
     def _go_next(self, *args):
         """
         User input: go to conversation with new messages or more recently used
@@ -358,6 +365,7 @@ class Win:
             "GO_NEXT": self._go_next,
             "GO_PREV": self._go_prev,
             "GO_CONV": self._go_conv,
+            "GO_LOG": self._go_log,
             "SEND_MSG": self._send_msg,
             "WIN_ZOOM": self._zoom_win,
             "WIN_ZOOM_URL": self._zoom_win_url,
@@ -586,6 +594,14 @@ class ListWin(Win):
         self._go_conv()
         self.redraw_pad()
 
+    def _go_log(self, *args):
+        # go to conversation's log
+        # create windows, if they do not exists
+        if not self.list[self.state.cur_y].has_windows():
+            self.list[self.state.cur_y].create_windows()
+        # activate conversation's history
+        self.list[self.state.cur_y].activate_log()
+
     def _process_filter_up(self):
         # move cursor up to next filter match
         conv_index = self.state.cur_y
@@ -735,12 +751,6 @@ class ListWin(Win):
             self.list[self.state.cur_y].activate()
             # reset filter
             self.filter = ""
-        elif char == "h":
-            # create windows, if they do not exists
-            if not self.list[self.state.cur_y].has_windows():
-                self.list[self.state.cur_y].create_windows()
-            # activate conversation's history
-            self.list[self.state.cur_y].activate_log()
         # display changes in the pad
         self.redraw_pad()
 
@@ -1463,7 +1473,7 @@ class InputWin(Win):
         # assume user read all messages and set lastread to last message
         self.conversation.set_lastread()
 
-    def _go_log(self):
+    def _go_log(self, *args):
         """
         Jump to log
         """
@@ -1545,8 +1555,6 @@ class InputWin(Win):
         elif char == "\t":
             for _i in range(4):
                 self.process_input(" ")
-        elif char == curses.ascii.ctrl("o"):
-            self._go_log()
         else:
             # insert new character into segments
             if not isinstance(char, str):
