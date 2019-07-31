@@ -24,6 +24,7 @@ DEFAULT_KEYMAP = {
     "KEY_J":            ord("j"),
     "KEY_K":            ord("k"),
     "KEY_L":            ord("l"),
+    "KEY_Q":            ord("q"),
     "KEY_CTRL_A":       ord(curses.ascii.ctrl("a")),
     "KEY_CTRL_B":       ord(curses.ascii.ctrl("b")),
     "KEY_CTRL_E":       ord(curses.ascii.ctrl("e")),
@@ -97,6 +98,7 @@ DEFAULT_LIST_WIN_KEYBINDS = {
     "GO_PREV":              "KEY_CTRL_B",
     "GO_CONV":              "KEY_CTRL_V, KEY_/",
     "GO_LOG":               "KEY_H",
+    "QUIT":                 "KEY_Q",
 }
 
 # default_list_win_keybinds = {

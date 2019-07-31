@@ -339,6 +339,13 @@ class Win:
 
         # implemented in sub classes
 
+    def _quit(self, *args):
+        """
+        User input: quit nuqql
+        """
+
+        # implemented in sub classes
+
     def _init_keyfunc(self):
         """
         Initialize key to function mapping
@@ -366,6 +373,7 @@ class Win:
             "GO_PREV": self._go_prev,
             "GO_CONV": self._go_conv,
             "GO_LOG": self._go_log,
+            "QUIT": self._quit,
             "SEND_MSG": self._send_msg,
             "WIN_ZOOM": self._zoom_win,
             "WIN_ZOOM_URL": self._zoom_win_url,
@@ -602,6 +610,10 @@ class ListWin(Win):
         # activate conversation's history
         self.list[self.state.cur_y].activate_log()
 
+    def _quit(self, *args):
+        # quit nuqql
+        self.state.active = False   # Exit the while loop
+
     def _process_filter_up(self):
         # move cursor up to next filter match
         conv_index = self.state.cur_y
@@ -740,9 +752,6 @@ class ListWin(Win):
            self.config.keymap[cint] in self.config.keybinds:
             func = self.keyfunc[self.config.keybinds[self.config.keymap[cint]]]
             func()
-        elif char == "q":
-            self.state.active = False
-            return  # Exit the while loop
         elif char == "\n":
             # create windows, if they do not exists
             if not self.list[self.state.cur_y].has_windows():
