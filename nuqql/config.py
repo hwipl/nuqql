@@ -15,6 +15,7 @@ from pathlib import Path
 
 # default keymap for special keys
 DEFAULT_KEYMAP = {
+    "KEY_ENTER":        ord("\n"),
     "KEY_ESC":          curses.ascii.ESC,
     "KEY_RIGHT":        curses.KEY_RIGHT,
     "KEY_LEFT":         curses.KEY_LEFT,
@@ -93,6 +94,7 @@ DEFAULT_LIST_WIN_KEYBINDS = {
     "CURSOR_BOTTOM":        "KEY_END, KEY_CTRL_E",
     "CURSOR_PAGE_UP":       "KEY_PAGE_UP",
     "CURSOR_PAGE_DOWN":     "KEY_PAGE_DOWN",
+    "ENTER":                "KEY_ENTER",
     "GO_BACK":              "KEY_ESC",
     "GO_NEXT":              "KEY_CTRL_N",
     "GO_PREV":              "KEY_CTRL_B",

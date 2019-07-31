@@ -339,6 +339,13 @@ class Win:
 
         # implemented in sub classes
 
+    def _enter(self, *args):
+        """
+        User input: enter
+        """
+
+        # implemented in sub classes
+
     def _quit(self, *args):
         """
         User input: quit nuqql
@@ -368,6 +375,7 @@ class Win:
             "DEL_CHAR_RIGHT": self._delete_char_right,
             "DEL_LINE_END": self._delete_line_end,
             "DEL_LINE": self._delete_line,
+            "ENTER": self._enter,
             "GO_BACK": self._go_back,
             "GO_NEXT": self._go_next,
             "GO_PREV": self._go_prev,
@@ -610,6 +618,16 @@ class ListWin(Win):
         # activate conversation's history
         self.list[self.state.cur_y].activate_log()
 
+    def _enter(self, *args):
+        # enter conversation
+        # create windows, if they do not exists
+        if not self.list[self.state.cur_y].has_windows():
+            self.list[self.state.cur_y].create_windows()
+        # activate conversation
+        self.list[self.state.cur_y].activate()
+        # reset filter
+        self.filter = ""
+
     def _quit(self, *args):
         # quit nuqql
         self.state.active = False   # Exit the while loop
@@ -752,14 +770,6 @@ class ListWin(Win):
            self.config.keymap[cint] in self.config.keybinds:
             func = self.keyfunc[self.config.keybinds[self.config.keymap[cint]]]
             func()
-        elif char == "\n":
-            # create windows, if they do not exists
-            if not self.list[self.state.cur_y].has_windows():
-                self.list[self.state.cur_y].create_windows()
-            # activate conversation
-            self.list[self.state.cur_y].activate()
-            # reset filter
-            self.filter = ""
         # display changes in the pad
         self.redraw_pad()
 
