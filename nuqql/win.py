@@ -1179,7 +1179,7 @@ class LogWin(Win):
                 self.state.cur_x = props.pad_size_x
 
             # reached end of view, move view further up
-            self._cursor_line_start()
+            self._cursor_page_up()
             self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()
 
     def _search_prev(self):
@@ -1220,7 +1220,7 @@ class LogWin(Win):
             if self.view.cur == len(self.list) - view_size:
                 # reached bottom already
                 break
-            self._cursor_line_end()
+            self._cursor_page_down()
             self.state.cur_y, self.state.cur_x = 0, 0
 
     def _process_search_input(self, char):
