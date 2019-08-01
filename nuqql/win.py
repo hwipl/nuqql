@@ -339,6 +339,13 @@ class Win:
 
         # implemented in sub classes
 
+    def _search(self, *args):
+        """
+        User input: search
+        """
+
+        # implemented in sub classes
+
     def _enter(self, *args):
         """
         User input: enter
@@ -382,6 +389,7 @@ class Win:
             "GO_CONV": self._go_conv,
             "GO_LOG": self._go_log,
             "QUIT": self._quit,
+            "SEARCH": self._search,
             "SEND_MSG": self._send_msg,
             "WIN_ZOOM": self._zoom_win,
             "WIN_ZOOM_URL": self._zoom_win_url,
@@ -1126,9 +1134,9 @@ class LogWin(Win):
         # ...and clear notifications for these messages
         self.conversation.clear_notifications()
 
-    def _start_dialog(self):
+    def _search(self, *args):
         """
-        Start a new dialog
+        Search: Start a new search dialog
         """
 
         self.dialog = LogDialogInputWin(
@@ -1240,10 +1248,6 @@ class LogWin(Win):
         # dialog mode
         if self.dialog:
             self._process_dialog_input(char)
-            return
-
-        if char == "/":
-            self._start_dialog()
             return
 
         # search mode

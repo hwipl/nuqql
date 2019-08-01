@@ -81,6 +81,7 @@ DEFAULT_LOG_WIN_KEYBINDS = {
     "CURSOR_PAGE_UP":       "KEY_PAGE_UP",
     "CURSOR_PAGE_DOWN":     "KEY_PAGE_DOWN",
     "GO_BACK":              "KEY_ESC",
+    "SEARCH":               "KEY_/",
     "SEND_MSG":             "KEY_CTRL_X",
     "WIN_ZOOM":             "KEY_F9",
     "WIN_ZOOM_URL":         "KEY_F10",
