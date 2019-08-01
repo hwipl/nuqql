@@ -353,6 +353,13 @@ class Win:
 
         # implemented in sub classes
 
+    def _tab(self, *args):
+        """
+        User input: tab
+        """
+
+        # implemented in sub classes
+
     def _quit(self, *args):
         """
         User input: quit nuqql
@@ -391,6 +398,7 @@ class Win:
             "QUIT": self._quit,
             "SEARCH": self._search,
             "SEND_MSG": self._send_msg,
+            "TAB": self._tab,
             "WIN_ZOOM": self._zoom_win,
             "WIN_ZOOM_URL": self._zoom_win_url,
         }
@@ -1557,6 +1565,11 @@ class InputWin(Win):
         self._go_back()
         self.conversation.wins.list_win.go_conv()
 
+    def _tab(self, *args):
+        # convert tab to spaces
+        for _i in range(4):
+            self.process_input(" ")
+
     def process_input(self, char):
         """
         Process user input (character)
@@ -1575,9 +1588,6 @@ class InputWin(Win):
            self.config.keymap[cint] in self.config.keybinds:
             func = self.keyfunc[self.config.keybinds[self.config.keymap[cint]]]
             func(segments)
-        elif char == "\t":
-            for _i in range(4):
-                self.process_input(" ")
         else:
             # insert new character into segments
             if not isinstance(char, str):

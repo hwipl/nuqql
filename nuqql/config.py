@@ -26,6 +26,7 @@ DEFAULT_KEYMAP = {
     "KEY_K":            ord("k"),
     "KEY_L":            ord("l"),
     "KEY_Q":            ord("q"),
+    "KEY_TAB":          ord("\t"),
     "KEY_CTRL_A":       ord(curses.ascii.ctrl("a")),
     "KEY_CTRL_B":       ord(curses.ascii.ctrl("b")),
     "KEY_CTRL_E":       ord(curses.ascii.ctrl("e")),
@@ -66,6 +67,7 @@ DEFAULT_INPUT_WIN_KEYBINDS = {
     "GO_CONV":              "KEY_CTRL_V",
     "GO_LOG":               "KEY_CTRL_O",
     "SEND_MSG":             "KEY_CTRL_X",
+    "TAB":                  "KEY_TAB",
     "WIN_ZOOM":             "KEY_F9",
     "WIN_ZOOM_URL":         "KEY_F10",
 }
