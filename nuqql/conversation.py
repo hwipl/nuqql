@@ -9,6 +9,9 @@ from pathlib import Path
 
 import nuqql.history
 import nuqql.config
+import nuqql.inputwin
+import nuqql.listwin
+import nuqql.logwin
 import nuqql.win
 
 
@@ -327,11 +330,11 @@ class BuddyConversation(Conversation):
         input_title = "Message to {0}".format(self.name)
 
         log_config = nuqql.config.get("log_win")
-        self.wins.log_win = nuqql.win.LogWin(log_config, self, log_title)
+        self.wins.log_win = nuqql.logwin.LogWin(log_config, self, log_title)
         self.wins.log_win.list = self.history.log
         input_config = nuqql.config.get("input_win")
-        self.wins.input_win = nuqql.win.InputWin(input_config, self,
-                                                 input_title)
+        self.wins.input_win = nuqql.inputwin.InputWin(input_config, self,
+                                                      input_title)
 
         # try to read old messages from message history
         nuqql.history.init_log_from_file(self)
@@ -515,11 +518,11 @@ class BackendConversation(Conversation):
 
         self.wins.list_win = nuqql.win.MAIN_WINS["list"]
         log_config = nuqql.config.get("log_win")
-        self.wins.log_win = nuqql.win.LogWin(log_config, self, log_title)
+        self.wins.log_win = nuqql.logwin.LogWin(log_config, self, log_title)
         self.wins.log_win.list = self.history.log
         input_config = nuqql.config.get("input_win")
-        self.wins.input_win = nuqql.win.InputWin(input_config, self,
-                                                 input_title)
+        self.wins.input_win = nuqql.inputwin.InputWin(input_config, self,
+                                                      input_title)
 
     def get_name(self):
         """
@@ -655,16 +658,16 @@ class NuqqlConversation(Conversation):
         input_title = "Command to {0}".format(self.name)
 
         log_config = nuqql.config.get("log_win")
-        self.wins.log_win = nuqql.win.LogWin(log_config, self, log_title)
+        self.wins.log_win = nuqql.logwin.LogWin(log_config, self, log_title)
         self.wins.log_win.list = self.history.log
         input_config = nuqql.config.get("input_win")
-        self.wins.input_win = nuqql.win.InputWin(input_config, self,
-                                                 input_title)
+        self.wins.input_win = nuqql.inputwin.InputWin(input_config, self,
+                                                      input_title)
 
         # nuqql itself needs a list window for buddy list
         list_config = nuqql.config.get("list_win")
-        self.wins.list_win = nuqql.win.ListWin(list_config, self,
-                                               "Conversation list")
+        self.wins.list_win = nuqql.listwin.ListWin(list_config, self,
+                                                   "Conversation list")
         # set list to conversations
         self.wins.list_win.list = CONVERSATIONS
         # mark nuqql's list window as active, so main loop does not quit
