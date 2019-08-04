@@ -309,15 +309,7 @@ class InputWin(nuqql.win.Win):
         pad_size_y, pad_size_x = self.pad.getmaxyx()
 
         # look for special key mappings in keymap or process as text
-        try:
-            cint = ord(char)
-        except (TypeError, ValueError):
-            cint = char
-        if cint in self.config.keymap and \
-           self.config.keymap[cint] in self.config.keybinds:
-            func = self.keyfunc[self.config.keybinds[self.config.keymap[cint]]]
-            func(segments)
-        else:
+        if not self.handle_keybinds(char, segments):
             # insert new character into segments
             if not isinstance(char, str):
                 return

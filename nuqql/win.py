@@ -387,6 +387,28 @@ class Win:
 
         # implemented in sub classes
 
+    def handle_keybinds(self, *args):
+        """
+        Handle special keys
+        """
+
+        # input character is first argument
+        char = args[0]
+
+        # look for special key mappings in keymap
+        try:
+            cint = ord(char)
+        except (TypeError, ValueError):
+            cint = char
+        if cint in self.config.keymap and \
+           self.config.keymap[cint] in self.config.keybinds:
+            func = self.keyfunc[self.config.keybinds[self.config.keymap[cint]]]
+            func(*args[1:])     # call function with remaining arguments
+            return True         # handled a special key
+
+        # no special key
+        return False
+
     def _init_keyfunc(self):
         """
         Initialize key to function mapping

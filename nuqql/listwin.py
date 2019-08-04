@@ -367,15 +367,9 @@ class ListWin(nuqql.win.Win):
             self._process_filter_input(char)
             return
 
-        # look for special key mappings in keymap or process as text
-        try:
-            cint = ord(char)
-        except (TypeError, ValueError):
-            cint = char
-        if cint in self.config.keymap and \
-           self.config.keymap[cint] in self.config.keybinds:
-            func = self.keyfunc[self.config.keybinds[self.config.keymap[cint]]]
-            func()
+        # look for special key mappings in keymap
+        self.handle_keybinds(char)
+
         # display changes in the pad
         self.redraw_pad()
 

@@ -449,15 +449,8 @@ class LogWin(nuqql.win.Win):
             if self._process_search_input(char):
                 return
 
-        # look for special key mappings in keymap or process as text
-        try:
-            cint = ord(char)
-        except (TypeError, ValueError):
-            cint = char
-        if cint in self.config.keymap and \
-           self.config.keymap[cint] in self.config.keybinds:
-            func = self.keyfunc[self.config.keybinds[self.config.keymap[cint]]]
-            func()
+        # look for special key mappings in keymap
+        self.handle_keybinds(char)
 
         # display changes in the pad
         # TODO: switch this back on and remove redraw code from other methods?
