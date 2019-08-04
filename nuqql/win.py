@@ -47,6 +47,28 @@ class Win:
         self.keyfunc = {}
         self._init_keyfunc()
 
+    def list_add(self, internal_list, entry):
+        """
+        Add entry to internal list
+        """
+
+        # add entry to own list
+        internal_list.append(entry)
+
+        # if terminal size is invalid, stop here
+        if not self.config.is_terminal_valid():
+            return
+
+        # if this window belongs to an active conversation, redraw it
+        if self.conversation.is_active():
+            self.redraw()
+        elif self is MAIN_WINS["log"]:
+            # if this is the main log, display it anyway if there is nothing
+            # else active
+            if self.conversation.is_any_active():
+                return
+            self.redraw()
+
     def _redraw_win(self):
         """
         Redraw entire window

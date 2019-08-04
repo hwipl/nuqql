@@ -39,22 +39,8 @@ class LogWin(nuqql.win.Win):
         Add entry to internal list
         """
 
-        # add entry to own list
-        self.list.append(entry)
-
-        # if terminal size is invalid, stop here
-        if not self.config.is_terminal_valid():
-            return
-
-        # if this window belongs to an active conversation, redraw it
-        if self.conversation.is_active():
-            self.redraw()
-        elif self is nuqql.win.MAIN_WINS["log"]:
-            # if this is the main log, display it anyway if there is nothing
-            # else active
-            if self.conversation.is_any_active():
-                return
-            self.redraw()
+        # add entry to own list via base class function
+        self.list_add(self.list, entry)
 
     @staticmethod
     def _get_num_log_lines(log_slice, pad_size_x):
