@@ -18,6 +18,13 @@ class ListWin(nuqql.win.Win):
 
         # filter for conversation list
         self.filter = ""
+        self.filter_keyfunc = {
+            "CURSOR_UP":    self._process_filter_up,
+            "CURSOR_DOWN":  self._process_filter_down,
+            "DEL_CHAR":     self._process_filter_del_char,
+            "ENTER":        self._process_filter_enter,
+            "GO_BACK":      self._process_filter_abort,
+        }
 
         # list entries/message log
         self.list = []
@@ -333,18 +340,15 @@ class ListWin(nuqql.win.Win):
         Process input from user in filter mode
         """
 
-        # filter mode keybinds. TODO: improve? move to config?
-        keybinds = {
-            curses.KEY_UP:          self._process_filter_up,
-            curses.KEY_DOWN:        self._process_filter_down,
-            chr(curses.ascii.ESC):  self._process_filter_abort,
-            "\n":                   self._process_filter_enter,
-            chr(curses.ascii.DEL):  self._process_filter_del_char,
-        }
-
-        # look for special key mappings in keybinds or process as text
-        if char in keybinds:
-            func = keybinds[char]
+        # look for special key mappings in keymap or process as text
+        try:
+            cint = ord(char)
+        except (TypeError, ValueError):
+            cint = char
+        if cint in self.config.keymap and \
+           self.config.keymap[cint] in self.config.filter_keybinds:
+            keybind = self.config.filter_keybinds[self.config.keymap[cint]]
+            func = self.filter_keyfunc[keybind]
             func()
         else:
             # add character to filter
