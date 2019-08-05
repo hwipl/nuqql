@@ -366,6 +366,20 @@ class Win:
 
         # implemented in sub classes
 
+    def _search_next(self, *args):
+        """
+        User input: search for next match
+        """
+
+        # implemented in sub classes
+
+    def _search_prev(self, *args):
+        """
+        User input: search for previous match
+        """
+
+        # implemented in sub classes
+
     def _enter(self, *args):
         """
         User input: enter
@@ -439,6 +453,8 @@ class Win:
             "GO_LOG": self._go_log,
             "QUIT": self._quit,
             "SEARCH": self._search,
+            "SEARCH_NEXT": self._search_next,
+            "SEARCH_PREV": self._search_prev,
             "SEND_MSG": self._send_msg,
             "TAB": self._tab,
             "WIN_ZOOM": self._zoom_win,

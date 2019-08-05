@@ -345,10 +345,14 @@ class LogWin(nuqql.win.Win):
 
         self.dialog.process_input(char)
 
-    def search_next(self):
+    def _search_next(self, *args):
         """
         Search for next match
         """
+
+        # skip this if we are not in search mode
+        if self.search_text == "":
+            return
 
         # init
         props = self._get_properties()
@@ -376,10 +380,21 @@ class LogWin(nuqql.win.Win):
             self._cursor_page_up()
             self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()
 
-    def _search_prev(self):
+    def search_next(self):
+        """
+        Helper for calling search from other windows
+        """
+
+        self._search_next()
+
+    def _search_prev(self, *args):
         """
         Search for previous match
         """
+
+        # skip this if we are not in search mode
+        if self.search_text == "":
+            return
 
         # init
         props = self._get_properties()
@@ -417,21 +432,6 @@ class LogWin(nuqql.win.Win):
             self._cursor_page_down()
             self.state.cur_y, self.state.cur_x = 0, 0
 
-    def _process_search_input(self, char):
-        """
-        Process user input in search mode
-        """
-
-        if char == "n":
-            self.search_next()
-            return True
-        if char == "p":
-            self._search_prev()
-            return True
-
-        # unknown key, continue regular key handling
-        return False
-
     def process_input(self, char):
         """
         Process user input
@@ -443,11 +443,6 @@ class LogWin(nuqql.win.Win):
         if self.dialog:
             self._process_dialog_input(char)
             return
-
-        # search mode
-        if self.search_text != "" and char in ("n", "p"):
-            if self._process_search_input(char):
-                return
 
         # look for special key mappings in keymap
         self.handle_keybinds(char)
