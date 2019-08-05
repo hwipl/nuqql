@@ -180,7 +180,7 @@ class WinConfig:
     """
 
     def __init__(self, wtype):
-        self.type = wtype
+        self._type = wtype
         self._rel_yx = 0
         self.keymap = None
         self.keybinds = None
@@ -230,11 +230,11 @@ class WinConfig:
         layout = self._get_layout_config()
 
         # set window layout
-        if self.type == "list_win":
+        if self._type == "list_win":
             self._rel_yx = layout["LIST_WIN_Y_PER"], layout["LIST_WIN_X_PER"]
-        if self.type == "log_win":
+        if self._type == "log_win":
             self._rel_yx = layout["LOG_WIN_Y_PER"], layout["LOG_WIN_X_PER"]
-        if self.type == "input_win":
+        if self._type == "input_win":
             self._rel_yx = layout["INPUT_WIN_Y_PER"], layout["INPUT_WIN_X_PER"]
 
     @staticmethod
@@ -285,7 +285,7 @@ class WinConfig:
         win_config = self._get_window_config()
 
         # use settings depending on window type
-        self.settings = win_config[self.type]
+        self.settings = win_config[self._type]
 
     @staticmethod
     def _get_color_config():
@@ -530,7 +530,7 @@ class WinConfig:
         """
 
         keybinds = self._get_keybinds_config()
-        self.keybinds = keybinds[self.type]
+        self.keybinds = keybinds[self._type]
 
     def get_win_size(self, max_y, max_x):
         """
@@ -569,11 +569,11 @@ class WinConfig:
             input_x = max(max_x - list_x, 3)
 
         # return height and width of this window
-        if self.type == "log_win":
+        if self._type == "log_win":
             return log_y, log_x
-        if self.type == "input_win":
+        if self._type == "input_win":
             return input_y, input_x
-        if self.type == "list_win":
+        if self._type == "list_win":
             return list_y, list_x
 
         # should not be reached
@@ -587,11 +587,11 @@ class WinConfig:
         max_y, max_x = get("screen").getmaxyx()
         size_y, size_x = self.get_size()
 
-        if self.type == "list_win":
+        if self._type == "list_win":
             return 0, 0
-        if self.type == "log_win":
+        if self._type == "log_win":
             return 0, max_x - size_x
-        if self.type == "input_win":
+        if self._type == "input_win":
             return max_y - size_y, max_x - size_x
 
         # should not be reached
