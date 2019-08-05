@@ -109,6 +109,7 @@ DEFAULT_LIST_WIN_KEYBINDS = {
     "GO_LOG":               "KEY_H",
     "QUIT":                 "KEY_Q",
 }
+# default key bindings for list window in filter mode
 DEFAULT_LIST_WIN_FILTER_KEYBINDS = {
     "CURSOR_DOWN":          "KEY_DOWN",
     "CURSOR_UP":            "KEY_UP",
@@ -116,13 +117,6 @@ DEFAULT_LIST_WIN_FILTER_KEYBINDS = {
     "ENTER":                "KEY_ENTER",
     "DEL_CHAR":             "KEY_DEL",
 }
-
-# default_list_win_keybinds = {
-#   ...
-#    #"q"             : "GO_BACK", # TODO: do we want something like that?
-#    #"\n"            : "DO_SOMETHING", # TODO: do we want something like that?
-#   ...
-# }
 
 # default ui layout
 DEFAULT_LAYOUT = {
