@@ -8,15 +8,28 @@ from pathlib import Path
 
 # default keymap for special keys
 DEFAULT_KEYMAP = {
+    "KEY_ENTER":        ord("\n"),
     "KEY_ESC":          curses.ascii.ESC,
     "KEY_RIGHT":        curses.KEY_RIGHT,
     "KEY_LEFT":         curses.KEY_LEFT,
     "KEY_DOWN":         curses.KEY_DOWN,
     "KEY_UP":           curses.KEY_UP,
+    "KEY_H":            ord("h"),
+    "KEY_J":            ord("j"),
+    "KEY_K":            ord("k"),
+    "KEY_L":            ord("l"),
+    "KEY_N":            ord("n"),
+    "KEY_P":            ord("p"),
+    "KEY_Q":            ord("q"),
+    "KEY_TAB":          ord("\t"),
     "KEY_CTRL_A":       ord(curses.ascii.ctrl("a")),
+    "KEY_CTRL_B":       ord(curses.ascii.ctrl("b")),
     "KEY_CTRL_E":       ord(curses.ascii.ctrl("e")),
     "KEY_CTRL_K":       ord(curses.ascii.ctrl("k")),
+    "KEY_CTRL_N":       ord(curses.ascii.ctrl("n")),
+    "KEY_CTRL_O":       ord(curses.ascii.ctrl("o")),
     "KEY_CTRL_U":       ord(curses.ascii.ctrl("u")),
+    "KEY_CTRL_V":       ord(curses.ascii.ctrl("v")),
     "KEY_CTRL_X":       ord(curses.ascii.ctrl("x")),
     "KEY_DEL":          curses.ascii.DEL,
     "KEY_DC":           curses.KEY_DC,
@@ -26,6 +39,7 @@ DEFAULT_KEYMAP = {
     "KEY_PAGE_DOWN":    curses.KEY_NPAGE,
     "KEY_F9":           curses.KEY_F9,
     "KEY_F10":          curses.KEY_F10,
+    "KEY_/":            ord("/"),
 }
 
 
