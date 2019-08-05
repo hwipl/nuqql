@@ -335,33 +335,6 @@ class ListWin(nuqql.win.Win):
             # if filter is now empty, make sure it is not shown any more
             self._process_filter_show()
 
-    def _process_filter_input(self, char):
-        """
-        Process input from user in filter mode
-        """
-
-        # look for special key mappings in keymap or process as text
-        try:
-            cint = ord(char)
-        except (TypeError, ValueError):
-            cint = char
-        if cint in self.config.keymap and \
-           self.config.keymap[cint] in self.config.filter_keybinds:
-            keybind = self.config.filter_keybinds[self.config.keymap[cint]]
-            func = self.filter_keyfunc[keybind]
-            func()
-        else:
-            # add character to filter
-            try:
-                self.filter += char
-                self._process_filter_nearest()
-                # self._process_filter_show()
-            except (ValueError, TypeError):
-                pass
-
-        # display changes in the pad
-        self.redraw_pad()
-
     def process_input(self, char):
         """
         Process input from user (character)
@@ -371,11 +344,19 @@ class ListWin(nuqql.win.Win):
 
         # check if we are in filter mode
         if self.filter:
-            self._process_filter_input(char)
-            return
-
-        # look for special key mappings in keymap
-        self.handle_keybinds(char)
+            # filter mode: look for special key mapping or process as text
+            if not self.handle_keybinds(char,
+                                        keybinds=self.config.filter_keybinds,
+                                        keyfunc=self.filter_keyfunc):
+                # no special key, add character to filter
+                try:
+                    self.filter += char
+                    self._process_filter_nearest()
+                except (ValueError, TypeError):
+                    pass
+        else:
+            # normal mode: look for special key mappings in keymap
+            self.handle_keybinds(char)
 
         # display changes in the pad
         self.redraw_pad()
