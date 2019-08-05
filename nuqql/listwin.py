@@ -58,45 +58,13 @@ class ListWin(nuqql.win.Win):
 
         return False
 
-    def redraw_pad(self):
+    def _print_list(self, *args):
         """
-        Redraw pad in window
+        Helper for printing the list
         """
 
-        # if terminal size is invalid, stop here
-        if not self.config.is_terminal_valid():
-            return
-
-        # screen/pad properties
-        pos_y, pos_x = self.config.get_pos()
-        win_size_y, win_size_x = self.win.getmaxyx()
-        pad_size_y, pad_size_x = self.pad.getmaxyx()
-        self.state.cur_y, self.state.cur_x = self.pad.getyx()
-
-        # make sure pad has correct width (after resize)
-        if pad_size_x != win_size_x - 2:
-            self.pad.resize(pad_size_y, win_size_x - 2)
-            pad_size_x = win_size_x - 2
-
-        # store last selected entry
-        if self.state.cur_y >= len(self.list):
-            # make sure cur_y is still "within" the list. Length difference
-            # should be only 1, because buddies get removed individually
-            self.state.cur_y = max(0, self.state.cur_y - 1)
-        last_selected = self.list[self.state.cur_y]
-
-        # sort list
-        self.list.sort()
-
-        # make sure all names fit into pad
-        if len(self.list) > pad_size_y - 1:
-            self.pad.resize(len(self.list) + 1, pad_size_x)
-
-        # if there is an active conversation or last selected conversation was
-        # moved, move cursor to it
-        for index, conv in enumerate(self.list):
-            if conv.is_active() or conv is last_selected:
-                self.state.cur_y = index
+        # parse arguments
+        pad_size_x, pos_y, pos_x, win_size_y, win_size_x = args
 
         # is there a zoomed log window?
         zoomed_log_win = None
@@ -142,6 +110,49 @@ class ListWin(nuqql.win.Win):
                          pos_y + 1, pos_x + 1,
                          pos_y + win_size_y - 2,
                          pos_x + win_size_x - 2)
+
+    def redraw_pad(self):
+        """
+        Redraw pad in window
+        """
+
+        # if terminal size is invalid, stop here
+        if not self.config.is_terminal_valid():
+            return
+
+        # screen/pad properties
+        pos_y, pos_x = self.config.get_pos()
+        win_size_y, win_size_x = self.win.getmaxyx()
+        pad_size_y, pad_size_x = self.pad.getmaxyx()
+        self.state.cur_y, self.state.cur_x = self.pad.getyx()
+
+        # make sure pad has correct width (after resize)
+        if pad_size_x != win_size_x - 2:
+            self.pad.resize(pad_size_y, win_size_x - 2)
+            pad_size_x = win_size_x - 2
+
+        # store last selected entry
+        if self.state.cur_y >= len(self.list):
+            # make sure cur_y is still "within" the list. Length difference
+            # should be only 1, because buddies get removed individually
+            self.state.cur_y = max(0, self.state.cur_y - 1)
+        last_selected = self.list[self.state.cur_y]
+
+        # sort list
+        self.list.sort()
+
+        # make sure all names fit into pad
+        if len(self.list) > pad_size_y - 1:
+            self.pad.resize(len(self.list) + 1, pad_size_x)
+
+        # if there is an active conversation or last selected conversation was
+        # moved, move cursor to it
+        for index, conv in enumerate(self.list):
+            if conv.is_active() or conv is last_selected:
+                self.state.cur_y = index
+
+        # print names in list window
+        self._print_list(pad_size_x, pos_y, pos_x, win_size_y, win_size_x)
 
         # if in filter mode, show the filter string as well
         if self.filter:
