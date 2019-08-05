@@ -181,8 +181,7 @@ class WinConfig:
 
     def __init__(self, wtype):
         self.type = wtype
-        self.rel_y = 0
-        self.rel_x = 0
+        self._rel_yx = 0
         self.keymap = None
         self.keybinds = None
         self.attr = {}  # window colors/attributes
@@ -232,14 +231,11 @@ class WinConfig:
 
         # set window layout
         if self.type == "list_win":
-            self.rel_y = layout["LIST_WIN_Y_PER"]
-            self.rel_x = layout["LIST_WIN_X_PER"]
+            self._rel_yx = layout["LIST_WIN_Y_PER"], layout["LIST_WIN_X_PER"]
         if self.type == "log_win":
-            self.rel_y = layout["LOG_WIN_Y_PER"]
-            self.rel_x = layout["LOG_WIN_X_PER"]
+            self._rel_yx = layout["LOG_WIN_Y_PER"], layout["LOG_WIN_X_PER"]
         if self.type == "input_win":
-            self.rel_y = layout["INPUT_WIN_Y_PER"]
-            self.rel_x = layout["INPUT_WIN_X_PER"]
+            self._rel_yx = layout["INPUT_WIN_Y_PER"], layout["INPUT_WIN_X_PER"]
 
     @staticmethod
     def _get_window_config():
@@ -543,8 +539,8 @@ class WinConfig:
         return minimum size.
         """
 
-        abs_y = max(int(max_y * self.rel_y), 3)
-        abs_x = max(int(max_x * self.rel_x), 3)
+        abs_y = max(int(max_y * self._rel_yx[0]), 3)
+        abs_x = max(int(max_x * self._rel_yx[1]), 3)
         return abs_y, abs_x
 
     def get_size(self):
