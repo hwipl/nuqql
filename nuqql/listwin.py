@@ -356,9 +356,9 @@ class ListWin(nuqql.win.Win):
         # check if we are in filter mode
         if self.filter:
             # filter mode: look for special key mapping or process as text
-            if not self.handle_keybinds(char,
-                                        keybinds=self.config.filter_keybinds,
-                                        keyfunc=self.filter_keyfunc):
+            if not self.handle_keybinds(
+                    char, keybinds=self.config.keybinds["__filter__"],
+                    keyfunc=self.filter_keyfunc):
                 # no special key, add character to filter
                 try:
                     self.filter += char

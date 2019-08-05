@@ -185,7 +185,6 @@ class WinConfig:
         self.rel_x = 0
         self.keymap = None
         self.keybinds = None
-        self.filter_keybinds = None
         self.attr = {}  # window colors/attributes
         self.settings = {}  # window settings
 
@@ -521,7 +520,9 @@ class WinConfig:
         # construct keybinds as used later
         keybinds = {}
         keybinds["list_win"] = tmp_keybinds["list_win_keybinds"]
-        keybinds["list_win_filter"] = tmp_keybinds["list_win_filter_keybinds"]
+        # list win has additional keybinds for filter mode
+        keybinds["list_win"]["__filter__"] = \
+            tmp_keybinds["list_win_filter_keybinds"]
         keybinds["log_win"] = tmp_keybinds["log_win_keybinds"]
         keybinds["input_win"] = tmp_keybinds["input_win_keybinds"]
 
@@ -534,9 +535,6 @@ class WinConfig:
 
         keybinds = self._get_keybinds_config()
         self.keybinds = keybinds[self.type]
-        if self.type == "list_win":
-            # list win has additional keybinds for filter mode
-            self.filter_keybinds = keybinds["list_win_filter"]
 
     def get_win_size(self, max_y, max_x):
         """
