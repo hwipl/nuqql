@@ -401,7 +401,7 @@ class Win:
 
         # implemented in sub classes
 
-    def handle_keybinds(self, *args):
+    def handle_keybinds(self, *args, keybinds=None, keyfunc=None):
         """
         Handle special keys
         """
@@ -409,14 +409,20 @@ class Win:
         # input character is first argument
         char = args[0]
 
+        # set keybinds and keyfunc, if not in parameters
+        if not keybinds:
+            keybinds = self.config.keybinds
+        if not keyfunc:
+            keyfunc = self.keyfunc
+
         # look for special key mappings in keymap
         try:
             cint = ord(char)
         except (TypeError, ValueError):
             cint = char
         if cint in self.config.keymap and \
-           self.config.keymap[cint] in self.config.keybinds:
-            func = self.keyfunc[self.config.keybinds[self.config.keymap[cint]]]
+           self.config.keymap[cint] in keybinds:
+            func = keyfunc[keybinds[self.config.keymap[cint]]]
             func(*args[1:])     # call function with remaining arguments
             return True         # handled a special key
 
