@@ -302,47 +302,50 @@ class ListWin(nuqql.win.Win):
         self.win.addnstr(max_y - 1, 2, show, max_x - 4)
         self.win.refresh()
 
+    def _process_filter_abort(self):
+        # abort filter mode/reset filter
+        self.filter = ""
+        self._process_filter_show()
+
+    def _process_filter_enter(self):
+        # enter conversation in filter mode
+        # create windows, if they do not exists
+        if not self.list[self.state.cur_y].has_windows():
+            self.list[self.state.cur_y].create_windows()
+
+        # activate conversation
+        self.list[self.state.cur_y].activate()
+
+        # reset filter
+        self.filter = ""
+        self._process_filter_show()
+
+    def _process_filter_del_char(self):
+        # delete character from filter
+        self.filter = self.filter[:-1]
+        self._process_filter_nearest()
+        if not self.filter:
+            # if filter is now empty, make sure it is not shown any more
+            self._process_filter_show()
+
     def _process_filter_input(self, char):
         """
         Process input from user in filter mode
         """
 
-        # look for special key mappings in keymap or process as text
-        # TODO: add another keybind dict or spawn a special listwin instance
-        # or something?
-        if char == curses.KEY_UP:
-            # go to next match above
-            self._process_filter_up()
+        # filter mode keybinds. TODO: improve? move to config?
+        keybinds = {
+            curses.KEY_UP:          self._process_filter_up,
+            curses.KEY_DOWN:        self._process_filter_down,
+            chr(curses.ascii.ESC):  self._process_filter_abort,
+            "\n":                   self._process_filter_enter,
+            chr(curses.ascii.DEL):  self._process_filter_del_char,
+        }
 
-        elif char == curses.KEY_DOWN:
-            # go to next match below
-            self._process_filter_down()
-
-        elif char == chr(curses.ascii.ESC):
-            # reset filter
-            self.filter = ""
-            self._process_filter_show()
-
-        elif char == "\n":
-            # create windows, if they do not exists
-            if not self.list[self.state.cur_y].has_windows():
-                self.list[self.state.cur_y].create_windows()
-
-            # activate conversation
-            self.list[self.state.cur_y].activate()
-
-            # reset filter
-            self.filter = ""
-            self._process_filter_show()
-
-        elif char == chr(curses.ascii.DEL):
-            # delete character from filter
-            self.filter = self.filter[:-1]
-            self._process_filter_nearest()
-            if not self.filter:
-                # if filter is now empty, make sure it is not shown any more
-                self._process_filter_show()
-
+        # look for special key mappings in keybinds or process as text
+        if char in keybinds:
+            func = keybinds[char]
+            func()
         else:
             # add character to filter
             try:
