@@ -15,10 +15,13 @@ import nuqql.conversation
 import nuqql.history
 
 
-def handle_message(backend, acc_id, tstamp, sender, msg, resource):
+def handle_message(*args):
     """
     Handle message from backend
     """
+
+    # parse args
+    backend, acc_id, tstamp, sender, msg, resource = args
 
     # convert timestamp
     tstamp = datetime.datetime.fromtimestamp(tstamp)
@@ -45,10 +48,13 @@ def handle_message(backend, acc_id, tstamp, sender, msg, resource):
     backend.conversation.log(sender, msg, tstamp=tstamp)
 
 
-def handle_chat_message(backend, acc_id, ctype, chat, nick, alias, status):
+def handle_chat_message(*args):
     """
     Handle chat message from backend
     """
+
+    # parse args
+    backend, acc_id, ctype, chat, nick, alias, status = args
 
     for conv in nuqql.conversation.CONVERSATIONS:
         if isinstance(conv, nuqql.conversation.GroupConversation) and \
