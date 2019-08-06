@@ -15,6 +15,7 @@ This file contains changes in each version:
 * Add configuration file for setting ui layout, colors, keybinds, keymap,
   window titles, conversation list sorting
 * Improve nuqql-keys to work with nuqql config file
+* Improve backend start and reduce wait time
 * Code cleanups, fixes, and improvements
 
 ## v0.5:
