@@ -32,6 +32,11 @@ BACKENDS = {}
 # enable/disable logging of subprocess output
 SUBPROCESS_LOGGING = True
 
+# how often should a backend client try to connect to its server and
+# how long (in seconds) should a backend client sleep between retries?
+CLIENT_MAX_RETRIES = 100
+CLIENT_RETRY_SLEEP = 0.1
+
 
 class BackendServer:
     """
@@ -106,18 +111,32 @@ class BackendClient:
         self.port = port
         self.buffer = ""
 
-    def start(self):
+    def _connect(self):
         """
-        Start the backend's client
+        Helper for connecting to the server
         """
 
-        # open sockets and connect
         if self.sock_af == socket.AF_INET:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.connect((self.ip_addr, self.port))
         elif self.sock_af == socket.AF_UNIX:
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             self.sock.connect(self.sock_file)
+
+    def start(self):
+        """
+        Start the backend's client
+        """
+
+        # open sockets and connect
+        retries = 0
+        while not self.sock and retries < CLIENT_MAX_RETRIES:
+            try:
+                self._connect()
+            except ConnectionRefusedError:
+                self.sock = None
+                retries += 1
+                time.sleep(CLIENT_RETRY_SLEEP)
 
     def stop(self):
         """
