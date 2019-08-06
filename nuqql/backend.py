@@ -32,6 +32,9 @@ BACKENDS = {}
 # enable/disable logging of subprocess output
 SUBPROCESS_LOGGING = True
 
+# how long should we wait for backends (in seconds) before starting clients
+BACKENDS_WAIT_TIME = 1
+
 # how often should a backend client try to connect to its server and
 # how long (in seconds) should a backend client sleep between retries?
 CLIENT_MAX_RETRIES = 100
@@ -78,8 +81,6 @@ class BackendServer:
             start_new_session=True,     # dont send SIGINT from nuqql to
                                         # subprocess
         )
-        # give it some time
-        time.sleep(1)
 
     def stop(self):
         """
@@ -288,14 +289,20 @@ class Backend:
         if self.server:
             self.server.stop()
 
-    def start_client(self, sock_af=socket.AF_UNIX, ip_addr="127.0.0.1",
-                     port=32000, sock_file=""):
+    def start_client(self):
         """
-        Add a client to this backend and start it
+        Start the backend's client
+        """
+
+        self.client.start()
+
+    def init_client(self, sock_af=socket.AF_UNIX, ip_addr="127.0.0.1",
+                    port=32000, sock_file=""):
+        """
+        Add a client to this backend
         """
 
         self.client = BackendClient(sock_af, ip_addr, port, sock_file)
-        self.client.start()
 
     def stop_client(self):
         """
@@ -828,7 +835,7 @@ def start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
 
     backend = Backend(backend_name)
     backend.start_server(cmd=backend_cmd, path=backend_path)
-    backend.start_client(sock_file=backend_sockfile)
+    backend.init_client(sock_file=backend_sockfile)
 
     BACKENDS[backend_name] = backend
 
@@ -838,13 +845,6 @@ def start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
     nuqql.conversation.CONVERSATIONS.append(conv)
     backend.conversation = conv
     conv.wins.list_win.redraw()
-
-    # request accounts from backend
-    backend.client.send_accounts()
-
-    # log it
-    log_msg = "Collecting accounts for \"{0}\".".format(backend.name)
-    nuqql.conversation.log_main_window(log_msg)
 
 
 def start_purpled():
@@ -931,16 +931,40 @@ def start_matrixd():
                   backend_sockfile)
 
 
+def start_backend_clients():
+    """
+    Helper for starting all backend clients
+    """
+
+    # give backend servers some time
+    time.sleep(BACKENDS_WAIT_TIME)
+
+    for backend in BACKENDS.values():
+        # start backend client and connect to backend server
+        backend.start_client()
+
+        # request accounts from backend
+        backend.client.send_accounts()
+
+        # log it
+        log_msg = "Collecting accounts for \"{0}\".".format(backend.name)
+        nuqql.conversation.log_main_window(log_msg)
+
+
 def start_backends():
     """
     Helper for starting all backends
     """
 
+    # start backends
     nuqql.conversation.log_main_window("Start backends.")
     start_purpled()
     start_based()
     start_slixmppd()
     start_matrixd()
+
+    # start backend clients
+    start_backend_clients()
 
 
 def stop_backends():
