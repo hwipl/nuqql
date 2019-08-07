@@ -2,7 +2,7 @@
 
 This file contains changes in each version:
 
-## devel:
+## v0.6:
 * Rework history viewing code in log window
 * Add additional keybinds to conversation list and input windows:
   * `ctrl-n`: go to next unread or more recently used conversation
