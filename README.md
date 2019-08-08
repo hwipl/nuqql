@@ -70,6 +70,8 @@ Basic controls of nuqql are:
   * Leave conversation with the `ESC` key
 * Exit nuqql with the `q` key when you are in no conversation
 
+See [controls](doc/controls.md) for more information about nuqql's controls.
+
 ## Setup
 
 The basic setup consist of installing one or more backends and adding your
