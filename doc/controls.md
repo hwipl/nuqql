@@ -69,4 +69,17 @@ Special commands only in the `{nuqql}` conversation:
 These are the special keys you can use when browsing a conversation's history
 (inside a LogWin):
 
-* TODO
+* `UP` or `k`: move cursor up one line
+* `DOWN` or `j`: move cursor down one line
+* `PAGE UP`: move cursor up multiple lines
+* `PAGE DOWN`: move cursor down multiple lines
+* `HOME`: move cursor up to first line
+* `END`: move cursor down to last line
+
+* `/`: search conversation's history
+* `n`: search for next match
+* `p`: search for previous match
+
+* `F9`: zoom chat history
+
+* `ESC`: leave conversation's history (-> InputWin)
