@@ -697,10 +697,20 @@ def init_conversation_settings():
     CONFIGS["conversations"] = settings
 
 
+def init_path():
+    """
+    Initialize configuration path. Make sure config directories exist.
+    """
+
+    config_path = Path.home() / ".config/nuqql"
+    Path(config_path).mkdir(parents=True, exist_ok=True)
+
+
 def init(screen):
     """
     Initialize configurations
     """
 
+    init_path()
     init_win(screen)
     init_conversation_settings()
