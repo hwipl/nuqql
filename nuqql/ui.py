@@ -45,7 +45,15 @@ def handle_message(*args):
             return
 
     # nothing found, log to main window
-    backend.conversation.log(sender, msg, tstamp=tstamp)
+    # or create temporary conversation
+    account = backend.get_account(acc_id)
+    if account is None:
+        backend.conversation.log(sender, msg, tstamp=tstamp)
+    else:
+        conv = nuqql.conversation.GroupConversation(backend, account, sender)
+        conv.temporary = True
+        conv.wins.list_win.add(conv)
+        conv.wins.list_win.redraw()
 
 
 def handle_chat_message(*args):
