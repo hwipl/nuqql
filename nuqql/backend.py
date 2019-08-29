@@ -509,6 +509,17 @@ class Backend:
             if acc.update_buddies():
                 self.client.send_buddies(acc.aid)
 
+    def get_account(self, account_id):
+        """
+        Get account with specified account id
+        """
+
+        for acc in self.accounts.values():
+            if acc.aid == account_id:
+                return acc
+
+        return None
+
 
 ##################
 # Helper Classes #
