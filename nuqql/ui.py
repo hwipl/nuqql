@@ -50,10 +50,17 @@ def handle_message(*args):
     if account is None:
         backend.conversation.log(sender, msg, tstamp=tstamp)
     else:
+        # TODO: check if sender is ok for group chats
         conv = nuqql.conversation.GroupConversation(backend, account, sender)
         conv.temporary = True
         conv.wins.list_win.add(conv)
         conv.wins.list_win.redraw()
+        # TODO: check if conv.name is ok for group chats
+        log_msg = conv.log(conv.name, msg, tstamp=tstamp)
+        nuqql.history.log(conv, log_msg)
+        # if window is not already active notify user
+        if not conv.is_input_win_active():
+            conv.notify()
 
 
 def handle_chat_message(*args):
