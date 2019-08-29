@@ -363,16 +363,15 @@ class Backend:
         Handle "message" message
         """
 
-        # TODO: do not ignore account name; it's not even an acc_name,
-        # it's the name of the buddy? FIXME
-        # msg_type = msg[0]
+        # msg_type = parsed_msg[0]
         acc_id = parsed_msg[1]
-        # acc_name = msg[2]
+        # destination = parsed_msg[2]
         tstamp = parsed_msg[3]
         sender = parsed_msg[4]
         msg = parsed_msg[5]
 
         # account specific message parsing
+        # TODO: remove duplicate code?
         resource = ""
         for tmp_acc in self.accounts.values():
             if tmp_acc.aid == acc_id:
@@ -409,6 +408,37 @@ class Backend:
         ctype = parsed_msg[1]
         acc_id = parsed_msg[2]
         chat = parsed_msg[3]
+
+        # msg message
+        if ctype == "msg:":
+            timestamp = parsed_msg[4]
+            sender = parsed_msg[5]
+            msg = parsed_msg[6]
+
+            # account specific message parsing
+            # TODO: remove duplicate code?
+            for tmp_acc in self.accounts.values():
+                if tmp_acc.aid == acc_id:
+                    if tmp_acc.type == "icq":
+                        if sender[-1] == ":":
+                            sender = sender[:-1]
+                        if msg[:6] == "<BODY>":
+                            msg = msg[6:]
+                        if msg[-7:] == "</BODY>":
+                            msg = msg[:-7]
+                        break
+                    elif tmp_acc.type == "xmpp":
+                        sender_parts = sender.split("/")
+                        sender = sender_parts[0]
+                        break
+                    elif tmp_acc.type == "matrix":
+                        # TODO: improve?
+                        sender = sender[1:].split(":")[0]
+                        break
+            # handle message in ui
+            nuqql.ui.handle_chat_msg_message(self, acc_id, chat, timestamp,
+                                             sender, msg)
+            return
 
         # user message
         if ctype == "user:":
@@ -769,6 +799,16 @@ def parse_chat_msg(orig_msg):
         user_alias = part[4]
         status = part[5]
         return "chat", ctype, acc, chat, user, user_alias, status
+
+    # msg message
+    # TODO: remove duplicate code?
+    if ctype == "msg:" and len(part) >= 6:
+        tstamp = part[3]
+        sender = part[4]
+        msg = " ".join(part[5:])
+        msg = "\n".join(re.split("<br/>", msg, flags=re.IGNORECASE))
+        msg = html.unescape(msg)
+        return "chat", ctype, acc, chat, int(tstamp), sender, msg
 
     return ("", )
 

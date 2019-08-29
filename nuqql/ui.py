@@ -21,7 +21,8 @@ def handle_message(*args):
     """
 
     # parse args
-    backend, acc_id, tstamp, sender, msg, resource = args
+    # TODO: remove resource
+    backend, acc_id, tstamp, sender, msg, _resource = args
 
     # convert timestamp
     tstamp = datetime.datetime.fromtimestamp(tstamp)
@@ -32,11 +33,7 @@ def handle_message(*args):
            conv.account and conv.account.aid == acc_id and \
            conv.name == sender:
             # log message
-            if isinstance(conv, nuqql.conversation.GroupConversation):
-                # this is a group chat message, sender is in resource
-                log_msg = conv.log(resource, msg, tstamp=tstamp)
-            else:
-                log_msg = conv.log(conv.name, msg, tstamp=tstamp)
+            log_msg = conv.log(conv.name, msg, tstamp=tstamp)
             nuqql.history.log(conv, log_msg)
 
             # if window is not already active notify user
@@ -50,14 +47,63 @@ def handle_message(*args):
     if account is None:
         backend.conversation.log(sender, msg, tstamp=tstamp)
     else:
-        # TODO: check if sender is ok for group chats
-        conv = nuqql.conversation.GroupConversation(backend, account, sender)
+        # create buddy conversation
+        conv = nuqql.conversation.BuddyConversation(backend, account, sender)
         conv.temporary = True
         conv.wins.list_win.add(conv)
         conv.wins.list_win.redraw()
-        # TODO: check if conv.name is ok for group chats
+
+        # log message
         log_msg = conv.log(conv.name, msg, tstamp=tstamp)
         nuqql.history.log(conv, log_msg)
+
+        # if window is not already active notify user
+        if not conv.is_input_win_active():
+            conv.notify()
+
+
+def handle_chat_msg_message(*args):
+    """
+    Handle "chat msg" message from backend
+    """
+
+    # TODO: remove duplicate code?
+    # parse args
+    backend, acc_id, chat, tstamp, sender, msg = args
+
+    # convert timestamp
+    tstamp = datetime.datetime.fromtimestamp(tstamp)
+
+    for conv in nuqql.conversation.CONVERSATIONS:
+        if isinstance(conv, nuqql.conversation.GroupConversation) and \
+           conv.backend is backend and \
+           conv.account and conv.account.aid == acc_id and \
+           conv.name == chat:
+            # log message
+            log_msg = conv.log(sender, msg, tstamp=tstamp)
+            nuqql.history.log(conv, log_msg)
+
+            # if window is not already active notify user
+            if not conv.is_input_win_active():
+                conv.notify()
+            return
+
+    # nothing found, log to main window
+    # or create temporary conversation
+    account = backend.get_account(acc_id)
+    if account is None:
+        backend.conversation.log(sender, msg, tstamp=tstamp)
+    else:
+        # create group conversation
+        conv = nuqql.conversation.GroupConversation(backend, account, chat)
+        conv.temporary = True
+        conv.wins.list_win.add(conv)
+        conv.wins.list_win.redraw()
+
+        # log message
+        log_msg = conv.log(sender, msg, tstamp=tstamp)
+        nuqql.history.log(conv, log_msg)
+
         # if window is not already active notify user
         if not conv.is_input_win_active():
             conv.notify()
@@ -68,6 +114,7 @@ def handle_chat_message(*args):
     Handle chat message from backend
     """
 
+    # TODO: remove duplicate code?
     # parse args
     backend, acc_id, ctype, chat, nick, alias, status = args
 
