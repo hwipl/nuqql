@@ -144,6 +144,11 @@ class InputWin(nuqql.win.Win):
                 segment[self.state.cur_y]
             segment = segment[:self.state.cur_y] + \
                 segment[self.state.cur_y + 1:]
+            # resize pad if concatenated line is longer than pad
+            pad_size_y, pad_size_x = self.pad.getmaxyx()
+            if len(segment[self.state.cur_y - 1]) + 2 > pad_size_x:
+                pad_size_x = len(segment[self.state.cur_y - 1]) + 2
+                self.pad.resize(pad_size_y, pad_size_x)
         # reconstruct and display message
         self.msg = "\n".join(segment)
         self.pad.erase()
@@ -172,6 +177,11 @@ class InputWin(nuqql.win.Win):
             segment[self.state.cur_y] = segment[self.state.cur_y] +\
                 segment[self.state.cur_y + 1]
             del segment[self.state.cur_y + 1]
+            # resize pad if concatenated line is longer than pad
+            pad_size_y, pad_size_x = self.pad.getmaxyx()
+            if len(segment[self.state.cur_y]) + 2 > pad_size_x:
+                pad_size_x = len(segment[self.state.cur_y]) + 2
+                self.pad.resize(pad_size_y, pad_size_x)
 
         # reconstruct and display message
         self.msg = "\n".join(segment)
