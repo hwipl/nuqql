@@ -42,25 +42,6 @@ class LogWin(nuqql.win.Win):
         # add entry to own list via base class function
         self.list_add(self.list, entry)
 
-    @staticmethod
-    def _get_num_log_lines(log_slice, pad_size_x):
-        """
-        Get number of lines in log, depending on number of messages and how
-        many lines each message uses.
-        """
-
-        # init line count and start index
-        lines = 0
-
-        for msg in log_slice:
-            parts = msg.read(mark_read=False).split("\n")
-            lines += len(parts)
-            for part in parts:
-                if len(part) >= pad_size_x:
-                    lines += len(part) // pad_size_x
-
-        return lines
-
     def _get_log_view(self, props):
         """
         Get a slice of the log in the current view of the pad
@@ -83,15 +64,46 @@ class LogWin(nuqql.win.Win):
 
         return log_slice
 
+    def _print_msg(self, msg, last=False):
+        """
+        Print a single log message. Handle newlines in the log message and add
+        additional line breaks for parts of the log message that are too long
+        for the log window's pad width.
+        """
+
+        # get size of the pad
+        max_y, max_x = self.pad.getmaxyx()
+
+        # split the message at newlines and handle each line separately
+        lines = msg.split("\n")
+        for index, line in enumerate(lines):
+            first = True
+            while first or line:
+                # always print the first part of a line, even if it's empty.
+                first = False
+                self.pad.insnstr(line, max_x)
+
+                # drop all characters we printed from the current line
+                line = line[max_x:]
+                if not line and index == len(lines) - 1 and last:
+                    # if we printed the last part of the last line of the last
+                    # message, do not increase pad size and do not move cursor
+                    break
+
+                # there are more parts of the current line, more lines, or more
+                # messages coming. Increase pad size and move cursor.
+                max_y += 1
+                self.pad.resize(max_y, max_x)
+                self.pad.move(max_y - 1, 0)
+
     def _print_log(self, props):
         """
         dump log messages and resize pad according to new lines added
         """
 
-        # make sure lines fit into pad
+        # get the current slice of the log and start with a fresh pad size
         log_slice = self._get_log_view(props)
-        lines = self._get_num_log_lines(log_slice, props.pad_size_x)
-        self.pad.resize(lines + 1, props.pad_size_x)
+        self.pad.resize(1, props.pad_size_x)
 
         for index, msg in enumerate(log_slice):
             # set colors and attributes for message:
@@ -113,11 +125,10 @@ class LogWin(nuqql.win.Win):
                     self.pad.attrset(self.config.attr["log_win_text_self_new"])
 
             # output message
-            self.pad.addstr(msg.read())
             if index < len(log_slice) - 1:
-                cur_y, cur_x = self.pad.getyx()
-                if cur_x != 0 or msg.read()[-1] == "\n":
-                    self.pad.move(cur_y + 1, 0)
+                self._print_msg(msg.read())
+            else:
+                self._print_msg(msg.read(), last=True)
 
     def _get_properties(self):
         """
