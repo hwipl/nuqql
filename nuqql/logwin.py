@@ -54,7 +54,7 @@ class LogWin(nuqql.win.Win):
 
         for msg in log_slice:
             parts = msg.read(mark_read=False).split("\n")
-            lines += len(parts) - 1
+            lines += len(parts)
             for part in parts:
                 if len(part) >= pad_size_x:
                     lines += len(part) // pad_size_x
@@ -113,13 +113,11 @@ class LogWin(nuqql.win.Win):
                     self.pad.attrset(self.config.attr["log_win_text_self_new"])
 
             # output message
+            self.pad.addstr(msg.read())
             if index < len(log_slice) - 1:
-                self.pad.addstr(msg.read()[:-1])
                 cur_y, cur_x = self.pad.getyx()
-                if cur_x != 0 or msg.read()[-2] == "\n":
+                if cur_x != 0 or msg.read()[-1] == "\n":
                     self.pad.move(cur_y + 1, 0)
-            else:
-                self.pad.addstr(msg.read()[:-1])
 
     def _get_properties(self):
         """

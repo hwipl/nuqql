@@ -49,9 +49,9 @@ class LogMessage:
         """
 
         # format message
-        msg = "{0} {1}: {2}\n".format(self.tstamp.strftime("%H:%M:%S"),
-                                      self.get_short_sender(),
-                                      self.msg)
+        msg = "{0} {1}: {2}".format(self.tstamp.strftime("%H:%M:%S"),
+                                    self.get_short_sender(),
+                                    self.msg)
 
         # message has now been read
         if mark_read:
