@@ -114,7 +114,10 @@ class LogWin(nuqql.win.Win):
 
             # output message
             if index < len(log_slice) - 1:
-                self.pad.addstr(msg.read())
+                self.pad.addstr(msg.read()[:-1])
+                cur_y, cur_x = self.pad.getyx()
+                if cur_x != 0 or msg.read()[-2] == "\n":
+                    self.pad.move(cur_y + 1, 0)
             else:
                 self.pad.addstr(msg.read()[:-1])
 
