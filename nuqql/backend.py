@@ -168,12 +168,12 @@ class BackendClient:
                                                        [self.sock, ], 0)
         except OSError:
             nuqql.conversation.log_main_window(BACKEND_ERROR)
-            stop_backend(self.backend)
+            self.backend.stop()
             return None
 
         if self.sock in errs:
             # something is wrong
-            stop_backend(self.backend)
+            self.backend.stop()
             return None
 
         if self.sock in reads:
@@ -182,7 +182,7 @@ class BackendClient:
                 data = self.sock.recv(BUFFER_SIZE)
             except OSError:
                 nuqql.conversation.log_main_window(BACKEND_ERROR)
-                stop_backend(self.backend)
+                self.backend.stop()
                 return None
             self.buffer += data.decode()
 
@@ -212,7 +212,7 @@ class BackendClient:
             self.sock.send(msg)
         except OSError:
             nuqql.conversation.log_main_window(BACKEND_ERROR)
-            stop_backend(self.backend)
+            self.backend.stop()
             return
 
     def send_command(self, cmd):
@@ -584,6 +584,26 @@ class Backend:
                 return acc
 
         return None
+
+    def stop(self):
+        """
+        Stop the backend, Note: changes BACKENDS
+        """
+
+        # print to main window
+        log_msg = "Stopping client and server for backend \"{0}\".".format(
+            self.name)
+        nuqql.conversation.log_main_window(log_msg)
+
+        # stop client and server
+        self.stop_client()
+        self.stop_server()
+
+        # remove backend from backends dict
+        del BACKENDS[self.name]  # changes BACKENDS, be carefull
+
+        # remove conversation and update list window
+        nuqql.conversation.remove_backend_conversations(self)
 
 
 ##################
@@ -1017,27 +1037,6 @@ def start_matrixd():
                   backend_sockfile)
 
 
-def stop_backend(backend):
-    """
-    Helper for stopping a backend, Note: changes BACKENDS
-    """
-
-    # print to main window
-    log_msg = "Stopping client and server for backend \"{0}\".".format(
-                backend.name)
-    nuqql.conversation.log_main_window(log_msg)
-
-    # stop client and server
-    backend.stop_client()
-    backend.stop_server()
-
-    # remove backend from backends dict
-    del BACKENDS[backend.name]  # changes BACKENDS, be carefull while iterating
-
-    # remove conversation and update list window
-    nuqql.conversation.remove_backend_conversations(backend)
-
-
 def start_backend_clients():
     """
     Helper for starting all backend clients
@@ -1059,7 +1058,7 @@ def start_backend_clients():
             log_msg = "Could not connect to backend \"{0}\".".format(
                 backend.name)
             nuqql.conversation.log_main_window(log_msg)
-            stop_backend(backend)
+            backend.stop()
             continue
 
         # request accounts from backend
@@ -1092,4 +1091,4 @@ def stop_backends():
     """
 
     for backend in dict(BACKENDS).values():
-        stop_backend(backend)  # changes BACKENDS
+        backend.stop()  # changes BACKENDS
