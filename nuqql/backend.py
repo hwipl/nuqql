@@ -40,6 +40,9 @@ BACKENDS_WAIT_TIME = 1
 CLIENT_MAX_RETRIES = 100
 CLIENT_RETRY_SLEEP = 0.1
 
+# backend error message
+BACKEND_ERROR = "Error accessing backend."
+
 
 class BackendServer:
     """
@@ -105,6 +108,7 @@ class BackendClient:
     def __init__(self, sock_af=socket.AF_UNIX, ip_addr="127.0.0.1", port=32000,
                  sock_file=""):
         # client
+        self.backend = None
         self.sock = None
         self.sock_af = sock_af
         self.sock_file = sock_file
@@ -163,10 +167,13 @@ class BackendClient:
             reads, unused_writes, errs = select.select([self.sock, ], [],
                                                        [self.sock, ], 0)
         except OSError:
+            nuqql.conversation.log_main_window(BACKEND_ERROR)
+            stop_backend(self.backend)
             return None
 
         if self.sock in errs:
             # something is wrong
+            stop_backend(self.backend)
             return None
 
         if self.sock in reads:
@@ -174,6 +181,8 @@ class BackendClient:
             try:
                 data = self.sock.recv(BUFFER_SIZE)
             except OSError:
+                nuqql.conversation.log_main_window(BACKEND_ERROR)
+                stop_backend(self.backend)
                 return None
             self.buffer += data.decode()
 
@@ -202,6 +211,8 @@ class BackendClient:
         try:
             self.sock.send(msg)
         except OSError:
+            nuqql.conversation.log_main_window(BACKEND_ERROR)
+            stop_backend(self.backend)
             return
 
     def send_command(self, cmd):
@@ -326,6 +337,7 @@ class Backend:
         """
 
         self.client = BackendClient(sock_af, ip_addr, port, sock_file)
+        self.client.backend = self
 
     def stop_client(self):
         """
@@ -878,7 +890,7 @@ def update_buddies():
     Helper for updating buddies on all backends
     """
 
-    for backend in BACKENDS.values():
+    for backend in dict(BACKENDS).values():
         backend.update_buddies()
 
 
@@ -887,7 +899,7 @@ def handle_network():
     Helper for handling network events on all backends
     """
 
-    for backend in BACKENDS.values():
+    for backend in dict(BACKENDS).values():
         backend.handle_network()
 
 
