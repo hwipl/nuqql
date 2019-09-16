@@ -1066,7 +1066,7 @@ def start_backend_clients():
 
         # log it
         log_msg = "Collecting accounts for \"{0}\".".format(backend.name)
-        nuqql.conversation.log_main_window(log_msg)
+        backend.conversation.log("nuqql", log_msg)
 
 
 def start_backends():
