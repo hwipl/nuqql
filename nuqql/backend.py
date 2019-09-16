@@ -1008,7 +1008,7 @@ def start_backends():
     """
 
     # start backends
-    nuqql.conversation.log_main_window("Start backends.")
+    nuqql.conversation.log_main_window("Starting backends.")
     start_purpled()
     start_based()
     start_slixmppd()
