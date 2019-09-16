@@ -642,6 +642,10 @@ class BackendConversation(Conversation):
 
             self.backend.client.send_command(msg)
 
+            if msg in ("bye", "quit"):
+                # user told the backend to disconnect/quit, stop backend
+                self.backend.stop()
+
 
 class NuqqlConversation(Conversation):
     """
