@@ -3,6 +3,7 @@ Nuqql Conversations
 """
 
 import datetime
+import urllib.parse
 
 from types import SimpleNamespace
 from pathlib import Path
@@ -352,7 +353,9 @@ class BuddyConversation(Conversation):
 
         if self.peers:
             peer = self.peers[0]
-            return "{0}[{1}] {2}".format(notify, peer.status, peer.alias)
+            # unquote the alias, e.g., remove %20 for whitespace
+            alias = urllib.parse.unquote(peer.alias)
+            return "{0}[{1}] {2}".format(notify, peer.status, alias)
         return "{0}[{1}] {2}".format(notify, "off", self.name)
 
     def get_key(self):
