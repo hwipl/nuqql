@@ -149,6 +149,7 @@ class BackendClient:
                 self.sock.close()
             except OSError:
                 pass
+            self.sock = None
 
     def read(self):
         """
