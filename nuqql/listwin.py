@@ -85,13 +85,13 @@ class ListWin(nuqql.win.Win):
             # print name
             if index == self.state.cur_y:
                 # cursor is on conversation, highlight it in list
-                self.pad.addstr(index, 0, name, curses.A_REVERSE)
+                self.pad.insstr(index, 0, name, curses.A_REVERSE)
             else:
                 # just show the conversation in list
                 if self._match_filter(conv.get_name()):
-                    self.pad.addstr(index, 0, name)
+                    self.pad.insstr(index, 0, name)
                 else:
-                    self.pad.addstr(index, 0, name, curses.A_DIM)
+                    self.pad.insstr(index, 0, name, curses.A_DIM)
 
             # check if there is a zoomed conversation
             # TODO: move this into a separate helper?
@@ -142,8 +142,8 @@ class ListWin(nuqql.win.Win):
         self.list.sort()
 
         # make sure all names fit into pad
-        if len(self.list) > pad_size_y - 1:
-            self.pad.resize(len(self.list) + 1, pad_size_x)
+        if len(self.list) != pad_size_y:
+            self.pad.resize(len(self.list), pad_size_x)
 
         # if there is an active conversation or last selected conversation was
         # moved, move cursor to it
