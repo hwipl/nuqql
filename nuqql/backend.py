@@ -1023,8 +1023,7 @@ def stop_backend(backend):
     del BACKENDS[backend.name]  # changes BACKENDS, be carefull while iterating
 
     # remove conversation and update list window
-    nuqql.conversation.CONVERSATIONS.remove(backend.conversation)
-    backend.conversation.wins.list_win.redraw()
+    nuqql.conversation.remove_backend_conversations(backend)
 
 
 def start_backend_clients():

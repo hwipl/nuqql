@@ -838,6 +838,17 @@ def handle_nuqql_command(conv, msg):
         handle_nuqql_global_status(conv, parts[1:])
 
 
+def remove_backend_conversations(backend):
+    """
+    Remove all conversations beloning to the backend
+    """
+
+    for conv in CONVERSATIONS[:]:
+        if conv.backend == backend:
+            CONVERSATIONS.remove(conv)
+            conv.wins.list_win.redraw()
+
+
 def log_main_window(msg):
     """
     Log message to main windows
