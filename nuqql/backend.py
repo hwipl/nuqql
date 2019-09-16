@@ -144,12 +144,16 @@ class BackendClient:
         Stop the backend's client
         """
 
-        self.sock.close()
+        if self.sock:
+            self.sock.close()
 
     def read(self):
         """
         Read from the client connection
         """
+
+        if not self.sock:
+            return None
 
         reads, unused_writes, errs = select.select([self.sock, ], [],
                                                    [self.sock, ], 0)
@@ -181,7 +185,8 @@ class BackendClient:
 
         msg = cmd + "\r\n"
         msg = msg.encode()
-        self.sock.send(msg)
+        if self.sock:
+            self.sock.send(msg)
 
     def send_msg(self, account, buddy, msg):
         """
@@ -193,7 +198,8 @@ class BackendClient:
         msg = "<br/>".join(msg.split("\n"))
         msg = prefix + msg + "\r\n"
         msg = msg.encode()
-        self.sock.send(msg)
+        if self.sock:
+            self.sock.send(msg)
 
     def send_group_msg(self, account, buddy, msg):
         """
@@ -205,7 +211,8 @@ class BackendClient:
         msg = "<br/>".join(msg.split("\n"))
         msg = prefix + msg + "\r\n"
         msg = msg.encode()
-        self.sock.send(msg)
+        if self.sock:
+            self.sock.send(msg)
 
     def send_collect(self, account):
         """
@@ -219,7 +226,8 @@ class BackendClient:
         msg = "account {0} collect 0\r\n".format(account)
         msg = msg.encode()
         # self.collect_acc = account
-        self.sock.send(msg)
+        if self.sock:
+            self.sock.send(msg)
 
     def send_buddies(self, account):
         """
@@ -229,7 +237,8 @@ class BackendClient:
 
         msg = "account {0} buddies\r\n".format(account)
         msg = msg.encode()
-        self.sock.send(msg)
+        if self.sock:
+            self.sock.send(msg)
 
     def send_accounts(self):
         """
@@ -239,7 +248,8 @@ class BackendClient:
 
         msg = "account list\r\n"
         msg = msg.encode()
-        self.sock.send(msg)
+        if self.sock:
+            self.sock.send(msg)
 
     def send_status_set(self, account, status):
         """
@@ -249,7 +259,8 @@ class BackendClient:
 
         msg = "account {} status set {}\r\n".format(account, status)
         msg = msg.encode()
-        self.sock.send(msg)
+        if self.sock:
+            self.sock.send(msg)
 
 
 class Backend:
