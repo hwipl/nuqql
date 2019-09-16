@@ -178,15 +178,24 @@ class BackendClient:
         self.buffer = self.buffer[eom + 2:]
         return msg
 
+    def _send(self, msg):
+        """
+        Helper for sending any messages and catching errors.
+        """
+
+        if not self.sock:
+            return
+
+        msg = msg.encode()
+        self.sock.send(msg)
+
     def send_command(self, cmd):
         """
         Send a command over the client connection
         """
 
         msg = cmd + "\r\n"
-        msg = msg.encode()
-        if self.sock:
-            self.sock.send(msg)
+        self._send(msg)
 
     def send_msg(self, account, buddy, msg):
         """
@@ -197,9 +206,7 @@ class BackendClient:
         msg = html.escape(msg)
         msg = "<br/>".join(msg.split("\n"))
         msg = prefix + msg + "\r\n"
-        msg = msg.encode()
-        if self.sock:
-            self.sock.send(msg)
+        self._send(msg)
 
     def send_group_msg(self, account, buddy, msg):
         """
@@ -210,9 +217,7 @@ class BackendClient:
         msg = html.escape(msg)
         msg = "<br/>".join(msg.split("\n"))
         msg = prefix + msg + "\r\n"
-        msg = msg.encode()
-        if self.sock:
-            self.sock.send(msg)
+        self._send(msg)
 
     def send_collect(self, account):
         """
@@ -224,10 +229,8 @@ class BackendClient:
         # TODO: only works as intended if we spawn our own purpled daemon at
         # nuqql's startup, FIXME?
         msg = "account {0} collect 0\r\n".format(account)
-        msg = msg.encode()
         # self.collect_acc = account
-        if self.sock:
-            self.sock.send(msg)
+        self._send(msg)
 
     def send_buddies(self, account):
         """
@@ -236,9 +239,7 @@ class BackendClient:
         """
 
         msg = "account {0} buddies\r\n".format(account)
-        msg = msg.encode()
-        if self.sock:
-            self.sock.send(msg)
+        self._send(msg)
 
     def send_accounts(self):
         """
@@ -247,9 +248,7 @@ class BackendClient:
         """
 
         msg = "account list\r\n"
-        msg = msg.encode()
-        if self.sock:
-            self.sock.send(msg)
+        self._send(msg)
 
     def send_status_set(self, account, status):
         """
@@ -258,9 +257,7 @@ class BackendClient:
         """
 
         msg = "account {} status set {}\r\n".format(account, status)
-        msg = msg.encode()
-        if self.sock:
-            self.sock.send(msg)
+        self._send(msg)
 
 
 class Backend:
