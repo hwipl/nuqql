@@ -1023,13 +1023,21 @@ def start_backend_clients():
     # give backend servers some time
     time.sleep(BACKENDS_WAIT_TIME)
 
-    for backend in BACKENDS.values():
+    for backend in dict(BACKENDS).values():
         # let user know we are connecting
         log_msg = "Starting client for backend \"{0}\".".format(backend.name)
         nuqql.conversation.log_main_window(log_msg)
 
         # start backend client and connect to backend server
         backend.start_client()
+
+        # make sure the connection to the backend was successful
+        if not backend.client.sock:
+            log_msg = "Could not connect to backend \"{0}\".".format(
+                backend.name)
+            nuqql.conversation.log_main_window(log_msg)
+            stop_backend(backend)
+            continue
 
         # request accounts from backend
         backend.client.send_accounts()
