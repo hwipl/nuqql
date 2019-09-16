@@ -993,6 +993,28 @@ def start_matrixd():
                   backend_sockfile)
 
 
+def stop_backend(backend):
+    """
+    Helper for stopping a backend, Note: changes BACKENDS
+    """
+
+    # print to main window
+    log_msg = "Stopping client and server for backend \"{0}\".".format(
+                backend.name)
+    nuqql.conversation.log_main_window(log_msg)
+
+    # stop client and server
+    backend.stop_client()
+    backend.stop_server()
+
+    # remove backend from backends dict
+    del BACKENDS[backend.name]  # changes BACKENDS, be carefull while iterating
+
+    # remove conversation and update list window
+    nuqql.conversation.CONVERSATIONS.remove(backend.conversation)
+    backend.conversation.wins.list_win.redraw()
+
+
 def start_backend_clients():
     """
     Helper for starting all backend clients
@@ -1038,6 +1060,5 @@ def stop_backends():
     Helper for stopping all backends
     """
 
-    for backend in BACKENDS.values():
-        backend.stop_client()
-        backend.stop_server()
+    for backend in dict(BACKENDS).values():
+        stop_backend(backend)  # changes BACKENDS
