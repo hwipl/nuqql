@@ -134,7 +134,7 @@ class BackendClient:
         while not self.sock and retries < CLIENT_MAX_RETRIES:
             try:
                 self._connect()
-            except ConnectionRefusedError:
+            except ConnectionError:
                 self.sock = None
                 retries += 1
                 time.sleep(CLIENT_RETRY_SLEEP)
@@ -145,7 +145,10 @@ class BackendClient:
         """
 
         if self.sock:
-            self.sock.close()
+            try:
+                self.sock.close()
+            except OSError:
+                pass
 
     def read(self):
         """
@@ -155,15 +158,22 @@ class BackendClient:
         if not self.sock:
             return None
 
-        reads, unused_writes, errs = select.select([self.sock, ], [],
-                                                   [self.sock, ], 0)
+        try:
+            reads, unused_writes, errs = select.select([self.sock, ], [],
+                                                       [self.sock, ], 0)
+        except OSError:
+            return None
+
         if self.sock in errs:
             # something is wrong
             return None
 
         if self.sock in reads:
             # read data from socket and add it to buffer
-            data = self.sock.recv(BUFFER_SIZE)
+            try:
+                data = self.sock.recv(BUFFER_SIZE)
+            except ConnectionError:
+                return None
             self.buffer += data.decode()
 
         # get next message from buffer and return it
@@ -187,7 +197,11 @@ class BackendClient:
             return
 
         msg = msg.encode()
-        self.sock.send(msg)
+
+        try:
+            self.sock.send(msg)
+        except ConnectionError:
+            return
 
     def send_command(self, cmd):
         """
