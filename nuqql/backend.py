@@ -991,6 +991,10 @@ def start_backend_clients():
     time.sleep(BACKENDS_WAIT_TIME)
 
     for backend in BACKENDS.values():
+        # let user know we are connecting
+        log_msg = "Starting client for backend \"{0}\".".format(backend.name)
+        nuqql.conversation.log_main_window(log_msg)
+
         # start backend client and connect to backend server
         backend.start_client()
 
