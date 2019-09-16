@@ -134,7 +134,7 @@ class BackendClient:
         while not self.sock and retries < CLIENT_MAX_RETRIES:
             try:
                 self._connect()
-            except ConnectionError:
+            except OSError:
                 self.sock = None
                 retries += 1
                 time.sleep(CLIENT_RETRY_SLEEP)
@@ -172,7 +172,7 @@ class BackendClient:
             # read data from socket and add it to buffer
             try:
                 data = self.sock.recv(BUFFER_SIZE)
-            except ConnectionError:
+            except OSError:
                 return None
             self.buffer += data.decode()
 
@@ -200,7 +200,7 @@ class BackendClient:
 
         try:
             self.sock.send(msg)
-        except ConnectionError:
+        except OSError:
             return
 
     def send_command(self, cmd):
