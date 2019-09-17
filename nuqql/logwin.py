@@ -49,6 +49,7 @@ class LogWin(nuqql.win.Win):
 
         if self.view.begin == -1:
             start = len(self.list) - (props.win_size_y - props.pad_y_delta)
+            start = max(start, 0)   # make sure it's >= 0
             end = len(self.list)
             self.view.cur = start
         else:
