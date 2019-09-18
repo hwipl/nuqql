@@ -712,9 +712,12 @@ class NuqqlBackend(Backend):
             return
 
         # check command and call helper functions
+        command_map = {
+            "global-status": self._handle_nuqql_global_status,
+        }
         command = parts[0]
-        if command == "global-status":
-            self._handle_nuqql_global_status(parts[1:])
+        if command in command_map:
+            command_map[command](parts[1:])
 
 
 ##################
