@@ -1165,6 +1165,34 @@ def start_matrixd():
                   backend_sockfile)
 
 
+def start_backend_client(backend):
+    """
+    Helper for starting a single backend client
+    """
+
+    # let user know we are connecting
+    log_msg = "Starting client for backend \"{0}\".".format(backend.name)
+    nuqql.conversation.log_main_window(log_msg)
+
+    # start backend client and connect to backend server
+    backend.start_client()
+
+    # make sure the connection to the backend was successful
+    if not backend.client.sock:
+        log_msg = "Could not connect to backend \"{0}\".".format(
+            backend.name)
+        nuqql.conversation.log_main_window(log_msg)
+        backend.stop()
+        return
+
+    # request accounts from backend
+    backend.client.send_accounts()
+
+    # log it
+    log_msg = "Collecting accounts for \"{0}\".".format(backend.name)
+    backend.conversation.log("nuqql", log_msg)
+
+
 def start_backend_clients():
     """
     Helper for starting all backend clients
@@ -1174,27 +1202,7 @@ def start_backend_clients():
     time.sleep(BACKENDS_WAIT_TIME)
 
     for backend in dict(BACKENDS).values():
-        # let user know we are connecting
-        log_msg = "Starting client for backend \"{0}\".".format(backend.name)
-        nuqql.conversation.log_main_window(log_msg)
-
-        # start backend client and connect to backend server
-        backend.start_client()
-
-        # make sure the connection to the backend was successful
-        if not backend.client.sock:
-            log_msg = "Could not connect to backend \"{0}\".".format(
-                backend.name)
-            nuqql.conversation.log_main_window(log_msg)
-            backend.stop()
-            continue
-
-        # request accounts from backend
-        backend.client.send_accounts()
-
-        # log it
-        log_msg = "Collecting accounts for \"{0}\".".format(backend.name)
-        backend.conversation.log("nuqql", log_msg)
+        start_backend_client(backend)
 
 
 def start_nuqql():
