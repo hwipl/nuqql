@@ -714,6 +714,32 @@ class NuqqlBackend(Backend):
         if backend_name in BACKENDS:
             BACKENDS[backend_name].stop()
 
+    @staticmethod
+    def _handle_start(parts):
+        """
+        Handle start command, start a backend
+        """
+
+        if not parts:
+            return
+
+        backend_name = parts[0]
+        if backend_name in BACKENDS:
+            # backend already running
+            return
+
+        backend_map = {
+            "based":    start_based,
+            "matrixd":  start_matrixd,
+            "purpled":  start_purpled,
+            "slixmppd": start_slixmppd,
+        }
+
+        if backend_name in backend_map:
+            # start the backend and its client
+            backend = backend_map[backend_name]()
+            start_backend_client(backend)
+
     def handle_nuqql_command(self, msg):
         """
         Handle a nuqql command (from the nuqql conversation)
@@ -728,6 +754,7 @@ class NuqqlBackend(Backend):
         command_map = {
             "global-status": self._handle_nuqql_global_status,
             "stop": self._handle_stop,
+            "start": self._handle_start,
         }
         command = parts[0]
         if command in command_map:
