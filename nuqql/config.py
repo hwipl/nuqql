@@ -134,6 +134,7 @@ DEFAULT_COLORS = {
     "background": "default",
     "win_border": "blue",
     "list_win_text_default": "yellow",
+    "list_win_text_nuqql": "yellow",
     "list_win_text_slixmppd": "green",
     "list_win_text_matrixd": "red",
     "list_win_text_purpled": "magenta",
@@ -147,6 +148,7 @@ DEFAULT_COLORS = {
 DEFAULT_ATTRIBS = {
     "win_border": "bold",
     "list_win_text_default": "normal",
+    "list_win_text_nuqql": "normal",
     "list_win_text_slixmppd": "normal",
     "list_win_text_matrixd": "normal",
     "list_win_text_purpled": "normal",

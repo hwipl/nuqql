@@ -346,7 +346,6 @@ def start(stdscr, func):
     # create main windows, if terminal size is valid, otherwise just stop here
     if not nuqql.config.WinConfig.is_terminal_valid():
         return "Terminal size invalid."
-    nuqql.conversation.create_main_windows()
 
     # run function provided by caller
     return func()

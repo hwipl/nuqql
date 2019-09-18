@@ -76,11 +76,8 @@ class ListWin(nuqql.win.Win):
             name = name[:pad_size_x-1] + "\n"
 
             # set colors depending on backend name
-            if conv.backend:
-                self.pad.attrset(self.config.attr["list_win_text"][
-                    conv.backend.name])
-            else:
-                self.pad.attrset(self.config.attr["list_win_text"]["default"])
+            self.pad.attrset(self.config.attr["list_win_text"][
+                conv.backend.name])
 
             # print name
             if index == self.state.cur_y:

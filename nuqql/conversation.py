@@ -680,6 +680,19 @@ class NuqqlConversation(Conversation):
         # mark nuqql's list window as active, so main loop does not quit
         self.wins.list_win.state.active = True
 
+        # add to conversation list
+        CONVERSATIONS.append(self)
+
+        # draw list
+        self.wins.list_win.redraw()
+        self.wins.log_win.redraw()
+        self.wins.input_win.redraw()
+
+        # save windows
+        nuqql.win.MAIN_WINS["list"] = self.wins.list_win
+        nuqql.win.MAIN_WINS["log"] = self.wins.log_win
+        nuqql.win.MAIN_WINS["input"] = self.wins.input_win
+
     def get_name(self):
         """
         Get the name of the conversation, depending on type
@@ -916,25 +929,3 @@ def resize_main_window():
         nuqql.win.MAIN_WINS["list"].redraw()
         nuqql.win.MAIN_WINS["log"].redraw()
         nuqql.win.MAIN_WINS["input"].redraw()
-
-
-def create_main_windows():
-    """
-    Create main UI windows
-    """
-
-    # main screen
-    # dummy conversation for main windows, creates log_win and input_win
-    nuqql_conv = NuqqlConversation(None, None, "nuqql")
-    nuqql_conv.create_windows()
-    CONVERSATIONS.append(nuqql_conv)
-
-    # draw list
-    nuqql_conv.wins.list_win.redraw()
-    nuqql_conv.wins.log_win.redraw()
-    nuqql_conv.wins.input_win.redraw()
-
-    # save windows
-    nuqql.win.MAIN_WINS["list"] = nuqql_conv.wins.list_win
-    nuqql.win.MAIN_WINS["log"] = nuqql_conv.wins.log_win
-    nuqql.win.MAIN_WINS["input"] = nuqql_conv.wins.input_win

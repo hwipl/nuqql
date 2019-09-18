@@ -606,6 +606,12 @@ class Backend:
         nuqql.conversation.remove_backend_conversations(self)
 
 
+class NuqqlBackend(Backend):
+    """
+    Class for the nuqql dummy backend
+    """
+
+
 ##################
 # Helper Classes #
 ##################
@@ -1069,10 +1075,27 @@ def start_backend_clients():
         backend.conversation.log("nuqql", log_msg)
 
 
+def start_nuqql():
+    """
+    Start the nuqql dummy backend
+    """
+
+    # create backend
+    backend = NuqqlBackend("nuqql")
+
+    # add conversation and show it in list window
+    conv = nuqql.conversation.NuqqlConversation(backend, None, backend.name)
+    conv.create_windows()
+    backend.conversation = conv
+
+
 def start_backends():
     """
     Helper for starting all backends
     """
+
+    # start nuqql dummy backend
+    start_nuqql()
 
     # start backends
     nuqql.conversation.log_main_window("Starting backends.")
