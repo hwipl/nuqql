@@ -6,7 +6,6 @@ import datetime
 import urllib.parse
 
 from types import SimpleNamespace
-from pathlib import Path
 
 import nuqql.history
 import nuqql.config
@@ -741,121 +740,7 @@ class NuqqlConversation(Conversation):
         self.wins.list_win.redraw_pad()
 
         # handle nuqql command
-        handle_nuqql_command(self, msg)
-
-
-def handle_nuqql_global_status(conv, parts):
-    """
-    Handle nuqql command: global-status
-    Call getter and setter funcions
-    """
-
-    if not parts:
-        return
-    sub_command = parts[0]
-    if sub_command == "set":
-        if len(parts) < 2:
-            return
-        handle_nuqql_global_status_set(conv, parts[1:])
-    elif sub_command == "get":
-        handle_nuqql_global_status_get(conv)
-
-
-def handle_nuqql_global_status_set(conv, status):
-    """
-    Handle nuqql command: global-status set
-    Set status and store it in global_status file
-    """
-
-    # only use the first word as status
-    if not status or status[0] == "":
-        return
-    status = status[0]
-
-    # write status
-    write_global_status(status)
-
-    # set status in all backends and their accounts
-    for conversation in CONVERSATIONS:
-        if isinstance(conversation, BackendConversation):
-            for acc in conversation.backend.accounts.values():
-                conversation.backend.client.send_status_set(acc.aid, status)
-
-    # log message
-    tstamp = datetime.datetime.now()
-    msg = "global-status: " + status
-    log_msg = nuqql.history.LogMessage(tstamp, "nuqql", msg)
-    conv.wins.log_win.add(log_msg)
-
-
-def handle_nuqql_global_status_get(conv):
-    """
-    Handle nuqql command: global-status get
-    Read status from global_status file
-    """
-
-    # read status
-    status = read_global_status()
-    if status == "":
-        return
-
-    # log message
-    tstamp = datetime.datetime.now()
-    msg = "global-status: " + status
-    log_msg = nuqql.history.LogMessage(tstamp, "nuqql", msg)
-    conv.wins.log_win.add(log_msg)
-
-
-def write_global_status(status):
-    """
-    Write global status to global_status file
-    """
-
-    # write status to file
-    global_status_dir = str(Path.home()) + "/.config/nuqql"
-    Path(global_status_dir).mkdir(parents=True, exist_ok=True)
-    global_status_file = global_status_dir + "/global_status"
-    line = status + "\n"
-    lines = []
-    lines.append(line)
-    with open(global_status_file, "w+") as status_file:
-        status_file.writelines(lines)
-
-
-def read_global_status():
-    """
-    Read global status from global_status file
-    """
-
-    # if there is a global_status file, read it
-    global_status_dir = str(Path.home()) + "/.config/nuqql"
-    Path(global_status_dir).mkdir(parents=True, exist_ok=True)
-    global_status_file = global_status_dir + "/global_status"
-    try:
-        with open(global_status_file) as status_file:
-            line = status_file.readline()
-            status = line.split()
-            if not status:
-                return ""
-            return status[0]
-    except FileNotFoundError:
-        return ""
-
-
-def handle_nuqql_command(conv, msg):
-    """
-    Handle a nuqql command (from the nuqql conversation)
-    """
-
-    # parse message
-    parts = msg.split()
-    if not parts:
-        return
-
-    # check command and call helper functions
-    command = parts[0]
-    if command == "global-status":
-        handle_nuqql_global_status(conv, parts[1:])
+        self.backend.handle_nuqql_command(msg)
 
 
 def remove_backend_conversations(backend):
