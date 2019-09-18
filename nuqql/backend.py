@@ -740,6 +740,15 @@ class NuqqlBackend(Backend):
             backend = backend_map[backend_name]()
             start_backend_client(backend)
 
+    @staticmethod
+    def _handle_restart(parts):
+        """
+        Handle restart command, stop and start a backend
+        """
+
+        NuqqlBackend._handle_stop(parts)
+        NuqqlBackend._handle_start(parts)
+
     def handle_nuqql_command(self, msg):
         """
         Handle a nuqql command (from the nuqql conversation)
@@ -755,6 +764,7 @@ class NuqqlBackend(Backend):
             "global-status": self._handle_nuqql_global_status,
             "stop": self._handle_stop,
             "start": self._handle_start,
+            "restart": self._handle_restart,
         }
         command = parts[0]
         if command in command_map:
