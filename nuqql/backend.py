@@ -701,6 +701,19 @@ class NuqqlBackend(Backend):
         except FileNotFoundError:
             return ""
 
+    @staticmethod
+    def _handle_stop(parts):
+        """
+        Handle stop command, stop a backend
+        """
+
+        if not parts:
+            return
+
+        backend_name = parts[0]
+        if backend_name in BACKENDS:
+            BACKENDS[backend_name].stop()
+
     def handle_nuqql_command(self, msg):
         """
         Handle a nuqql command (from the nuqql conversation)
@@ -714,6 +727,7 @@ class NuqqlBackend(Backend):
         # check command and call helper functions
         command_map = {
             "global-status": self._handle_nuqql_global_status,
+            "stop": self._handle_stop,
         }
         command = parts[0]
         if command in command_map:
