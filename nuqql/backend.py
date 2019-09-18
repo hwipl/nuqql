@@ -1063,7 +1063,7 @@ def start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
         exe = shutil.which(backend_exe)
     if exe is None:
         # does not exist, stop here
-        return
+        return None
 
     backend_cmd = backend_cmd_fmt.format(exe, backend_path)
 
@@ -1080,6 +1080,9 @@ def start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
     backend.conversation = conv
     conv.wins.list_win.redraw()
 
+    # return the backend
+    return backend
+
 
 def start_purpled():
     """
@@ -1092,7 +1095,7 @@ def start_purpled():
         exe = shutil.which("purpled")
     if exe is None:
         # does not exist, stop here
-        return
+        return None
 
     ###########
     # purpled #
@@ -1104,8 +1107,8 @@ def start_purpled():
     backend_cmd_fmt = "{0} -u -w{1}"
     backend_sockfile = backend_path + "/purpled.sock"
 
-    start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
-                  backend_sockfile)
+    return start_backend(backend_name, backend_exe, backend_path,
+                         backend_cmd_fmt, backend_sockfile)
 
 
 def start_based():
@@ -1123,8 +1126,8 @@ def start_based():
     backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile based.sock"
     backend_sockfile = backend_path + "/based.sock"
 
-    start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
-                  backend_sockfile)
+    return start_backend(backend_name, backend_exe, backend_path,
+                         backend_cmd_fmt, backend_sockfile)
 
 
 def start_slixmppd():
@@ -1142,8 +1145,8 @@ def start_slixmppd():
     backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile slixmppd.sock"
     backend_sockfile = backend_path + "/slixmppd.sock"
 
-    start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
-                  backend_sockfile)
+    return start_backend(backend_name, backend_exe, backend_path,
+                         backend_cmd_fmt, backend_sockfile)
 
 
 def start_matrixd():
@@ -1161,8 +1164,8 @@ def start_matrixd():
     backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile matrixd.sock"
     backend_sockfile = backend_path + "/matrixd.sock"
 
-    start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
-                  backend_sockfile)
+    return start_backend(backend_name, backend_exe, backend_path,
+                         backend_cmd_fmt, backend_sockfile)
 
 
 def start_backend_client(backend):
