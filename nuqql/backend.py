@@ -749,6 +749,14 @@ class NuqqlBackend(Backend):
         NuqqlBackend._handle_stop(parts)
         NuqqlBackend._handle_start(parts)
 
+    def _handle_quit(self, _parts):
+        """
+        Handle quit command, quit nuqql
+        """
+
+        self.conversation.wins.input_win.state.active = False
+        self.conversation.wins.list_win.state.active = False
+
     def handle_nuqql_command(self, msg):
         """
         Handle a nuqql command (from the nuqql conversation)
@@ -765,6 +773,7 @@ class NuqqlBackend(Backend):
             "stop": self._handle_stop,
             "start": self._handle_start,
             "restart": self._handle_restart,
+            "quit": self._handle_quit,
         }
         command = parts[0]
         if command in command_map:
