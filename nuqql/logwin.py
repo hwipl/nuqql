@@ -65,7 +65,7 @@ class LogWin(nuqql.win.Win):
 
         return log_slice
 
-    def _print_msg(self, msg, last=False):
+    def _print_msg(self, msg, last=False, output=True):
         """
         Print a single log message. Handle newlines in the log message and add
         additional line breaks for parts of the log message that are too long
@@ -83,7 +83,8 @@ class LogWin(nuqql.win.Win):
             while first or line:
                 # always print the first part of a line, even if it's empty.
                 first = False
-                self.pad.insnstr(line, max_x)
+                if output:
+                    self.pad.insnstr(line, max_x)
                 num_output += 1
 
                 # drop all characters we printed from the current line
@@ -95,6 +96,8 @@ class LogWin(nuqql.win.Win):
 
                 # there are more parts of the current line, more lines, or more
                 # messages coming. Increase pad size and move cursor.
+                if not output:
+                    continue
                 max_y += 1
                 self.pad.resize(max_y, max_x)
                 self.pad.move(max_y - 1, 0)
