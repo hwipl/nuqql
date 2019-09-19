@@ -268,14 +268,34 @@ class LogWin(nuqql.win.Win):
         props = self._get_properties()
         view_size = props.win_size_y - props.pad_y_delta
 
-        if self.view.cur < len(self.list) - view_size:
-            # view can be moved further towards bottom, so move it
-            self.view.begin = min(len(self.list) - view_size,
-                                  self.view.cur + view_size)
-            self.redraw_pad()
+        cur_y, _cur_x = self.pad.getyx()
+        max_y, _max_x = self.pad.getmaxyx()
+        lines_left = view_size - (max_y - cur_y)
+        if lines_left <= 0:
+            # we can stay in the current view
+            self.state.cur_y = max_y - 1 + lines_left
+            self.state.cur_x = 0
+        else:
+            # we need to get more messages
+            while self.view.cur < len(self.list) - view_size:
+                self.view.begin = self.view.cur + 1
 
-        # move cursor to bottom
-        self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()[0] - 1, 0
+                # get next message and see if we have enough lines
+                log_slice = self._get_log_view(props)
+                num_lines = self._print_msg(log_slice[-1].read(), output=False)
+                lines_left -= num_lines
+                if lines_left <= 0:
+                    # we got all missing lines
+                    break
+
+            # show updated log_view in pad and set cursor position
+            self.redraw_pad()
+            self.state.pad_y = 0    # make sure we only show up to first line
+            max_y, _max_x = self.pad.getmaxyx()
+            self.state.cur_y = min(max_y - 1, max_y - 1 + lines_left)
+            self.state.cur_x = 0
+
+        # move cursor down to previously determined position
         self.pad.move(self.state.cur_y, self.state.cur_x)
         props = self._get_properties()
         self._pad_refresh(props)
