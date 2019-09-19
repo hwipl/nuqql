@@ -297,8 +297,15 @@ class LogWin(nuqql.win.Win):
         elif self.view.cur < len(self.list) - view_size:
             # at bottom of current view, move view down
             self.view.begin = self.view.cur + 1
+
+            # if the next message is multi line, only go to first line
+            props = self._get_properties()
+            log_slice = self._get_log_view(props)
+            num_lines = self._print_msg(log_slice[-1].read(), output=False)
             self.redraw_pad()
-            self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()[0] - 1, 0
+            self.state.pad_y = 0    # make sure we only show up to first line
+            self.state.cur_y, self.state.cur_x = \
+                self.pad.getmaxyx()[0] - num_lines, 0
 
         # move cursor down
         self.pad.move(self.state.cur_y, self.state.cur_x)
