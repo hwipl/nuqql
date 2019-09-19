@@ -271,8 +271,13 @@ class LogWin(nuqql.win.Win):
         elif self.view.cur > 0:
             # at top of current view, move view up
             self.view.begin = self.view.cur - 1
+
+            # if the previous message is multi line, only go to last line
+            props = self._get_properties()
+            log_slice = self._get_log_view(props)
+            num_lines = self._print_msg(log_slice[0].read(), output=False)
             self.redraw_pad()
-            self.state.cur_y, self.state.cur_x = 0, 0
+            self.state.cur_y, self.state.cur_x = num_lines - 1, 0
 
         # move cursor up
         self.pad.move(self.state.cur_y, self.state.cur_x)
