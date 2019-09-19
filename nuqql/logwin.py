@@ -76,6 +76,7 @@ class LogWin(nuqql.win.Win):
         max_y, max_x = self.pad.getmaxyx()
 
         # split the message at newlines and handle each line separately
+        num_output = 0
         lines = msg.split("\n")
         for index, line in enumerate(lines):
             first = True
@@ -83,6 +84,7 @@ class LogWin(nuqql.win.Win):
                 # always print the first part of a line, even if it's empty.
                 first = False
                 self.pad.insnstr(line, max_x)
+                num_output += 1
 
                 # drop all characters we printed from the current line
                 line = line[max_x:]
@@ -96,6 +98,8 @@ class LogWin(nuqql.win.Win):
                 max_y += 1
                 self.pad.resize(max_y, max_x)
                 self.pad.move(max_y - 1, 0)
+
+        return num_output
 
     def _print_log(self, props):
         """
