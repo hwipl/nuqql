@@ -447,6 +447,9 @@ class LogWin(nuqql.win.Win):
                 self.state.cur_x = props.pad_size_x
 
             # reached end of view, move view further up
+            if self.view.cur == 0:
+                # reached bottom top
+                break
             self._cursor_page_up()
             self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()
 
