@@ -504,8 +504,7 @@ class LogWin(nuqql.win.Win):
             if self.view.cur == len(self.list) - view_size:
                 # reached bottom already
                 break
-            self._cursor_page_down()
-            self.state.cur_y, self.state.cur_x = 0, 0
+            self._cursor_down()
 
     def process_input(self, char):
         """
