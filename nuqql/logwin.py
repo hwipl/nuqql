@@ -450,8 +450,8 @@ class LogWin(nuqql.win.Win):
             if self.view.cur == 0:
                 # reached top already
                 break
-            self._cursor_page_up()
-            self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()
+            self._cursor_up()
+            self.state.cur_x = self.pad.getmaxyx()[1] - 1
 
     def search_next(self):
         """
