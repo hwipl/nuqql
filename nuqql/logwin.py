@@ -448,7 +448,7 @@ class LogWin(nuqql.win.Win):
 
             # reached end of view, move view further up
             if self.view.cur == 0:
-                # reached bottom top
+                # reached top already
                 break
             self._cursor_page_up()
             self.state.cur_y, self.state.cur_x = self.pad.getmaxyx()
