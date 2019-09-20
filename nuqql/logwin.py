@@ -270,7 +270,7 @@ class LogWin(nuqql.win.Win):
 
         cur_y, _cur_x = self.pad.getyx()
         max_y, _max_x = self.pad.getmaxyx()
-        lines_left = view_size - (max_y - cur_y)
+        lines_left = view_size - (max_y - 1 - cur_y)
         if lines_left <= 0:
             # we can stay in the current view
             self.state.cur_y = max_y - 1 + lines_left
