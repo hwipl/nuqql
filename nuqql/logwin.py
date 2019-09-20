@@ -458,6 +458,8 @@ class LogWin(nuqql.win.Win):
         Helper for calling search from other windows
         """
 
+        # make sure we find something on the current line
+        self.state.cur_x = self.pad.getmaxyx()[1]
         self._search_next()
 
     def _search_prev(self, *args):
