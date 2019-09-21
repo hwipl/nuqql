@@ -63,6 +63,10 @@ Special commands only in the `{nuqql}` conversation:
 
 * `global-status get`: get global status
 * `global-status set <status>`: set global status to \<status\>
+* `start <backend>`: start the not running backend with the name \<backend\>
+* `stop <backend>`: stop the running backend with the name \<backend\>
+* `restart <backend>`: restart the backend with the name \<backend\>
+* `quit`: quit nuqql
 
 ##  Conversation History (LogWin)
 
