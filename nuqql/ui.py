@@ -225,12 +225,12 @@ def remove_buddy(buddy):
     for index, conv in enumerate(nuqql.conversation.CONVERSATIONS):
         if not isinstance(conv, nuqql.conversation.BuddyConversation):
             continue
+        if conv.temporary:
+            # skip temporary conversations/buddies
+            return
 
         conv_buddy = conv.peers[0]
         if conv_buddy is buddy:
-            if conv.temporary:
-                # skip temporary conversations/buddies
-                return
             del nuqql.conversation.CONVERSATIONS[index]
             conv.wins.list_win.redraw()
 
