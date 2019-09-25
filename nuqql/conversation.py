@@ -599,25 +599,28 @@ class BackendConversation(Conversation):
         sending it to the backend
         """
 
+        # TODO: test if we still need these functions
+
         parts = msg.split(" ")
-        # check for account commands
-        if len(parts) < 3:
+        # check for account and chat commands
+        # account <id> chat <join/part> <name>
+        if len(parts) < 5:
             return
-        if parts[0] == "account":
-            # get account for this command
-            account = None
-            for acc in self.backend.accounts.values():
-                if acc.aid == parts[1]:
-                    account = acc
-            if not account:
-                return
+        if parts[0] != "account":
+            return
+        if parts[2] != "chat":
+            return
+
+        # get account for this command
+        account = None
+        for acc in self.backend.accounts.values():
+            if acc.aid == parts[1]:
+                account = acc
+        if not account:
+            return
 
         # check for chat commands
-        if parts[2] == "chat":
-            if len(parts) < 5:
-                return
-            # account <id> chat <join/part> <name>
-            self._check_chat_command(self.backend, account, parts[3], parts[4])
+        self._check_chat_command(self.backend, account, parts[3], parts[4])
 
     def send_msg(self, msg):
         """
