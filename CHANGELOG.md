@@ -1,6 +1,6 @@
 # Changelog
 
-This file contains changes in each version:
+This file contains the changes in each nuqql version:
 
 ## devel:
 * Improve backend handling
@@ -42,7 +42,7 @@ This file contains changes in each version:
   http in its history and also switch to zoomed view
 * Add support for the nuqql-matrixd backend
 * Cleanups, fixes, and improvements
-* Requires purpled v.4, nuqql-slixmppd v0.3, or nuqql-matrixd v0.1
+* Requires purpled v0.4, nuqql-slixmppd v0.3, or nuqql-matrixd v0.1
 
 ## v0.4:
 * Add additional keybinds in Input Window:
