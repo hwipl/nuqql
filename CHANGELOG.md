@@ -2,6 +2,18 @@
 
 This file contains changes in each version:
 
+## devel:
+* Improve backend handling
+  * Add "stop", "start", and "restart" commands to nuqql conversation for
+    stopping, starting, and restarting a backend
+  * Handle "bye" and "quit" backend commands in nuqql
+  * Improve backend error handling
+* Improve Log Window scrolling and message printing
+* Add and use "chat msg" message format for group chat messages
+* Add documentation of nuqql controls in `doc/controls.md`
+* Cleanups, fixes, and improvements.
+* Requires purpled devel, nuqql-slixmppd devel, or nuqql-matrixd devel
+
 ## v0.6:
 * Rework history viewing code in log window
 * Add additional keybinds to conversation list and input windows:
