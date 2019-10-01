@@ -963,7 +963,7 @@ def parse_message_msg(orig_msg):
     tstamp = part[2]
     sender = part[3]
     msg = " ".join(part[4:])
-    msg = "\n".join(re.split("<br/>", msg, flags=re.IGNORECASE))
+    msg = "\n".join(re.split("<br/?>", msg, flags=re.IGNORECASE))
     msg = html.unescape(msg)
 
     return "message", acc, acc_name, int(tstamp), sender, msg
@@ -1035,7 +1035,7 @@ def parse_chat_msg(orig_msg):
         tstamp = part[3]
         sender = part[4]
         msg = " ".join(part[5:])
-        msg = "\n".join(re.split("<br/>", msg, flags=re.IGNORECASE))
+        msg = "\n".join(re.split("<br/?>", msg, flags=re.IGNORECASE))
         msg = html.unescape(msg)
         return "chat", ctype, acc, chat, int(tstamp), sender, msg
 
