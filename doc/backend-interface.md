@@ -20,6 +20,36 @@ account list
 List all accounts and their account ids.
 
 
+#### Reply
+
+```
+account: <id> <name> <protocol> <user> <status>
+```
+
+For each account, the backend replies with an `account` message that contains
+the account's id `<id>`, name `<name>`, chat protocol `<protocol>`, user name
+`<user>`, and status `<status>`.
+
+
+#### Examples
+
+nuqql-slixmppd:
+
+```
+account list
+account: 0 () xmpp someuser@jabber.org [online]
+account: 1 () xmpp other@somexmpp.com [online]
+```
+
+nuqql-matrixd:
+
+```
+account list
+account: 0 () matrix someuser@matrix.org [online]
+account: 1 () matrix otheruser@matrix.org [online]
+```
+
+
 ### Adding a new Account
 
 ```
@@ -32,6 +62,37 @@ The user name is chat protocol specific. An account id is assigned to the
 account that can be shown with `account list`.
 
 
+#### Reply
+
+The backend does not have to reply with anything. Optionally, it may return an
+`info` message like
+
+```
+info: new account added.
+```
+
+
+#### Examples
+
+nuqql-slixmppd:
+
+```
+account add xmpp someuser@jabber.org somepassword
+info: new account added.
+account add xmpp other@somexmpp.com otherpass1
+info: new account added.
+```
+
+nuqql-matrixd:
+
+```
+account add matrix someuser@matrix.org somepassword
+info: new account added.
+account add matrix otheruser@matrix.org otherpass1
+info: new account added.
+```
+
+
 ### Deleting an existing Account
 
 ```
@@ -39,6 +100,26 @@ account <id> delete
 ```
 
 Delete the account with the account id `<id>`.
+
+
+#### Reply
+
+The backend does not have to reply with anything. Optionally, it may return an
+`info` message like
+
+```
+info: account <id> deleted.
+```
+
+
+#### Examples
+
+```
+account 0 delete
+info: account 0 deleted.
+account 1 delete
+info: account 1 deleted.
+```
 
 
 ## Buddies/Roster
