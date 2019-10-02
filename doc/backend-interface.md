@@ -137,6 +137,35 @@ List all buddies on the account with the account id `<id>`. Optionally, show
 only online buddies with the extra parameter `online`.
 
 
+#### Reply
+
+```
+buddy: <acc_id> status: <status> name: <name> alias: [alias]
+```
+
+For each buddy, the backend replies with a `buddy` message that contains the
+account id `<acc_id>`, the availability status `<status>`, the user name
+`<name>`, and an optional alias `[alias]`.
+
+
+#### Examples
+
+```
+account 0 buddies
+buddy: 0 status: away name: someuser@anyjabber.org alias:
+buddy: 0 status: offline name: alwaysoff@otherxmpp.com alias: alwaysoff
+buddy: 0 status: offline name: friend@otherjabber.org alias: friend
+buddy: 0 status: available name: onalot@alwaysxmpp.net alias:
+buddy: 0 status: away name: likes2afk@somejabber.net alias: likes2afk
+```
+
+
+### Adding a User to the Buddy List/Roster
+
+When sending a message to an user that is not on the buddy list, the backend
+automatically adds the user to the buddy list.
+
+
 ## Message Receiving and Sending
 
 Message receiving/sending related commands:
