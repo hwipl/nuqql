@@ -170,6 +170,45 @@ automatically adds the user to the buddy list.
 
 Message receiving/sending related commands:
 
+
+### Receiving Messages from other Users
+
+There is no command to receive new messages from other users. The backend
+forwards new messages automatically to the connected backend client. See reply
+below for the message format.
+
+
+#### Reply
+
+```
+message: <acc_id> <destination> <timestamp> <sender> <msg>
+```
+
+For each message received from another user, the backend sends a `message`
+message to the backend client that contains the account id `<acc_id>`, the
+recipient of the message `<destination>`, a time stamp `<timestamp>`, the user
+name of the sender `<sender>`, and the message itself `<msg>`.
+
+Special characters in `<msg>` like newlines, quotes, less than, or greater than
+characters are escaped like in html documents.
+
+
+#### Examples
+
+Note: the newlines in the following examples are just to keep the displayed
+line length below 80 and would not appear in real messages.
+
+```
+message: 1 me@myjabber.com/desktop 1570097276 otheruser@otherjabber.org/laptop
+Hi, this is a test.
+```
+
+```
+message: 0 myself@ownjabber.net/pc 1570097282 friend@friendlyjabber.org/machine
+Hey!<br/>This message contains some &quot;special characters&quot; &lt;3.<br/>
+```
+
+
 ### Collecting old Messages
 
 ```
@@ -179,13 +218,49 @@ account <id> collect
 Collect all messages received on the account with the account id `<id>`.
 
 
+#### Reply
+
+For each message received on the account, the backend sends a `message` message
+to the backend client. See section "Receiving Messages from other Users".
+
+
+#### Examples
+
+See section "Receiving Messages from other Users".
+
+
 ### Sending a Message to another User
 
 ```
 account <id> send <user> <msg>
 ```
 
-Send a message to the user `<user>` on the account with the account id `<id>`.
+Send the message `<msg>` to the user with the name `<user>` on the account with
+the account id `<id>`.
+
+Special characters in `<msg>` like newlines, quotes, less than, or greater than
+characters should be escaped like in html documents.
+
+
+#### Reply
+
+The backend does not send a reply for a `send` command.
+
+
+#### Examples
+
+Note: the newlines in the following examples are just to keep the displayed
+line length below 80 and would not appear in real messages.
+
+```
+account 1 send otheruser@otherjabber.org Hi, this is a test reply to your test
+message.
+```
+
+```
+account 0 send friend@friendlyjabber.org Hey, Friend!<br/>My reply also
+contains some &quot;special characters&quot; &lt;3.
+```
 
 
 ## Account Status
