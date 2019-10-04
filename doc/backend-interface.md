@@ -267,13 +267,37 @@ contains some &quot;special characters&quot; &lt;3.
 
 Account status related commands:
 
+
 ### Getting an Account's Status
 
 ```
 account <id> status get
 ```
 
-Get the status of the account with the account id `<id>`.
+Get the availability status of the account with the account id `<id>`.
+
+
+#### Reply
+
+```
+status: account <acc_id> status: <status>
+```
+
+The backend replies with a `status` message that contains the ID of the account
+`<acc_id>` and the current availability status `<status>`.
+
+
+#### Examples
+
+```
+account 0 status get 
+status: account 0 status: available
+```
+
+```
+account 0 status get
+status: account 0 status: away
+```
 
 
 ### Setting an Account's Status
@@ -282,7 +306,24 @@ Get the status of the account with the account id `<id>`.
 account <id> status set <status>
 ```
 
-Set the status of the account with the account id `<id>` to `<status>`.
+Set the availability status of the account with the account id `<id>` to
+`<status>`.
+
+
+#### Reply
+
+The backend does not send a reply for a `status set` command.
+
+
+#### Examples
+
+```
+account 0 status set away
+```
+
+```
+account 0 status set available
+```
 
 
 ## Group Chats
