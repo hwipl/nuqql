@@ -1,9 +1,26 @@
 # Nuqql Backend Interface
 
 This file contains the description of nuqql's backend interface. It is a
-text-based protocol spoken between nuqql backends and nuqql (or a user
-connecting via, e.g., telnet to a running standalone backend). In the
-following, all commands and their descriptions are listed:
+text-based protocol spoken between a backend and a client, as shown in the
+following figure.
+
+
+```
++--------+  command   +---------+
+|        | ---------> |         |
+| Client | <--------- | Backend |
+|        |   reply    |         |
++--------+            +---------+
+
+         \_____  _____/
+               `´
+        Backend Interface
+```
+
+A client can be nuqql or a user connecting via, e.g., telnet to a backend. The
+client sends commands to the backend and the backend sends replies back to the
+client. In the following sections, all commands, replies, and their
+descriptions are listed:
 
 
 ## Account Management
