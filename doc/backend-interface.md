@@ -307,7 +307,7 @@ The backend replies with a `status` message that contains the ID of the account
 #### Examples
 
 ```
-account 0 status get 
+account 0 status get
 status: account 0 status: available
 ```
 
