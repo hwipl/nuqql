@@ -350,11 +350,40 @@ Group chat related commands:
 
 ### Listing joined Group Chats
 
+All joined group chats are shown in the user's buddy list/roster (see above)
+with a special status `GROUP_CHAT`. Additionally, there is a separate command
+for listing joined group chats:
+
 ```
 account <id> chat list
 ```
 
 List all group chats on the account with the account id `<id>`.
+
+
+#### Reply
+
+```
+chat: list: <acc_id> <chat_id> <chat_alias> <nick>
+```
+
+For each joined chat, the backend replies with a `chat list` message containing
+the id of the account `<acc_id>`, the name or ID of the chat `<chat_id>`, an
+alias of the chat `<chat_alias>`, and the user's nick name in the chat
+`<nick>`.
+
+
+#### Examples
+
+```
+account 0 chat list
+chat: list: 0 test@chat.myjabber.org test@chat.myjabber.org myself@myjabber.org
+```
+
+```
+account 0 buddies
+buddy: 0 status: GROUP_CHAT name: test@chat.myjabber.org alias:
+```
 
 
 ### Joining a Group Chat
@@ -363,7 +392,19 @@ List all group chats on the account with the account id `<id>`.
 account <id> chat join <chat>
 ```
 
-Join the group chat <chat> on the account with the account id `<id>`.
+Join the group chat `<chat>` on the account with the account id `<id>`.
+
+
+#### Reply
+
+The backend does not send a reply for a `chat join` command.
+
+
+#### Examples
+
+```
+account 0 chat join test@chat.myjabber.org
+```
 
 
 ### Leaving a Group Chat
@@ -375,14 +416,67 @@ account <id> chat part <chat>
 Leave the group chat `<chat>` on the account with the account id `<id>`.
 
 
+#### Reply
+
+The backend does not send a reply for a `chat part` command.
+
+
+#### Examples
+
+```
+account 0 chat part test@chat.myjabber.org
+```
+
+
+### Receiving a Message from a Group Chat
+
+There is no command to receive new messages from group chats. The backend
+forwards new messages automatically to the connected backend client. See reply
+below for the message format.
+
+
+#### Reply
+
+```
+chat: msg: <acc_id> <chat> <timestamp> <sender> <message>
+```
+
+For each message received from a group chat, the backend sends a `chat msg`
+message to the backend client. It contains the account id `<acc_id>`, the name
+or ID of the group chat `<chat>`, the time stamp of the message `<timestamp>`,
+the user name of the sender `<sender>`, and the message `<message>`.
+
+Special characters in `<message>` like newlines, quotes, less than, or greater
+than characters are escaped like in html documents.
+
+
+#### Examples
+
+```
+chat: msg: 0 test@chat.myjabber.org 1570304502 myself@myjabber.org A test.
+```
+
+
 ### Sending a Message to a Group Chat
 
 ```
 account <id> chat send <chat> <msg>
 ```
 
-Send the message <msg> to the group chat `<chat>` on the account with the
+Send the message `<msg>` to the group chat `<chat>` on the account with the
 account id `<id>`.
+
+
+#### Reply
+
+The backend does not send a reply for a `chat send` message.
+
+
+#### Examples
+
+```
+account 0 chat send test@chat.myjabber.org This is a test.
+```
 
 
 ### Listing users in a Group Chat
@@ -395,6 +489,27 @@ List the users in the group chat `<chat>` on the account with the
 account id `<id>`.
 
 
+#### Reply
+
+```
+chat: user: <acc_id> <chat> <name> <alias> <state>
+```
+
+For each user in a group chat, the backend replies with a `chat user` message
+that contains the account id `<acc_id>`, the name or ID of the group chat
+`<chat>`, the user name of the user `<name>`, the user's alias `<alias>`, and
+the state of the user `<state>`.
+
+
+#### Examples
+
+```
+account 0 chat users test@chat.myjabber.org
+chat: user: 0 test@chat.myjabber.org me@mejabber.org me@mejabber.org join
+chat: user: 0 test@chat.myjabber.org other@jabber.net other@jabber.net join
+```
+
+
 ### Inviting a User to a Group Chat
 
 ```
@@ -403,6 +518,38 @@ account <id> chat invite <chat> <user>
 
 Invite the user `<user>` to the group chat `<chat>` on the account with the
 account id `<id>`.
+
+
+#### Reply
+
+The backend does not send a reply for a `chat invite` command.
+
+
+#### Examples
+
+```
+account 0 chat invite test@chat.myjabber.org other@somejabber.net
+```
+
+
+### Getting an Invite to a Group Chat
+
+There is no command for receiving a group chat invite. Group chats the user is
+invited to are shown in the user's buddy list/roster (see above) with a special
+status `GROUP_CHAT_INVITE`.
+
+
+#### Reply
+
+See Buddy List/Roster section.
+
+
+#### Examples
+
+```
+account 0 buddies
+buddy: 0 status: GROUP_CHAT_INVITE name: test@c.jab.org alias: test@c.jab.org
+```
 
 
 ## Backend Related
