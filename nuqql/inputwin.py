@@ -149,6 +149,10 @@ class InputWin(nuqql.win.Win):
             if len(segment[self.state.cur_y - 1]) + 2 > pad_size_x:
                 pad_size_x = len(segment[self.state.cur_y - 1]) + 2
                 self.pad.resize(pad_size_y, pad_size_x)
+        else:
+            # at top left, do nothing
+            return
+
         # reconstruct and display message
         self.msg = "\n".join(segment)
         self.pad.erase()
@@ -182,6 +186,9 @@ class InputWin(nuqql.win.Win):
             if len(segment[self.state.cur_y]) + 2 > pad_size_x:
                 pad_size_x = len(segment[self.state.cur_y]) + 2
                 self.pad.resize(pad_size_y, pad_size_x)
+        else:
+            # at bottom right, do nothing
+            return
 
         # reconstruct and display message
         self.msg = "\n".join(segment)
