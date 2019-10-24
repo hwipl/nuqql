@@ -258,6 +258,14 @@ class InputWin(nuqql.win.Win):
         self.state.active = False
         self.conversation.wins.log_win.state.active = True
 
+    def _zoom_win(self, *args):
+        """
+        Jump to log and zoom window
+        """
+
+        self._go_log()
+        self.conversation.wins.log_win.keyfunc["WIN_ZOOM"]()
+
     def _zoom_win_url(self, *args):
         """
         Jump to log, zoom window and search for next url
