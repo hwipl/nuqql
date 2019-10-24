@@ -380,6 +380,14 @@ class LogWin(nuqql.win.Win):
             self.conversation.wins.log_win.redraw()
             self.conversation.wins.input_win.redraw()
 
+    def _zoom_win_url(self, *args):
+        """
+        Zoom window and search for next url.
+        """
+
+        # logwin should already be zoomed. So, just jump to next match
+        self._search_next()
+
     def _go_back(self, *args):
         # if window was zoomed, switch back to normal view
         if self.zoomed:
