@@ -1167,7 +1167,7 @@ def start_based():
     ###############
 
     backend_name = "based"
-    backend_exe = "based.py"
+    backend_exe = "nuqql-based"
     backend_path = str(Path.home()) + "/.config/nuqql/backend/based"
     backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile based.sock"
     backend_sockfile = backend_path + "/based.sock"
@@ -1186,7 +1186,7 @@ def start_slixmppd():
     ##################
 
     backend_name = "slixmppd"
-    backend_exe = "slixmppd.py"
+    backend_exe = "nuqql-slixmppd"
     backend_path = str(Path.home()) + "/.config/nuqql/backend/slixmppd"
     backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile slixmppd.sock"
     backend_sockfile = backend_path + "/slixmppd.sock"
@@ -1205,7 +1205,7 @@ def start_matrixd():
     ##################
 
     backend_name = "matrixd"
-    backend_exe = "matrixd.py"
+    backend_exe = "nuqql-matrixd"
     backend_path = str(Path.home()) + "/.config/nuqql/backend/matrixd"
     backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile matrixd.sock"
     backend_sockfile = backend_path + "/matrixd.sock"
