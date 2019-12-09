@@ -43,6 +43,9 @@ CLIENT_RETRY_SLEEP = 0.1
 # backend error message
 BACKEND_ERROR = "Error accessing backend."
 
+# start based backend?
+BACKEND_START_BASED = False
+
 
 class BackendServer:
     """
@@ -1279,7 +1282,8 @@ def start_backends():
     # start backends
     nuqql.conversation.log_main_window("Starting backends.")
     start_purpled()
-    start_based()
+    if BACKEND_START_BASED:
+        start_based()
     start_slixmppd()
     start_matrixd()
 
