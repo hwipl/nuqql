@@ -16,7 +16,7 @@ import nuqql.ui
 # MAIN (LOOP) #
 ###############
 
-def main_loop():
+def main_loop() -> str:
     """
     Main loop of nuqql.
     """
@@ -41,7 +41,7 @@ def main_loop():
 
 
 # main entry point
-def run():
+def run() -> None:
     """
     Main entry point of nuqql
     """
