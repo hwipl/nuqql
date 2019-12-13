@@ -10,12 +10,17 @@ import curses
 import curses.ascii
 import datetime
 
+from typing import TYPE_CHECKING, Any, Callable, Optional
+
 import nuqql.config
 import nuqql.conversation
 import nuqql.history
 
+if TYPE_CHECKING:
+    from nuqql.backend import Buddy
 
-def handle_message(*args):
+
+def handle_message(*args: Any) -> None:
     """
     Handle message from backend
     """
@@ -62,7 +67,7 @@ def handle_message(*args):
             conv.notify()
 
 
-def handle_chat_msg_message(*args):
+def handle_chat_msg_message(*args: Any) -> None:
     """
     Handle "chat msg" message from backend
     """
@@ -109,7 +114,7 @@ def handle_chat_msg_message(*args):
             conv.notify()
 
 
-def handle_chat_message(*args):
+def handle_chat_message(*args: Any) -> bool:
     """
     Handle chat message from backend
     """
@@ -141,7 +146,7 @@ def handle_chat_message(*args):
     return False
 
 
-def update_buddy(buddy):
+def update_buddy(buddy: "Buddy") -> None:
     """
     Update buddy in UI
     """
@@ -158,7 +163,8 @@ def update_buddy(buddy):
             conv.wins.list_win.redraw()
 
 
-def add_buddy_to_temporary_conv(buddy):
+def add_buddy_to_temporary_conv(buddy: "Buddy") -> \
+        Optional[nuqql.conversation.BuddyConversation]:
     """
     Try to find a temporary conversation for this buddy and add the buddy to it
     """
@@ -181,7 +187,7 @@ def add_buddy_to_temporary_conv(buddy):
     return None
 
 
-def add_buddy(buddy):
+def add_buddy(buddy: "Buddy") -> None:
     """
     Add a new buddy to UI
     """
@@ -217,7 +223,7 @@ def add_buddy(buddy):
                 conv.notify()
 
 
-def remove_buddy(buddy):
+def remove_buddy(buddy: "Buddy") -> None:
     """
     Remove a buddy from the UI
     """
@@ -235,7 +241,7 @@ def remove_buddy(buddy):
             conv.wins.list_win.redraw()
 
 
-def read_input():
+def read_input() -> str:
     """
     Read user input and return it to caller
     """
@@ -250,7 +256,7 @@ def read_input():
     return wch
 
 
-def show_terminal_warning():
+def show_terminal_warning() -> None:
     """
     Show a warning that the terminal size is invalid, if it fits on screen
     """
@@ -270,7 +276,7 @@ def show_terminal_warning():
     nuqql.win.MAIN_WINS["screen"].addstr(0, 0, msg)
 
 
-def is_input_valid(char):
+def is_input_valid(char: str) -> bool:
     """
     Helper that checks if input is valid
     """
@@ -286,7 +292,7 @@ def is_input_valid(char):
     return True
 
 
-def handle_input():
+def handle_input() -> bool:
     """
     Read and handle user input
     """
@@ -325,7 +331,7 @@ def handle_input():
     return False
 
 
-def start(stdscr, func):
+def start(stdscr: Any, func: Callable) -> str:
     """
     Start UI and run provided function
     """
@@ -351,7 +357,7 @@ def start(stdscr, func):
     return func()
 
 
-def init(func):
+def init(func: Callable) -> None:
     """
     Initialize UI
     """
