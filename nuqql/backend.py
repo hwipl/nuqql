@@ -16,6 +16,7 @@ import os
 import re
 
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple, TextIO
 
 import nuqql.conversation
 import nuqql.ui
@@ -27,7 +28,7 @@ BUFFER_SIZE = 4096
 BUDDY_UPDATE_TIMER = 5
 
 # dictionary for all active backends
-BACKENDS = {}
+BACKENDS: Dict[str, "Backend"] = {}
 
 # enable/disable logging of subprocess output
 SUBPROCESS_LOGGING = True
@@ -52,17 +53,17 @@ class BackendServer:
     Class for a backend's server process
     """
 
-    def __init__(self, cmd="", path=""):
+    def __init__(self, cmd: str = "", path: str = "") -> None:
         # server
-        self.proc = None
+        self.proc: Optional[subprocess.Popen] = None
         self.server_path = path
         self.server_cmd = cmd
 
         # subprocess output logging files
-        self.stdout_file = subprocess.DEVNULL
-        self.stderr_file = subprocess.DEVNULL
+        self.stdout_file: Optional[TextIO] = None
+        self.stderr_file: Optional[TextIO] = None
 
-    def start(self):
+    def start(self) -> None:
         """
         Start the backend's server process
         """
@@ -82,24 +83,27 @@ class BackendServer:
         self.proc = subprocess.Popen(
             self.server_cmd,
             shell=True,
-            stdout=self.stdout_file,
-            stderr=self.stderr_file,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             start_new_session=True,     # dont send SIGINT from nuqql to
                                         # subprocess
         )
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stop the backend's server process
         """
 
         # stop running server
-        self.proc.terminate()
+        if self.proc:
+            self.proc.terminate()
 
         # close subprocess log files if logging is enabled
         if SUBPROCESS_LOGGING:
-            self.stdout_file.close()
-            self.stderr_file.close()
+            if self.stdout_file:
+                self.stdout_file.close()
+            if self.stderr_file:
+                self.stderr_file.close()
 
 
 class BackendClient:
@@ -108,18 +112,19 @@ class BackendClient:
     local or remote backend server process
     """
 
-    def __init__(self, sock_af=socket.AF_UNIX, ip_addr="127.0.0.1", port=32000,
-                 sock_file=""):
+    def __init__(self, sock_af: "socket.AddressFamily" = socket.AF_UNIX,
+                 ip_addr: str = "127.0.0.1", port: int = 32000,
+                 sock_file: str = "") -> None:
         # client
-        self.backend = None
-        self.sock = None
+        self.backend: Optional[Backend] = None
+        self.sock: Optional[socket.socket] = None
         self.sock_af = sock_af
         self.sock_file = sock_file
         self.ip_addr = ip_addr
         self.port = port
         self.buffer = ""
 
-    def _connect(self):
+    def _connect(self) -> None:
         """
         Helper for connecting to the server
         """
@@ -131,7 +136,7 @@ class BackendClient:
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             self.sock.connect(self.sock_file)
 
-    def start(self):
+    def start(self) -> None:
         """
         Start the backend's client
         """
@@ -146,7 +151,7 @@ class BackendClient:
                 retries += 1
                 time.sleep(CLIENT_RETRY_SLEEP)
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stop the backend's client
         """
@@ -158,7 +163,7 @@ class BackendClient:
                 pass
             self.sock = None
 
-    def read(self):
+    def read(self) -> Optional[str]:
         """
         Read from the client connection
         """
@@ -171,12 +176,14 @@ class BackendClient:
                                                        [self.sock, ], 0)
         except OSError:
             nuqql.conversation.log_main_window(BACKEND_ERROR)
-            self.backend.stop()
+            if self.backend:
+                self.backend.stop()
             return None
 
         if self.sock in errs:
             # something is wrong
-            self.backend.stop()
+            if self.backend:
+                self.backend.stop()
             return None
 
         if self.sock in reads:
@@ -185,7 +192,8 @@ class BackendClient:
                 data = self.sock.recv(BUFFER_SIZE)
             except OSError:
                 nuqql.conversation.log_main_window(BACKEND_ERROR)
-                self.backend.stop()
+                if self.backend:
+                    self.backend.stop()
                 return None
             self.buffer += data.decode()
 
@@ -201,7 +209,7 @@ class BackendClient:
         self.buffer = self.buffer[eom + 2:]
         return msg
 
-    def _send(self, msg):
+    def _send(self, msg: str) -> None:
         """
         Helper for sending any messages and catching errors.
         """
@@ -209,16 +217,15 @@ class BackendClient:
         if not self.sock:
             return
 
-        msg = msg.encode()
-
         try:
-            self.sock.send(msg)
+            self.sock.send(msg.encode())
         except OSError:
             nuqql.conversation.log_main_window(BACKEND_ERROR)
-            self.backend.stop()
+            if self.backend:
+                self.backend.stop()
             return
 
-    def send_command(self, cmd):
+    def send_command(self, cmd: str) -> None:
         """
         Send a command over the client connection
         """
@@ -226,29 +233,29 @@ class BackendClient:
         msg = cmd + "\r\n"
         self._send(msg)
 
-    def send_msg(self, account, buddy, msg):
+    def send_msg(self, account_id: int, buddy: str, msg: str) -> None:
         """
         Send a regular message over the client connection
         """
 
-        prefix = "account {0} send {1} ".format(account, buddy)
+        prefix = "account {0} send {1} ".format(account_id, buddy)
         msg = html.escape(msg)
         msg = "<br/>".join(msg.split("\n"))
         msg = prefix + msg + "\r\n"
         self._send(msg)
 
-    def send_group_msg(self, account, buddy, msg):
+    def send_group_msg(self, account_id: int, buddy: str, msg: str) -> None:
         """
         Send a group message over the client connection
         """
 
-        prefix = "account {0} chat send {1} ".format(account, buddy)
+        prefix = "account {0} chat send {1} ".format(account_id, buddy)
         msg = html.escape(msg)
         msg = "<br/>".join(msg.split("\n"))
         msg = prefix + msg + "\r\n"
         self._send(msg)
 
-    def send_collect(self, account):
+    def send_collect(self, account_id: str) -> None:
         """
         Send "collect" message over the client connection,
         which collects all messages received by the backend
@@ -257,20 +264,20 @@ class BackendClient:
         # collect all messages since time 0
         # TODO: only works as intended if we spawn our own purpled daemon at
         # nuqql's startup, FIXME?
-        msg = "account {0} collect 0\r\n".format(account)
+        msg = "account {0} collect 0\r\n".format(account_id)
         # self.collect_acc = account
         self._send(msg)
 
-    def send_buddies(self, account):
+    def send_buddies(self, account_id: str) -> None:
         """
         Send "buddies" message over the client connection,
         which retrieves all buddies of the specified account from the backend
         """
 
-        msg = "account {0} buddies\r\n".format(account)
+        msg = "account {0} buddies\r\n".format(account_id)
         self._send(msg)
 
-    def send_accounts(self):
+    def send_accounts(self) -> None:
         """
         Send "account list" message over the client connection,
         which retrieves all accounts from the backend
@@ -279,13 +286,13 @@ class BackendClient:
         msg = "account list\r\n"
         self._send(msg)
 
-    def send_status_set(self, account, status):
+    def send_status_set(self, account_id: str, status: str) -> None:
         """
         Send "status set" message over client connection,
         which sets the status of the specified account of the backend
         """
 
-        msg = "account {} status set {}\r\n".format(account, status)
+        msg = "account {} status set {}\r\n".format(account_id, status)
         self._send(msg)
 
 
@@ -295,22 +302,22 @@ class Backend:
     (self-started or externally started) servers
     """
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         # backend
         self.name = name
-        self.accounts = {}
+        self.accounts: Dict[str, Account] = {}
         # conversation for communication with the backend.
-        self.conversation = None
+        self.conversation: Optional[nuqql.conversation.Conversation] = None
 
         # server
-        self.server = None
+        self.server: Optional[BackendServer] = None
 
         # client
-        self.client = None
+        self.client: Optional[BackendClient] = None
 
         # self.collect_acc = -1
 
-    def start_server(self, cmd, path):
+    def start_server(self, cmd: str, path: str) -> None:
         """
         Add a server to this backend and start it
         """
@@ -318,7 +325,7 @@ class Backend:
         self.server = BackendServer(cmd, path)
         self.server.start()
 
-    def stop_server(self):
+    def stop_server(self) -> None:
         """
         Stop the server of this backend
         """
@@ -326,15 +333,17 @@ class Backend:
         if self.server:
             self.server.stop()
 
-    def start_client(self):
+    def start_client(self) -> None:
         """
         Start the backend's client
         """
 
-        self.client.start()
+        if self.client:
+            self.client.start()
 
-    def init_client(self, sock_af=socket.AF_UNIX, ip_addr="127.0.0.1",
-                    port=32000, sock_file=""):
+    def init_client(self, sock_af: "socket.AddressFamily" = socket.AF_UNIX,
+                    ip_addr: str = "127.0.0.1", port: int = 32000,
+                    sock_file: str = "") -> None:
         """
         Add a client to this backend
         """
@@ -342,7 +351,7 @@ class Backend:
         self.client = BackendClient(sock_af, ip_addr, port, sock_file)
         self.client.backend = self
 
-    def stop_client(self):
+    def stop_client(self) -> None:
         """
         Stop the client of this backend
         """
@@ -350,12 +359,14 @@ class Backend:
         if self.client:
             self.client.stop()
 
-    def handle_network(self):
+    def handle_network(self) -> None:
         """
         Try to read from the client connection and handle messages.
         """
 
         # try to read message
+        if not self.client:
+            return
         msg = self.client.read()
         if msg is None:
             return
@@ -367,7 +378,8 @@ class Backend:
         # handle info message or error message
         if msg_type in ("info", "error"):
             text = msg_type + ": " + parsed_msg[1]
-            self.conversation.log("nuqql", text)
+            if self.conversation:
+                self.conversation.log("nuqql", text)
             return
 
         # handle account message
@@ -378,7 +390,8 @@ class Backend:
         # handle status message
         if msg_type == "status":
             text = "account {} status: {}".format(parsed_msg[1], parsed_msg[2])
-            self.conversation.log("nuqql", text)
+            if self.conversation:
+                self.conversation.log("nuqql", text)
             return
 
         # handle chat message
@@ -396,7 +409,7 @@ class Backend:
         if msg_type in ("message", "parsing error"):
             self.handle_message_msg(parsed_msg)
 
-    def handle_message_msg(self, parsed_msg):
+    def handle_message_msg(self, parsed_msg: Tuple[str, ...]) -> None:
         """
         Handle "message" message
         """
@@ -437,7 +450,7 @@ class Backend:
         # let ui handle the message
         nuqql.ui.handle_message(self, acc_id, tstamp, sender, msg, resource)
 
-    def handle_chat_msg(self, parsed_msg):
+    def handle_chat_msg(self, parsed_msg: Tuple[str, ...]) -> None:
         """
         Handle Chat message
         """
@@ -498,9 +511,10 @@ class Backend:
 
         # log to backend conversation
         text = "account {} chat: {} {} {}".format(acc_id, ctype, chat, nick)
-        self.conversation.log("nuqql", text)
+        if self.conversation:
+            self.conversation.log("nuqql", text)
 
-    def handle_account_msg(self, parsed_msg):
+    def handle_account_msg(self, parsed_msg: Tuple[str, ...]) -> None:
         """
         Handle Account message
         """
@@ -517,7 +531,11 @@ class Backend:
         text = "account {0} ({1}) {2} {3} {4}.".format(acc_id, acc_alias,
                                                        acc_prot, acc_user,
                                                        acc_status)
-        self.conversation.log("nuqql", text)
+        if self.conversation:
+            self.conversation.log("nuqql", text)
+
+        if not self.client:
+            return
 
         # do not add account if it already exists
         if acc_user in self.accounts:
@@ -530,14 +548,16 @@ class Backend:
         # collect buddies from backend
         text = "Collecting buddies for {0} account {1}: {2}.".format(
             acc.type, acc.aid, acc.name)
-        self.conversation.log("nuqql", text)
-        acc.buddies_update = time.time()
+        if self.conversation:
+            self.conversation.log("nuqql", text)
+        acc.buddies_update = int(time.time())
         self.client.send_buddies(acc.aid)
 
         # collect messages from backend
         text = "Collecting messages for {0} account {1}: {2}.".format(
             acc.type, acc.aid, acc.name)
-        self.conversation.log("nuqql", text)
+        if self.conversation:
+            self.conversation.log("nuqql", text)
         self.client.send_collect(acc.aid)
 
         # if there is a global_status, set account status to it
@@ -545,7 +565,7 @@ class Backend:
         if status != "":
             self.client.send_status_set(acc_id, status)
 
-    def handle_buddy_msg(self, parsed_msg):
+    def handle_buddy_msg(self, parsed_msg: Tuple[str, ...]) -> None:
         """
         Handle Buddy message
         """
@@ -567,17 +587,20 @@ class Backend:
                 account.update_buddy(self, name, alias, status)
                 return
 
-    def update_buddies(self):
+    def update_buddies(self) -> None:
         """
         Update buddies of this account
         """
+
+        if not self.client:
+            return
 
         # update buddies
         for acc in self.accounts.values():
             if acc.update_buddies():
                 self.client.send_buddies(acc.aid)
 
-    def get_account(self, account_id):
+    def get_account(self, account_id: int) -> Optional["Account"]:
         """
         Get account with specified account id
         """
@@ -588,7 +611,7 @@ class Backend:
 
         return None
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stop the backend, Note: changes BACKENDS
         """
@@ -614,7 +637,7 @@ class NuqqlBackend(Backend):
     Class for the nuqql dummy backend
     """
 
-    def _handle_nuqql_global_status(self, parts):
+    def _handle_nuqql_global_status(self, parts: List[str]) -> None:
         """
         Handle nuqql command: global-status
         Call getter and setter funcions
@@ -626,20 +649,19 @@ class NuqqlBackend(Backend):
         if sub_command == "set":
             if len(parts) < 2:
                 return
-            self._handle_nuqql_global_status_set(parts[1:])
+            self._handle_nuqql_global_status_set(parts[1])
         elif sub_command == "get":
             self._handle_nuqql_global_status_get()
 
-    def _handle_nuqql_global_status_set(self, status):
+    def _handle_nuqql_global_status_set(self, status: str) -> None:
         """
         Handle nuqql command: global-status set
         Set status and store it in global_status file
         """
 
         # only use the first word as status
-        if not status or status[0] == "":
+        if not status or status == "":
             return
-        status = status[0]
 
         # write status
         self._write_global_status(status)
@@ -647,13 +669,15 @@ class NuqqlBackend(Backend):
         # set status in all backends and their accounts
         for backend in BACKENDS.values():
             for acc in backend.accounts.values():
-                backend.client.send_status_set(acc.aid, status)
+                if backend.client:
+                    backend.client.send_status_set(acc.aid, status)
 
         # log message
         msg = "global-status: " + status
-        self.conversation.log("nuqql", msg)
+        if self.conversation:
+            self.conversation.log("nuqql", msg)
 
-    def _handle_nuqql_global_status_get(self):
+    def _handle_nuqql_global_status_get(self) -> None:
         """
         Handle nuqql command: global-status get
         Read status from global_status file
@@ -666,10 +690,11 @@ class NuqqlBackend(Backend):
 
         # log message
         msg = "global-status: " + status
-        self.conversation.log("nuqql", msg)
+        if self.conversation:
+            self.conversation.log("nuqql", msg)
 
     @staticmethod
-    def _write_global_status(status):
+    def _write_global_status(status: str) -> None:
         """
         Write global status to global_status file
         """
@@ -685,7 +710,7 @@ class NuqqlBackend(Backend):
             status_file.writelines(lines)
 
     @staticmethod
-    def read_global_status():
+    def read_global_status() -> str:
         """
         Read global status from global_status file
         """
@@ -705,7 +730,7 @@ class NuqqlBackend(Backend):
             return ""
 
     @staticmethod
-    def _handle_stop(parts):
+    def _handle_stop(parts: List[str]) -> None:
         """
         Handle stop command, stop a backend
         """
@@ -718,7 +743,7 @@ class NuqqlBackend(Backend):
             BACKENDS[backend_name].stop()
 
     @staticmethod
-    def _handle_start(parts):
+    def _handle_start(parts: List[str]) -> None:
         """
         Handle start command, start a backend
         """
@@ -741,10 +766,11 @@ class NuqqlBackend(Backend):
         if backend_name in backend_map:
             # start the backend and its client
             backend = backend_map[backend_name]()
-            start_backend_client(backend)
+            if backend:
+                start_backend_client(backend)
 
     @staticmethod
-    def _handle_restart(parts):
+    def _handle_restart(parts: List[str]) -> None:
         """
         Handle restart command, stop and start a backend
         """
@@ -752,15 +778,16 @@ class NuqqlBackend(Backend):
         NuqqlBackend._handle_stop(parts)
         NuqqlBackend._handle_start(parts)
 
-    def _handle_quit(self, _parts):
+    def _handle_quit(self, _parts: List[str]) -> None:
         """
         Handle quit command, quit nuqql
         """
 
-        self.conversation.wins.input_win.state.active = False
-        self.conversation.wins.list_win.state.active = False
+        if self.conversation:
+            self.conversation.wins.input_win.state.active = False
+            self.conversation.wins.list_win.state.active = False
 
-    def handle_nuqql_command(self, msg):
+    def handle_nuqql_command(self, msg: str) -> None:
         """
         Handle a nuqql command (from the nuqql conversation)
         """
@@ -792,14 +819,14 @@ class Account:
     Class for Accounts
     """
 
-    def __init__(self, aid, prot, user):
+    def __init__(self, aid: str, prot: str, user: str) -> None:
         self.aid = aid
         self.name = user
         self.type = prot
-        self.buddies = []
+        self.buddies: List[Buddy] = []
         self.buddies_update = 0
 
-    def update_buddies(self):
+    def update_buddies(self) -> bool:
         """
         Update the buddy list of this account.
         Return True if an update is pending, False otherwise.
@@ -808,7 +835,7 @@ class Account:
         # update only once every BUDDY_UPDATE_TIMER seconds
         if time.time() - self.buddies_update <= BUDDY_UPDATE_TIMER:
             return False
-        self.buddies_update = time.time()
+        self.buddies_update = int(time.time())
 
         # remove buddies, that have not been updated for a while
         for rem in [buddy for buddy in self.buddies if not buddy.updated]:
@@ -821,7 +848,8 @@ class Account:
 
         return True
 
-    def update_buddy(self, backend, name, alias, status):
+    def update_buddy(self, backend: Backend, name: str, alias: str,
+                     status: str) -> None:
         """
         Update a single buddy of this account. Could be a new buddy.
         """
@@ -850,7 +878,8 @@ class Buddy:
     Class for Buddies
     """
 
-    def __init__(self, backend, account, name):
+    def __init__(self, backend: Backend, account: Account,
+                 name: "str") -> None:
         self.backend = backend
         self.account = account
         self.name = name
@@ -867,7 +896,7 @@ class Buddy:
         "group_chat_invite": "grp_invite",
     }
 
-    def set_status(self, status):
+    def set_status(self, status: str) -> None:
         """
         Set status of buddy; convert status to something shorter
         """
@@ -877,7 +906,7 @@ class Buddy:
         except KeyError:
             self.status = status
 
-    def update(self, status, alias):
+    def update(self, status: str, alias: str) -> bool:
         """
         Update Buddy
         """
@@ -903,7 +932,7 @@ class Buddy:
 # Parsing functions #
 #####################
 
-def parse_error_msg(orig_msg):
+def parse_error_msg(orig_msg: str) -> Tuple:
     """
     Parse "error" message received from backend
 
@@ -915,7 +944,7 @@ def parse_error_msg(orig_msg):
     return "error", error
 
 
-def parse_info_msg(orig_msg):
+def parse_info_msg(orig_msg: str) -> Tuple:
     """
     Parse "info" message received from backend
 
@@ -927,7 +956,7 @@ def parse_info_msg(orig_msg):
     return "info", info
 
 
-def parse_account_msg(orig_msg):
+def parse_account_msg(orig_msg: str) -> Tuple:
     """
     Parse "account" message received from backend
 
@@ -945,7 +974,7 @@ def parse_account_msg(orig_msg):
     return "account", acc_id, acc_alias, acc_prot, acc_user, acc_status
 
 
-def parse_collect_msg(orig_msg):
+def parse_collect_msg(orig_msg: str) -> Tuple:
     """
     Parse "collect" message received from backend
     """
@@ -954,7 +983,7 @@ def parse_collect_msg(orig_msg):
     return parse_message_msg(orig_msg)
 
 
-def parse_message_msg(orig_msg):
+def parse_message_msg(orig_msg: str) -> Tuple:
     """
     Parse "message" message received from backend
     """
@@ -972,7 +1001,7 @@ def parse_message_msg(orig_msg):
     return "message", acc, acc_name, int(tstamp), sender, msg
 
 
-def parse_buddy_msg(orig_msg):
+def parse_buddy_msg(orig_msg: str) -> Tuple:
     """
     Parse "buddy" message received from backend
     """
@@ -987,7 +1016,7 @@ def parse_buddy_msg(orig_msg):
     return "buddy", acc, status, name, alias
 
 
-def parse_status_msg(orig_msg):
+def parse_status_msg(orig_msg: str) -> Tuple:
     """
     Parse "status" message received from backend
     """
@@ -1001,7 +1030,7 @@ def parse_status_msg(orig_msg):
     return "status", acc, status
 
 
-def parse_chat_msg(orig_msg):
+def parse_chat_msg(orig_msg: str) -> Tuple:
     """
     Parse "chat" message received from backend
     """
@@ -1058,7 +1087,7 @@ PARSE_FUNCTIONS = {
 }
 
 
-def parse_msg(orig_msg):
+def parse_msg(orig_msg: str) -> Tuple:
     """
     Parse message received from backend,
     calls more specific parsing functions
@@ -1082,7 +1111,7 @@ def parse_msg(orig_msg):
 # HELPER FUNCTIONS #
 ####################
 
-def update_buddies():
+def update_buddies() -> None:
     """
     Helper for updating buddies on all backends
     """
@@ -1091,7 +1120,7 @@ def update_buddies():
         backend.update_buddies()
 
 
-def handle_network():
+def handle_network() -> None:
     """
     Helper for handling network events on all backends
     """
@@ -1100,8 +1129,9 @@ def handle_network():
         backend.handle_network()
 
 
-def start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
-                  backend_sockfile):
+def start_backend(backend_name: str, backend_exe: str, backend_path: str,
+                  backend_cmd_fmt: str,
+                  backend_sockfile: str) -> Optional[Backend]:
     """
     Helper for starting a backend
     """
@@ -1133,7 +1163,7 @@ def start_backend(backend_name, backend_exe, backend_path, backend_cmd_fmt,
     return backend
 
 
-def start_purpled():
+def start_purpled() -> Optional[Backend]:
     """
     Helper for starting the "purpled" backend
     """
@@ -1160,7 +1190,7 @@ def start_purpled():
                          backend_cmd_fmt, backend_sockfile)
 
 
-def start_based():
+def start_based() -> Optional[Backend]:
     """
     Helper for starting the "based" backend
     """
@@ -1179,7 +1209,7 @@ def start_based():
                          backend_cmd_fmt, backend_sockfile)
 
 
-def start_slixmppd():
+def start_slixmppd() -> Optional[Backend]:
     """
     Helper for starting the "slixmppd" backend
     """
@@ -1198,7 +1228,7 @@ def start_slixmppd():
                          backend_cmd_fmt, backend_sockfile)
 
 
-def start_matrixd():
+def start_matrixd() -> Optional[Backend]:
     """
     Helper for starting the "matrixd" backend
     """
@@ -1217,7 +1247,7 @@ def start_matrixd():
                          backend_cmd_fmt, backend_sockfile)
 
 
-def start_backend_client(backend):
+def start_backend_client(backend: Backend) -> None:
     """
     Helper for starting a single backend client
     """
@@ -1230,7 +1260,7 @@ def start_backend_client(backend):
     backend.start_client()
 
     # make sure the connection to the backend was successful
-    if not backend.client.sock:
+    if not backend.client or not backend.client.sock:
         log_msg = "Could not connect to backend \"{0}\".".format(
             backend.name)
         nuqql.conversation.log_main_window(log_msg)
@@ -1242,10 +1272,11 @@ def start_backend_client(backend):
 
     # log it
     log_msg = "Collecting accounts for \"{0}\".".format(backend.name)
-    backend.conversation.log("nuqql", log_msg)
+    if backend.conversation:
+        backend.conversation.log("nuqql", log_msg)
 
 
-def start_backend_clients():
+def start_backend_clients() -> None:
     """
     Helper for starting all backend clients
     """
@@ -1257,7 +1288,7 @@ def start_backend_clients():
         start_backend_client(backend)
 
 
-def start_nuqql():
+def start_nuqql() -> None:
     """
     Start the nuqql dummy backend
     """
@@ -1271,7 +1302,7 @@ def start_nuqql():
     backend.conversation = conv
 
 
-def start_backends():
+def start_backends() -> None:
     """
     Helper for starting all backends
     """
@@ -1291,7 +1322,7 @@ def start_backends():
     start_backend_clients()
 
 
-def stop_backends():
+def stop_backends() -> None:
     """
     Helper for stopping all backends
     """
