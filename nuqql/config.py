@@ -8,13 +8,14 @@ import curses
 import sys
 
 from pathlib import Path
+from typing import Any, Dict, Tuple
 
 #############
 # UI Config #
 #############
 
 # default keymap for special keys
-DEFAULT_KEYMAP = {
+DEFAULT_KEYMAP: Dict[str, Any] = {
     "KEY_ENTER":        ord("\n"),
     "KEY_ESC":          curses.ascii.ESC,
     "KEY_RIGHT":        curses.KEY_RIGHT,
@@ -119,7 +120,7 @@ DEFAULT_LIST_WIN_FILTER_KEYBINDS = {
 }
 
 # default ui layout
-DEFAULT_LAYOUT = {
+DEFAULT_LAYOUT: Dict[str, Any] = {
     # window x and y sizes in percent
     "LIST_WIN_Y_PER":   100,
     "LIST_WIN_X_PER":   20,
@@ -165,7 +166,7 @@ DEFAULT_CONVERSATION_CONFIG = {
 }
 
 # default window settings
-DEFAULT_LIST_WIN_CONFIG = {
+DEFAULT_LIST_WIN_CONFIG: Dict[str, Any] = {
     "show_title": True,
 }
 
@@ -173,7 +174,7 @@ DEFAULT_LOG_WIN_CONFIG = DEFAULT_LIST_WIN_CONFIG
 DEFAULT_INPUT_WIN_CONFIG = DEFAULT_LIST_WIN_CONFIG
 
 # configurations
-CONFIGS = {}
+CONFIGS: Dict[str, Any] = {}
 
 
 class WinConfig:
@@ -181,16 +182,16 @@ class WinConfig:
     Class for window configuration
     """
 
-    def __init__(self, wtype):
+    def __init__(self, wtype: str) -> None:
         self._type = wtype
-        self._rel_yx = 0
-        self.keymap = None
-        self.keybinds = None
-        self.attr = {}  # window colors/attributes
-        self.settings = {}  # window settings
+        self._rel_yx = 0.0, 0.0
+        self.keymap: Dict[str, Any] = {}
+        self.keybinds: Dict[str, Any] = {}
+        self.attr: Dict[str, Any] = {}  # window colors/attributes
+        self.settings: Dict[str, str] = {}  # window settings
 
     @staticmethod
-    def _get_layout_config():
+    def _get_layout_config() -> Dict:
         """
         Initialize/get layout configuration
         """
@@ -201,7 +202,7 @@ class WinConfig:
         # read config file if it exists
         config_file = Path.home() / ".config/nuqql/config.ini"
         config = configparser.ConfigParser()
-        config.optionxform = lambda option: option
+        config.optionxform = lambda option: option  # type: ignore
         config.read(config_file)
 
         # parse config read from file
@@ -223,7 +224,7 @@ class WinConfig:
             layout[key] = value / 100
         return layout
 
-    def init_layout(self):
+    def init_layout(self) -> None:
         """
         Init UI/Window layout
         """
@@ -240,7 +241,7 @@ class WinConfig:
             self._rel_yx = layout["INPUT_WIN_Y_PER"], layout["INPUT_WIN_X_PER"]
 
     @staticmethod
-    def _get_window_config():
+    def _get_window_config() -> Dict[str, Any]:
         """
         Initialize/get window configuration
         """
@@ -254,7 +255,7 @@ class WinConfig:
         # read config file if it exists
         config_file = Path.home() / ".config/nuqql/config.ini"
         config = configparser.ConfigParser()
-        config.optionxform = lambda option: option
+        config.optionxform = lambda option: option  # type: ignore
         config.read(config_file)
 
         # parse config read from file
@@ -278,7 +279,7 @@ class WinConfig:
 
         return win_config
 
-    def init_window_settings(self):
+    def init_window_settings(self) -> None:
         """
         Init window specific settings
         """
@@ -290,7 +291,7 @@ class WinConfig:
         self.settings = win_config[self._type]
 
     @staticmethod
-    def _get_color_config():
+    def _get_color_config() -> Tuple[Dict[str, str], Dict[str, str]]:
         """
         Initialize/get color configuration
         """
@@ -325,7 +326,7 @@ class WinConfig:
 
         return color_config, attrib_config
 
-    def init_colors(self):
+    def init_colors(self) -> None:
         """
         Initialize colors
         """
@@ -425,7 +426,7 @@ class WinConfig:
             self.attr[key] = colors[value] | attrib
 
     @staticmethod
-    def _get_keymap_config():
+    def _get_keymap_config() -> Dict[str, Any]:
         """
         Initialize/get keymap configuration
         """
@@ -436,7 +437,7 @@ class WinConfig:
         # read config file if it exists
         config_file = Path.home() / ".config/nuqql/config.ini"
         config = configparser.ConfigParser()
-        config.optionxform = lambda option: option
+        config.optionxform = lambda option: option  # type: ignore
         config.read(config_file)
 
         # parse config read from file
@@ -461,7 +462,7 @@ class WinConfig:
             keymap[value] = key
         return keymap
 
-    def init_keymap(self):
+    def init_keymap(self) -> None:
         """
         Initialzize keymap
         """
@@ -469,13 +470,13 @@ class WinConfig:
         self.keymap = self._get_keymap_config()
 
     @staticmethod
-    def _get_keybinds_config():
+    def _get_keybinds_config() -> Dict[str, Any]:
         """
         Initialize/get keybind configuration
         """
 
         # init configuration from defaults
-        keybinds_config = {}
+        keybinds_config: Dict[str, Any] = {}
         keybinds_config["list_win_keybinds"] = DEFAULT_LIST_WIN_KEYBINDS
         keybinds_config["list_win_filter_keybinds"] = \
             DEFAULT_LIST_WIN_FILTER_KEYBINDS
@@ -485,7 +486,7 @@ class WinConfig:
         # read config file if it exists
         config_file = Path.home() / ".config/nuqql/config.ini"
         config = configparser.ConfigParser()
-        config.optionxform = lambda option: option
+        config.optionxform = lambda option: option  # type: ignore
         config.read(config_file)
 
         # parse config read from file
@@ -506,7 +507,7 @@ class WinConfig:
 
         # create and return internally used keymap
         # swap keys and values in config dictionaries
-        tmp_keybinds = {}
+        tmp_keybinds: Dict[str, Any] = {}
         for win_binds in ("list_win_keybinds", "list_win_filter_keybinds",
                           "log_win_keybinds", "input_win_keybinds"):
             tmp_keybinds[win_binds] = {}
@@ -526,7 +527,7 @@ class WinConfig:
 
         return keybinds
 
-    def init_keybinds(self):
+    def init_keybinds(self) -> None:
         """
         Initialize keybindings depending on window type
         """
@@ -534,7 +535,7 @@ class WinConfig:
         keybinds = self._get_keybinds_config()
         self.keybinds = keybinds[self._type]
 
-    def get_win_size(self, max_y, max_x):
+    def get_win_size(self, max_y: int, max_x: int) -> Tuple[int, int]:
         """
         Get size of the window, depending on max_y and max_x as well as
         window's y_per and x_per. If window size is smaller than minimum size,
@@ -545,7 +546,7 @@ class WinConfig:
         abs_x = max(int(max_x * self._rel_yx[1]), 3)
         return abs_y, abs_x
 
-    def get_size(self):
+    def get_size(self) -> Tuple[int, int]:
         """
         Return window size depending on max screen size and
         other windows' sizes.
@@ -581,7 +582,7 @@ class WinConfig:
         # should not be reached
         return -1, -1
 
-    def get_pos(self):
+    def get_pos(self) -> Tuple[int, int]:
         """
         Get position of the window, depending on type and window sizes
         """
@@ -600,7 +601,7 @@ class WinConfig:
         return -1, -1
 
     @staticmethod
-    def is_terminal_valid():
+    def is_terminal_valid() -> bool:
         """
         Helper that checks if terminal size is still valid (after resize)
         """
@@ -614,7 +615,7 @@ class WinConfig:
         return True
 
 
-def get(name):
+def get(name: str) -> Any:
     """
     Get configuration identified by name
     """
@@ -622,7 +623,7 @@ def get(name):
     return CONFIGS[name]
 
 
-def init_win(screen):
+def init_win(screen: Any) -> None:
     """
     Initialize window configurations
     """
@@ -659,7 +660,7 @@ def init_win(screen):
     CONFIGS["screen"] = screen
 
 
-def _get_conversation_config():
+def _get_conversation_config() -> Dict[str, str]:
     """
     Initialize/get conversation configuration
     """
@@ -670,7 +671,7 @@ def _get_conversation_config():
     # read config file if it exists
     config_file = Path.home() / ".config/nuqql/config.ini"
     config = configparser.ConfigParser()
-    config.optionxform = lambda option: option
+    config.optionxform = lambda option: option  # type: ignore
     config.read(config_file)
 
     # parse config read from file
@@ -690,7 +691,7 @@ def _get_conversation_config():
     return conversation_config
 
 
-def init_conversation_settings():
+def init_conversation_settings() -> None:
     """
     Initialize conversation settings
     """
@@ -699,7 +700,7 @@ def init_conversation_settings():
     CONFIGS["conversations"] = settings
 
 
-def init_path():
+def init_path() -> None:
     """
     Initialize configuration path. Make sure config directories exist.
     """
@@ -708,7 +709,7 @@ def init_path():
     Path(config_path).mkdir(parents=True, exist_ok=True)
 
 
-def init(screen):
+def init(screen: Any) -> None:
     """
     Initialize configurations
     """
