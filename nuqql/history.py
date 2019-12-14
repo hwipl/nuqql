@@ -262,7 +262,6 @@ def init_log_from_file(conv):
     last_read = get_lastread(conv)
     is_read = True
 
-    lines = []
     with open(conv.history.log_file, newline="\r\n") as in_file:
         prev_msg = None
         for line in in_file:
@@ -286,7 +285,7 @@ def init_log_from_file(conv):
             # marked as unread
             if last_read and last_read.is_equal(log_msg):
                 is_read = False
-    if lines:
+    if conv.history.log:
         # if there were any log messages in the log file, put a marker in the
         # log where the new messages start
         tstamp = datetime.datetime.now()
