@@ -7,6 +7,9 @@ import logging
 import pathlib
 import os
 
+from typing import TYPE_CHECKING, Optional, Tuple
+if TYPE_CHECKING:   # imports for typing
+    from nuqql.conversation import Conversation
 
 HISTORY_FILE = "/history"
 LASTREAD_FILE = "/lastread"
@@ -15,7 +18,8 @@ LASTREAD_FILE = "/lastread"
 class LogMessage:
     """Class for log messages to be displayed in LogWins"""
 
-    def __init__(self, tstamp, sender, msg, own=False):
+    def __init__(self, tstamp: datetime.datetime, sender: str, msg: str,
+                 own: bool = False) -> None:
         """
         Initialize log message with timestamp, sender of the message, and
         the message itself
@@ -35,7 +39,7 @@ class LogMessage:
         # has message been read?
         self.is_read = False
 
-    def get_short_sender(self):
+    def get_short_sender(self) -> str:
         """
         Convert name to a shorter version
         """
@@ -43,7 +47,7 @@ class LogMessage:
         # TODO: improve? Save short name in account and buddy instead?
         return self.sender.split("@")[0]
 
-    def read(self, mark_read=True):
+    def read(self, mark_read: bool = True) -> str:
         """
         Format and return log message; mark it as read
         """
@@ -59,7 +63,7 @@ class LogMessage:
 
         return msg
 
-    def is_equal(self, other):
+    def is_equal(self, other: "LogMessage") -> bool:
         """
         Check if this message and the LogMessage "other" match
         """
@@ -79,7 +83,7 @@ class LogMessage:
 ####################
 
 
-def get_conv_path(conv):
+def get_conv_path(conv: "Conversation") -> str:
     """
     Get path for conversation history as a string and make sure it exists
     """
@@ -95,7 +99,7 @@ def get_conv_path(conv):
     return conv_dir
 
 
-def get_logger(name, file_name):
+def get_logger(name, file_name: str) -> logging.Logger:
     """
     Create a logger for a conversation
     """
@@ -126,7 +130,7 @@ def get_logger(name, file_name):
     return logger
 
 
-def init_logger(conv):
+def init_logger(conv: "Conversation") -> Tuple[logging.Logger, str]:
     """
     Init logger for a conversation
     """
@@ -144,28 +148,28 @@ def init_logger(conv):
     return logger, log_file
 
 
-def parse_log_line(line):
+def parse_log_line(line: str) -> LogMessage:
     """
     Parse line from log file and return a LogMessage
     """
 
     # parse line
     parts = line.split(sep=" ", maxsplit=3)
-    tstamp = parts[0]
+    # tstamp = parts[0]
     direction = parts[1]
     is_own = False
     if direction == "OUT":
         is_own = True
     sender = parts[2]
     msg = parts[3][:-2]
-    tstamp = datetime.datetime.fromtimestamp(int(tstamp))
+    tstamp = datetime.datetime.fromtimestamp(int(parts[0]))
 
     # create and return LogMessage
     log_msg = LogMessage(tstamp, sender, msg, own=is_own)
     return log_msg
 
 
-def create_log_line(log_msg):
+def create_log_line(log_msg: LogMessage) -> str:
     """
     Create a line for the log files from a LogMessage
     """
@@ -182,7 +186,7 @@ def create_log_line(log_msg):
     return "{} {} {} {}".format(tstamp, direction, sender, msg)
 
 
-def get_lastread(conv):
+def get_lastread(conv: "Conversation") -> Optional[LogMessage]:
     """
     Get last read message from "lastread" file of the conversation
     """
@@ -197,11 +201,12 @@ def get_lastread(conv):
                 log_msg = parse_log_line(line)
                 log_msg.is_read = True
                 return log_msg
+            return None
     except FileNotFoundError:
         return None
 
 
-def set_lastread(conv, log_msg):
+def set_lastread(conv: "Conversation", log_msg: LogMessage) -> None:
     """
     Set last read message in "lastread" file of the conversation
     """
@@ -214,11 +219,11 @@ def set_lastread(conv, log_msg):
     line = create_log_line(log_msg) + "\r\n"
     lines = []
     lines.append(line)
-    with open(lastread_file, "w+") as in_file:
-        lines = in_file.writelines(lines)
+    with open(lastread_file, "w+") as out_file:
+        out_file.writelines(lines)
 
 
-def get_last_log_line(conv):
+def get_last_log_line(conv: "Conversation") -> Optional[LogMessage]:
     """
     Read last LogMessage from log file
     """
@@ -253,7 +258,7 @@ def get_last_log_line(conv):
         return None
 
 
-def init_log_from_file(conv):
+def init_log_from_file(conv: "Conversation") -> None:
     """
     Initialize a conversation's log from the conversation's log file
     """
@@ -296,7 +301,7 @@ def init_log_from_file(conv):
         conv.history.log.append(log_msg)
 
 
-def log(conv, log_msg):
+def log(conv, log_msg: LogMessage) -> None:
     """
     Write LogMessage to history log file and set lastread message
     """
