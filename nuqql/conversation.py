@@ -6,6 +6,7 @@ import datetime
 import urllib.parse
 
 from types import SimpleNamespace
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 import nuqql.history
 import nuqql.config
@@ -14,9 +15,11 @@ import nuqql.listwin
 import nuqql.logwin
 import nuqql.win
 
+if TYPE_CHECKING:   # imports for typing
+    from nuqql.backend import Account, Backend, Buddy   # noqa
 
 # list of active conversations
-CONVERSATIONS = []
+CONVERSATIONS: List["Conversation"] = []
 
 
 class Conversation:
@@ -24,13 +27,14 @@ class Conversation:
     Class for conversations
     """
 
-    def __init__(self, backend, account, name):
+    def __init__(self, backend: "Backend", account: "Account",
+                 name: str) -> None:
         # general
         self.name = name
         self.notification = 0
 
         # statistics
-        self.stats = {}
+        self.stats: Dict[str, float] = {}
         self.stats["last_used"] = 0
         self.stats["last_send"] = 0
         self.stats["num_send"] = 0
@@ -51,7 +55,7 @@ class Conversation:
         self.history.logger = None
         self.history.log_file = None
 
-    def activate(self, set_last_used=True):
+    def activate(self, set_last_used: bool = True) -> None:
         """
         Activate windows of conversation
         """
@@ -67,7 +71,7 @@ class Conversation:
                 self.stats["last_used"] = datetime.datetime.now().timestamp()
             return
 
-    def activate_log(self):
+    def activate_log(self) -> None:
         """
         Activate windows of conversation and go to history
         """
@@ -81,7 +85,7 @@ class Conversation:
             self.clear_notifications()
             return
 
-    def has_windows(self):
+    def has_windows(self) -> bool:
         """
         Check if conversation has already created its windows
         """
@@ -91,21 +95,22 @@ class Conversation:
 
         return False
 
-    def create_windows(self):
+    def create_windows(self) -> None:
         """
         Create windows for this conversation
         """
 
         # implemented in sub classes
 
-    def get_name(self):
+    def get_name(self) -> str:
         """
         Get the name of the conversation, depending on type
         """
 
         # implemented in sub classes
 
-    def log(self, sender, msg, tstamp=None, own=False):
+    def log(self, sender: str, msg: str, tstamp: datetime.datetime = None,
+            own: bool = False) -> nuqql.history.LogMessage:
         """
         Log message to conversation's history/log window
         """
@@ -138,7 +143,7 @@ class Conversation:
 
         return log_msg
 
-    def notify(self):
+    def notify(self) -> None:
         """
         Notify this conversation about new messages
         """
@@ -148,7 +153,7 @@ class Conversation:
         if self.wins.list_win:
             self.wins.list_win.redraw_pad()
 
-    def clear_notifications(self):
+    def clear_notifications(self) -> None:
         """
         Clear notifications of buddy
         """
@@ -157,7 +162,7 @@ class Conversation:
         if self.wins.list_win:
             self.wins.list_win.redraw_pad()
 
-    def __lt__(self, other):
+    def __lt__(self, other: "Conversation"):
         # sort based on get_key output
         return self.get_key() < other.get_key()
 
@@ -170,14 +175,14 @@ class Conversation:
         "off": 4,
     }
 
-    def get_key(self):
+    def get_key(self) -> Tuple:
         """
         Get a key for sorting this conversation
         """
 
         # implemented in sub classes
 
-    def is_log_win_active(self):
+    def is_log_win_active(self) -> bool:
         """
         Check if conversation's log window is active
         """
@@ -188,7 +193,7 @@ class Conversation:
 
         return False
 
-    def is_input_win_active(self):
+    def is_input_win_active(self) -> bool:
         """
         Check if conversation's input window is active
         """
@@ -199,7 +204,7 @@ class Conversation:
 
         return False
 
-    def is_active(self):
+    def is_active(self) -> bool:
         """
         Check if this conversation is currently active, and return True if it
         is the case; otherwise, return False.
@@ -211,7 +216,7 @@ class Conversation:
 
         return False
 
-    def is_any_active(self):
+    def is_any_active(self) -> bool:
         """
         Check if any conversation is currently active
         """
@@ -226,7 +231,7 @@ class Conversation:
         return False
 
     @staticmethod
-    def get_new():
+    def get_new() -> Optional["Conversation"]:
         """
         Check if there is any conversation with new messages and return it
         """
@@ -237,7 +242,7 @@ class Conversation:
 
         return None
 
-    def get_next(self):
+    def get_next(self) -> Optional["Conversation"]:
         """
         Check if there is any newer used conversation and return it
         """
@@ -255,7 +260,7 @@ class Conversation:
 
         return next_conv
 
-    def get_prev(self):
+    def get_prev(self) -> Optional["Conversation"]:
         """
         Check if there is any previously used conversation and return it
         """
@@ -273,7 +278,7 @@ class Conversation:
 
         return prev_conv
 
-    def process_input(self, char):
+    def process_input(self, char: str) -> None:
         """
         Process user input in active window
         """
@@ -288,14 +293,14 @@ class Conversation:
             self.wins.log_win.process_input(char)
             return
 
-    def send_msg(self, msg):
+    def send_msg(self, msg: str) -> None:
         """
         Send message coming from the UI/input window
         """
 
         # implemented in sub classes
 
-    def set_lastread(self):
+    def set_lastread(self) -> None:
         """
         Helper that sets lastread to the last message in the conversation,
         thus, marking all messages as read.
@@ -309,18 +314,19 @@ class BuddyConversation(Conversation):
     Class for conversations with buddies
     """
 
-    def __init__(self, backend, account, name):
+    def __init__(self, backend: "Backend", account: "Account",
+                 name: str) -> None:
         Conversation.__init__(self, backend, account, name)
 
         # conv already in backend or new (temporary) conv in nuqql only
         self.temporary = False
 
-        self.peers = []
+        self.peers: List["Buddy"] = []
         self.wins.list_win = nuqql.win.MAIN_WINS["list"]
         self.history.logger, self.history.log_file = nuqql.history.init_logger(
             self)
 
-    def create_windows(self):
+    def create_windows(self) -> None:
         """
         Create windows for this conversation
         """
@@ -339,7 +345,7 @@ class BuddyConversation(Conversation):
         # try to read old messages from message history
         nuqql.history.init_log_from_file(self)
 
-    def get_name(self):
+    def get_name(self) -> str:
         """
         Get the name of the conversation, depending on type
         """
@@ -357,14 +363,14 @@ class BuddyConversation(Conversation):
             return "{0}[{1}] {2}".format(notify, peer.status, alias)
         return "{0}[{1}] {2}".format(notify, "off", self.name)
 
-    def get_key(self):
+    def get_key(self) -> Tuple:
         """
         Get a key for sorting this conversation
         """
 
         # defaults
         sort_notify = 0 - self.notification
-        sort_used = 0
+        sort_used = 0.0
         sort_type = 0
         sort_status = 0
         sort_name = self.name
@@ -386,12 +392,14 @@ class BuddyConversation(Conversation):
         # return tuple of sort keys
         return sort_notify, sort_used, sort_type, sort_status, sort_name
 
-    def send_msg(self, msg):
+    def send_msg(self, msg: str) -> None:
         """
         Send message coming from the UI/input window
         """
 
         # send message and log it in the history file
+        if not self.backend.client:
+            return
         self.backend.client.send_msg(self.account.aid, self.name, msg)
 
         # statistics
@@ -405,7 +413,7 @@ class BuddyConversation(Conversation):
         log_msg = self.log("you", msg, own=True)
         nuqql.history.log(self, log_msg)
 
-    def set_lastread(self):
+    def set_lastread(self) -> None:
         """
         Helper that sets lastread to the last message in the conversation,
         thus, marking all messages as read.
@@ -430,7 +438,7 @@ class GroupConversation(BuddyConversation):
     Class for group chat conversations
     """
 
-    def create_windows(self):
+    def create_windows(self) -> None:
         # call method of super class
         BuddyConversation.create_windows(self)
 
@@ -444,7 +452,7 @@ class GroupConversation(BuddyConversation):
                         "this invite.>"
                 self.log("<event>", msg, own=True)
 
-    def send_msg(self, msg):
+    def send_msg(self, msg: str) -> None:
         """
         Send message coming from the UI/input window
         """
@@ -466,7 +474,7 @@ class GroupConversation(BuddyConversation):
             msg = "account {} chat users {}".format(self.account.aid,
                                                     self.name)
             # send command message to backend
-            if self.backend:
+            if self.backend and self.backend.client:
                 self.backend.client.send_command(msg)
             return
 
@@ -474,7 +482,7 @@ class GroupConversation(BuddyConversation):
             # create chat part command
             msg = "account {} chat part {}".format(self.account.aid, self.name)
             # send command message to backend
-            if self.backend:
+            if self.backend and self.backend.client:
                 self.backend.client.send_command(msg)
             return
 
@@ -486,7 +494,7 @@ class GroupConversation(BuddyConversation):
                 msg = "account {} chat invite {} {}".format(self.account.aid,
                                                             self.name, user)
                 # send command message to backend
-                if self.backend:
+                if self.backend and self.backend.client:
                     self.backend.client.send_command(msg)
                 return
 
@@ -495,12 +503,14 @@ class GroupConversation(BuddyConversation):
             # create chat join command
             msg = "account {} chat join {}".format(self.account.aid, self.name)
             # send command message to backend
-            if self.backend:
+            if self.backend and self.backend.client:
                 self.backend.client.send_command(msg)
             return
 
         # send and log group chat message
-        self.backend.client.send_group_msg(self.account.aid, self.name, msg)
+        if self.backend.client:
+            self.backend.client.send_group_msg(self.account.aid, self.name,
+                                               msg)
         nuqql.history.log(self, log_msg)
 
 
@@ -509,7 +519,7 @@ class BackendConversation(Conversation):
     Class for backend conversations
     """
 
-    def create_windows(self):
+    def create_windows(self) -> None:
         """
         Create windows for this conversation
         """
@@ -526,7 +536,7 @@ class BackendConversation(Conversation):
         self.wins.input_win = nuqql.inputwin.InputWin(input_config, self,
                                                       input_title)
 
-    def get_name(self):
+    def get_name(self) -> str:
         """
         Get the name of the conversation, depending on type
         """
@@ -539,7 +549,7 @@ class BackendConversation(Conversation):
 
         return "{0}{{backend}} {1}".format(notify, self.name)
 
-    def get_key(self):
+    def get_key(self) -> Tuple:
         """
         Get a key for sorting this conversation
         """
@@ -556,7 +566,8 @@ class BackendConversation(Conversation):
         return sort_notify, sort_used, sort_type, sort_status, sort_name
 
     @staticmethod
-    def _check_chat_command(backend, account, cmd, name):
+    def _check_chat_command(backend: "Backend", account: "Account", cmd: str,
+                            name: str) -> None:
         """
         Check for chat commands
         """
@@ -593,7 +604,7 @@ class BackendConversation(Conversation):
                 del CONVERSATIONS[existing_conv_index]
                 existing_conv.wins.list_win.redraw()
 
-    def _check_command(self, msg):
+    def _check_command(self, msg: str) -> None:
         """
         Check if msg is a special command we want to handle in nuqql before
         sending it to the backend
@@ -622,7 +633,7 @@ class BackendConversation(Conversation):
         # check for chat commands
         self._check_chat_command(self.backend, account, parts[3], parts[4])
 
-    def send_msg(self, msg):
+    def send_msg(self, msg: str) -> None:
         """
         Send message coming from the UI/input window
         """
@@ -641,7 +652,7 @@ class BackendConversation(Conversation):
         self.wins.list_win.redraw_pad()
 
         # send command message to backend
-        if self.backend is not None:
+        if self.backend and self.backend.client:
             # check for special commands to handle in nuqql first
             self._check_command(msg)
 
@@ -657,7 +668,7 @@ class NuqqlConversation(Conversation):
     Class for the nuqql conversation
     """
 
-    def create_windows(self):
+    def create_windows(self) -> None:
         """
         Create windows for this conversation
         """
@@ -695,7 +706,7 @@ class NuqqlConversation(Conversation):
         nuqql.win.MAIN_WINS["log"] = self.wins.log_win
         nuqql.win.MAIN_WINS["input"] = self.wins.input_win
 
-    def get_name(self):
+    def get_name(self) -> str:
         """
         Get the name of the conversation, depending on type
         """
@@ -708,7 +719,7 @@ class NuqqlConversation(Conversation):
 
         return "{0}{{nuqql}}".format(notify)
 
-    def get_key(self):
+    def get_key(self) -> Tuple:
         """
         Get a key for sorting this conversation
         """
@@ -724,7 +735,7 @@ class NuqqlConversation(Conversation):
         # return tuple of sort keys
         return sort_notify, sort_used, sort_type, sort_status, sort_name
 
-    def send_msg(self, msg):
+    def send_msg(self, msg: str) -> None:
         """
         Send message coming from the UI/input window
         """
@@ -746,7 +757,7 @@ class NuqqlConversation(Conversation):
         self.backend.handle_nuqql_command(msg)
 
 
-def remove_backend_conversations(backend):
+def remove_backend_conversations(backend: "Backend") -> None:
     """
     Remove all conversations beloning to the backend
     """
@@ -757,7 +768,7 @@ def remove_backend_conversations(backend):
             conv.wins.list_win.redraw()
 
 
-def log_main_window(msg):
+def log_main_window(msg: str) -> None:
     """
     Log message to main windows
     """
@@ -767,7 +778,7 @@ def log_main_window(msg):
     nuqql.win.MAIN_WINS["log"].add(log_msg)
 
 
-def resize_main_window():
+def resize_main_window() -> None:
     """
     Resize main window
     """
