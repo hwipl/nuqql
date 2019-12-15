@@ -756,6 +756,7 @@ class NuqqlConversation(Conversation):
         self.wins.list_win.redraw_pad()
 
         # handle nuqql command
+        assert isinstance(self.backend, nuqql.backend.NuqqlBackend)
         self.backend.handle_nuqql_command(msg)
 
 
