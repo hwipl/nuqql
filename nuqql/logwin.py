@@ -3,9 +3,15 @@ Nuqql UI Log Windows
 """
 
 from types import SimpleNamespace
+from typing import TYPE_CHECKING, Any, List, Optional
 
 import nuqql.inputwin
 import nuqql.win
+
+if TYPE_CHECKING:   # imports for typing
+    from nuqql.config import WinConfig
+    from nuqql.conversation import Conversation
+    from nuqql.history import LogMessage
 
 
 class LogWin(nuqql.win.Win):
@@ -13,17 +19,18 @@ class LogWin(nuqql.win.Win):
     Class for Log Windows
     """
 
-    def __init__(self, config, conversation, title):
+    def __init__(self, config: "WinConfig", conversation: "Conversation",
+                 title: str) -> None:
         nuqql.win.Win.__init__(self, config, conversation, title)
 
         # window in zoomed/fullscreen mode
         self.zoomed = False
 
         # list entries/message log
-        self.list = []
+        self.list: List["LogMessage"] = []
 
         # dialog window for user input
-        self.dialog = None
+        self.dialog: Optional[nuqql.inputwin.LogDialogInputWin] = None
 
         # string to search for
         self.search_text = ""
@@ -34,7 +41,7 @@ class LogWin(nuqql.win.Win):
             cur=-1
         )
 
-    def add(self, entry):
+    def add(self, entry: "LogMessage") -> None:
         """
         Add entry to internal list
         """
@@ -42,7 +49,7 @@ class LogWin(nuqql.win.Win):
         # add entry to own list via base class function
         self.list_add(self.list, entry)
 
-    def _get_log_view(self, props):
+    def _get_log_view(self, props: SimpleNamespace) -> List["LogMessage"]:
         """
         Get a slice of the log in the current view of the pad
         """
@@ -65,7 +72,8 @@ class LogWin(nuqql.win.Win):
 
         return log_slice
 
-    def _print_msg(self, msg, last=False, output=True):
+    def _print_msg(self, msg: str, last: bool = False,
+                   output: bool = True) -> int:
         """
         Print a single log message. Handle newlines in the log message and add
         additional line breaks for parts of the log message that are too long
@@ -104,7 +112,7 @@ class LogWin(nuqql.win.Win):
 
         return num_output
 
-    def _print_log(self, props):
+    def _print_log(self, props: SimpleNamespace) -> None:
         """
         dump log messages and resize pad according to new lines added
         """
@@ -138,7 +146,7 @@ class LogWin(nuqql.win.Win):
             else:
                 self._print_msg(msg.read(), last=True)
 
-    def _get_properties(self):
+    def _get_properties(self) -> SimpleNamespace:
         """
         Get window/pad properties, depending on max size and zoom
         """
@@ -163,7 +171,7 @@ class LogWin(nuqql.win.Win):
 
         return props
 
-    def _pad_refresh(self, props):
+    def _pad_refresh(self, props: SimpleNamespace) -> None:
         """
         Helper for running move_pad(), check_borders(), and pad.refresh()
         """
@@ -175,7 +183,7 @@ class LogWin(nuqql.win.Win):
                          props.pos_y + props.win_size_y - props.pad_y_delta,
                          props.pos_x + props.win_size_x - props.pad_x_delta)
 
-    def redraw_pad(self):
+    def redraw_pad(self) -> None:
         # if terminal size is invalid, stop here
         if not self.config.is_terminal_valid():
             return
@@ -200,7 +208,7 @@ class LogWin(nuqql.win.Win):
         self.state.cur_y, self.state.cur_x = self.pad.getyx()
         self._pad_refresh(props)
 
-    def _cursor_top(self, *args):
+    def _cursor_top(self, *args: Any) -> None:
         # jump to first line in log
         if self.view.cur > 0:
             # view is not at the top yet, so move it there
@@ -213,7 +221,7 @@ class LogWin(nuqql.win.Win):
         props = self._get_properties()
         self._pad_refresh(props)
 
-    def _cursor_bottom(self, *args):
+    def _cursor_bottom(self, *args: Any) -> None:
         # jump to last line in log
         props = self._get_properties()
         view_size = props.win_size_y - props.pad_y_delta
@@ -229,7 +237,7 @@ class LogWin(nuqql.win.Win):
         props = self._get_properties()
         self._pad_refresh(props)
 
-    def _cursor_page_up(self, *args):
+    def _cursor_page_up(self, *args: Any) -> None:
         # move cursor up one page until first entry in log
         props = self._get_properties()
         view_size = props.win_size_y - props.pad_y_delta
@@ -263,7 +271,7 @@ class LogWin(nuqql.win.Win):
         props = self._get_properties()
         self._pad_refresh(props)
 
-    def _cursor_page_down(self, *args):
+    def _cursor_page_down(self, *args: Any) -> None:
         # move cursor down one page until last entry in log
         props = self._get_properties()
         view_size = props.win_size_y - props.pad_y_delta
@@ -300,7 +308,7 @@ class LogWin(nuqql.win.Win):
         props = self._get_properties()
         self._pad_refresh(props)
 
-    def _cursor_up(self, *args):
+    def _cursor_up(self, *args: Any) -> None:
         # move cursor up until first entry in list
         if self.state.cur_y > 0:
             # inside current view, simply move cursor up
@@ -322,7 +330,7 @@ class LogWin(nuqql.win.Win):
         props = self._get_properties()
         self._pad_refresh(props)
 
-    def _cursor_down(self, *args):
+    def _cursor_down(self, *args: Any) -> None:
         # move cursor down until end of list
         props = self._get_properties()
         lines = self.pad.getmaxyx()[0] - 1
@@ -350,7 +358,7 @@ class LogWin(nuqql.win.Win):
         props = self._get_properties()
         self._pad_refresh(props)
 
-    def _zoom_win(self, *args):
+    def _zoom_win(self, *args: Any) -> None:
         """
         Zoom in and out of log window
         """
@@ -380,7 +388,7 @@ class LogWin(nuqql.win.Win):
             self.conversation.wins.log_win.redraw()
             self.conversation.wins.input_win.redraw()
 
-    def _zoom_win_url(self, *args):
+    def _zoom_win_url(self, *args: Any) -> None:
         """
         Zoom window and search for next url.
         """
@@ -388,7 +396,7 @@ class LogWin(nuqql.win.Win):
         # logwin should already be zoomed. So, just jump to next match
         self._search_next()
 
-    def _go_back(self, *args):
+    def _go_back(self, *args: Any) -> None:
         # if window was zoomed, switch back to normal view
         if self.zoomed:
             self._zoom_win()
@@ -406,7 +414,7 @@ class LogWin(nuqql.win.Win):
         # ...and clear notifications for these messages
         self.conversation.clear_notifications()
 
-    def _search(self, *args):
+    def _search(self, *args: Any) -> None:
         """
         Search: Start a new search dialog
         """
@@ -423,7 +431,7 @@ class LogWin(nuqql.win.Win):
 
         self.dialog.process_input(char)
 
-    def _search_next(self, *args):
+    def _search_next(self, *args: Any) -> None:
         """
         Search for next match
         """
@@ -439,8 +447,9 @@ class LogWin(nuqql.win.Win):
         while self.view.cur >= 0:
             # search current view for text until first line
             while self.state.cur_y >= 0:
-                cur_text = self.pad.instr(self.state.cur_y, 0,
-                                          self.state.cur_x).decode()
+                _cur_text = self.pad.instr(self.state.cur_y, 0,
+                                           self.state.cur_x)
+                cur_text = _cur_text.decode()   # type: ignore
                 index = cur_text.rfind(self.search_text)
                 if index != -1:
                     # found it, stop here
@@ -461,7 +470,7 @@ class LogWin(nuqql.win.Win):
             self._cursor_up()
             self.state.cur_x = self.pad.getmaxyx()[1] - 1
 
-    def search_next(self):
+    def search_next(self) -> None:
         """
         Helper for calling search from other windows
         """
@@ -470,7 +479,7 @@ class LogWin(nuqql.win.Win):
         self.state.cur_x = self.pad.getmaxyx()[1]
         self._search_next()
 
-    def _search_prev(self, *args):
+    def _search_prev(self, *args: Any) -> None:
         """
         Search for previous match
         """
@@ -484,16 +493,19 @@ class LogWin(nuqql.win.Win):
         view_size = props.win_size_y - props.pad_y_delta
 
         # if we are already on a match, skip it
-        if self.pad.instr(self.state.cur_y, self.state.cur_x,
-                          len(self.search_text)).decode() == self.search_text:
+        _cur_text = self.pad.instr(self.state.cur_y, self.state.cur_x,
+                                   len(self.search_text))
+        cur_text = _cur_text.decode()   # type: ignore
+        if cur_text == self.search_text:
             self.state.cur_x += len(self.search_text)
 
         # search views for text until last view
         while self.view.cur <= len(self.list) - view_size:
             # search current view for text until end of view
             while self.state.cur_y <= self.pad.getmaxyx()[0]:
-                cur_text = self.pad.instr(self.state.cur_y, self.state.cur_x,
-                                          props.pad_size_x).decode()
+                _cur_text = self.pad.instr(self.state.cur_y, self.state.cur_x,
+                                           props.pad_size_x)
+                cur_text = _cur_text.decode()   # type: ignore
                 index = cur_text.find(self.search_text)
 
                 # found it, stop here
@@ -514,7 +526,7 @@ class LogWin(nuqql.win.Win):
                 break
             self._cursor_down()
 
-    def process_input(self, char):
+    def process_input(self, char: str) -> None:
         """
         Process user input
         """
