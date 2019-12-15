@@ -434,13 +434,13 @@ class Backend:
                     if msg[-7:] == "</BODY>":
                         msg = msg[:-7]
                     break
-                elif tmp_acc.type == "xmpp":
+                if tmp_acc.type == "xmpp":
                     sender_parts = sender.split("/")
                     sender = sender_parts[0]
                     if len(sender_parts) > 1:
                         resource = sender_parts[1]
                     break
-                elif tmp_acc.type == "matrix":
+                if tmp_acc.type == "matrix":
                     # TODO: improve?
                     sender = sender[1:].split(":")[0]
                     resource = sender
@@ -478,11 +478,11 @@ class Backend:
                         if msg[-7:] == "</BODY>":
                             msg = msg[:-7]
                         break
-                    elif tmp_acc.type == "xmpp":
+                    if tmp_acc.type == "xmpp":
                         sender_parts = sender.split("/")
                         sender = sender_parts[0]
                         break
-                    elif tmp_acc.type == "matrix":
+                    if tmp_acc.type == "matrix":
                         # TODO: improve?
                         sender = sender[1:].split(":")[0]
                         break
