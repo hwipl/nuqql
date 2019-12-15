@@ -4,7 +4,13 @@ Nuqql UI Input Windows
 
 import unicodedata
 
+from typing import TYPE_CHECKING, Any
+
 import nuqql.win
+
+if TYPE_CHECKING:   # imports for typing
+    from nuqql.config import WinConfig
+    from nuqql.conversation import Conversation
 
 
 class InputWin(nuqql.win.Win):
@@ -12,13 +18,14 @@ class InputWin(nuqql.win.Win):
     Class for Input Windows
     """
 
-    def __init__(self, config, conversation, title):
+    def __init__(self, config: "WinConfig", conversation: "Conversation",
+                 title: str) -> None:
         nuqql.win.Win.__init__(self, config, conversation, title)
 
         # input message
         self.msg = ""
 
-    def redraw_pad(self):
+    def redraw_pad(self) -> None:
         # if terminal size is invalid, stop here
         if not self.config.is_terminal_valid():
             return
@@ -33,7 +40,7 @@ class InputWin(nuqql.win.Win):
                          pos_y + win_size_y - 2,
                          pos_x + win_size_x - 2)
 
-    def _cursor_up(self, *args):
+    def _cursor_up(self, *args: Any) -> None:
         segment = args[0]
         if self.state.cur_y > 0:
             self.pad.move(self.state.cur_y - 1,
@@ -43,7 +50,7 @@ class InputWin(nuqql.win.Win):
         # display changes in the pad
         self.redraw_pad()
 
-    def _cursor_down(self, *args):
+    def _cursor_down(self, *args: Any) -> None:
         # pad properties
         pad_y_max, unused_pad_x_max = self.pad.getmaxyx()
 
@@ -57,14 +64,14 @@ class InputWin(nuqql.win.Win):
         # display changes in the pad
         self.redraw_pad()
 
-    def _cursor_left(self, *args):
+    def _cursor_left(self, *args: Any) -> None:
         if self.state.cur_x > 0:
             self.pad.move(self.state.cur_y, self.state.cur_x - 1)
 
         # display changes in the pad
         self.redraw_pad()
 
-    def _cursor_right(self, *args):
+    def _cursor_right(self, *args: Any) -> None:
         # pad properties
         unused_pad_y_max, pad_x_max = self.pad.getmaxyx()
 
@@ -76,14 +83,14 @@ class InputWin(nuqql.win.Win):
         # display changes in the pad
         self.redraw_pad()
 
-    def _cursor_line_start(self, *args):
+    def _cursor_line_start(self, *args: Any) -> None:
         if self.state.cur_x > 0:
             self.pad.move(self.state.cur_y, 0)
 
         # display changes in the pad
         self.redraw_pad()
 
-    def _cursor_line_end(self, *args):
+    def _cursor_line_end(self, *args: Any) -> None:
         # pad properties
         unused_pad_y_max, pad_x_max = self.pad.getmaxyx()
 
@@ -95,14 +102,14 @@ class InputWin(nuqql.win.Win):
         # display changes in the pad
         self.redraw_pad()
 
-    def _cursor_msg_start(self, *args):
+    def _cursor_msg_start(self, *args: Any) -> None:
         if self.state.cur_y > 0 or self.state.cur_x > 0:
             self.pad.move(0, 0)
 
         # display changes in the pad
         self.redraw_pad()
 
-    def _cursor_msg_end(self, *args):
+    def _cursor_msg_end(self, *args: Any) -> None:
         segment = args[0]
         if self.state.cur_y < len(segment) - 1 or \
            self.state.cur_x < len(segment[-1]):
@@ -111,7 +118,7 @@ class InputWin(nuqql.win.Win):
         # display changes in the pad
         self.redraw_pad()
 
-    def _send_msg(self, *args):
+    def _send_msg(self, *args: Any) -> None:
         # do not send empty messages
         if self.msg == "":
             return
@@ -130,7 +137,7 @@ class InputWin(nuqql.win.Win):
         # display changes in the pad
         self.redraw_pad()
 
-    def _delete_char(self, *args):
+    def _delete_char(self, *args: Any) -> None:
         segment = args[0]
         if self.state.cur_x > 0:
             # delete charater within a line
@@ -166,7 +173,7 @@ class InputWin(nuqql.win.Win):
         # display changes in the pad
         self.redraw_pad()
 
-    def _delete_char_right(self, *args):
+    def _delete_char_right(self, *args: Any) -> None:
         # argument is segemented message, i.e. lines of the message
         segment = args[0]
 
@@ -201,7 +208,7 @@ class InputWin(nuqql.win.Win):
         # display changes in the pad
         self.redraw_pad()
 
-    def _delete_line_end(self, *args):
+    def _delete_line_end(self, *args: Any) -> None:
         segment = args[0]
 
         # delete from cursor to end of line
@@ -216,7 +223,7 @@ class InputWin(nuqql.win.Win):
         # display changes in the pad
         self.redraw_pad()
 
-    def _delete_line(self, *args):
+    def _delete_line(self, *args: Any) -> None:
         segment = args[0]
 
         # delete the current line
@@ -239,7 +246,7 @@ class InputWin(nuqql.win.Win):
         # display changes in the pad
         self.redraw_pad()
 
-    def _go_back(self, *args):
+    def _go_back(self, *args: Any) -> None:
         self.state.active = False
         self.conversation.wins.log_win.state.active = False
 
@@ -250,7 +257,7 @@ class InputWin(nuqql.win.Win):
         # assume user read all messages and set lastread to last message
         self.conversation.set_lastread()
 
-    def _go_log(self, *args):
+    def _go_log(self, *args: Any) -> None:
         """
         Jump to log
         """
@@ -258,7 +265,7 @@ class InputWin(nuqql.win.Win):
         self.state.active = False
         self.conversation.wins.log_win.state.active = True
 
-    def _zoom_win(self, *args):
+    def _zoom_win(self, *args: Any) -> None:
         """
         Jump to log and zoom window
         """
@@ -266,7 +273,7 @@ class InputWin(nuqql.win.Win):
         self._go_log()
         self.conversation.wins.log_win.keyfunc["WIN_ZOOM"]()
 
-    def _zoom_win_url(self, *args):
+    def _zoom_win_url(self, *args: Any) -> None:
         """
         Jump to log, zoom window and search for next url
         """
@@ -276,7 +283,7 @@ class InputWin(nuqql.win.Win):
         self.conversation.wins.log_win.search_text = "http"
         self.conversation.wins.log_win.search_next()
 
-    def _go_next(self, *args):
+    def _go_next(self, *args: Any) -> None:
         """
         Jump to a conversation with new messages or more recently used
         conversation
@@ -297,7 +304,7 @@ class InputWin(nuqql.win.Win):
         self._go_back()
         conv.wins.list_win.jump_to_conv(conv, set_last_used=set_last_used)
 
-    def _go_prev(self, *args):
+    def _go_prev(self, *args: Any) -> None:
         """
         Jump to a previously used conversation
         """
@@ -310,7 +317,7 @@ class InputWin(nuqql.win.Win):
         self._go_back()
         prev.wins.list_win.jump_to_conv(prev, set_last_used=False)
 
-    def _go_conv(self, *args):
+    def _go_conv(self, *args: Any) -> None:
         """
         Go to a specific conversation
         """
@@ -319,12 +326,12 @@ class InputWin(nuqql.win.Win):
         self._go_back()
         self.conversation.wins.list_win.go_conv()
 
-    def _tab(self, *args):
+    def _tab(self, *args: Any) -> None:
         # convert tab to spaces
         for _i in range(4):
             self.process_input(" ")
 
-    def process_input(self, char):
+    def process_input(self, char: str) -> None:
         """
         Process user input (character)
         """
@@ -373,14 +380,15 @@ class LogDialogInputWin(InputWin):
     Class for dialog input from user
     """
 
-    def __init__(self, config, conversation, title):
+    def __init__(self, config: "WinConfig", conversation: "Conversation",
+                 title: str) -> None:
         InputWin.__init__(self, config, conversation, title)
 
         # init displayed msg to last search text
         # TODO: this needs some extra work to properly display the msg
         # self.msg = conversation.wins.log_win.search_text
 
-    def _go_back(self, *args):
+    def _go_back(self, *args: Any) -> None:
         # do not use window any more
         self.conversation.wins.log_win.dialog = None
 
@@ -389,7 +397,7 @@ class LogDialogInputWin(InputWin):
         self.conversation.wins.input_win.redraw()
         self.conversation.wins.log_win.redraw()
 
-    def _send_msg(self, *args):
+    def _send_msg(self, *args: Any) -> None:
         # set search string
         self.conversation.wins.log_win.search_text = self.msg
 
