@@ -185,7 +185,7 @@ class WinConfig:
     def __init__(self, wtype: str) -> None:
         self._type = wtype
         self._rel_yx = 0.0, 0.0
-        self.keymap: Dict[str, Any] = {}
+        self.keymap: Dict[int, Any] = {}
         self.keybinds: Dict[str, Any] = {}
         self.attr: Dict[str, Any] = {}  # window colors/attributes
         self.settings: Dict[str, str] = {}  # window settings
@@ -426,7 +426,7 @@ class WinConfig:
             self.attr[key] = colors[value] | attrib
 
     @staticmethod
-    def _get_keymap_config() -> Dict[str, Any]:
+    def _get_keymap_config() -> Dict[int, Any]:
         """
         Initialize/get keymap configuration
         """
