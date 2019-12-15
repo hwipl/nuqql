@@ -233,7 +233,7 @@ class BackendClient:
         msg = cmd + "\r\n"
         self._send(msg)
 
-    def send_msg(self, account_id: int, buddy: str, msg: str) -> None:
+    def send_msg(self, account_id: str, buddy: str, msg: str) -> None:
         """
         Send a regular message over the client connection
         """
@@ -244,7 +244,7 @@ class BackendClient:
         msg = prefix + msg + "\r\n"
         self._send(msg)
 
-    def send_group_msg(self, account_id: int, buddy: str, msg: str) -> None:
+    def send_group_msg(self, account_id: str, buddy: str, msg: str) -> None:
         """
         Send a group message over the client connection
         """
