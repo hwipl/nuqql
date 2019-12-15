@@ -89,6 +89,7 @@ def get_conv_path(conv: "Conversation") -> str:
     """
 
     # construct directory path
+    assert conv.account
     conv_dir = str(pathlib.Path.home()) + \
         "/.config/nuqql/conversation/{}/{}/{}".format(conv.backend.name,
                                                       conv.account.aid,
@@ -136,6 +137,7 @@ def init_logger(conv: "Conversation") -> Tuple[logging.Logger, str]:
     """
 
     # get log dir and make sure it exists
+    assert conv.account
     log_dir = get_conv_path(conv)
 
     # create logger with log name and log file

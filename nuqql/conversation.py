@@ -27,7 +27,7 @@ class Conversation:
     Class for conversations
     """
 
-    def __init__(self, backend: "Backend", account: "Account",
+    def __init__(self, backend: "Backend", account: Optional["Account"],
                  name: str) -> None:
         # general
         self.name = name
@@ -398,7 +398,7 @@ class BuddyConversation(Conversation):
         """
 
         # send message and log it in the history file
-        if not self.backend.client:
+        if not self.account or not self.backend.client:
             return
         self.backend.client.send_msg(self.account.aid, self.name, msg)
 
@@ -470,45 +470,47 @@ class GroupConversation(BuddyConversation):
         # check for special commands
         if msg == "/names":
             # TODO: use peers list for this?
-            # create user list command
-            msg = "account {} chat users {}".format(self.account.aid,
-                                                    self.name)
-            # send command message to backend
-            if self.backend and self.backend.client:
+            if self.account and self.backend and self.backend.client:
+                # create user list command
+                msg = "account {} chat users {}".format(self.account.aid,
+                                                        self.name)
+                # send command message to backend
                 self.backend.client.send_command(msg)
             return
 
         if msg == "/part":
-            # create chat part command
-            msg = "account {} chat part {}".format(self.account.aid, self.name)
-            # send command message to backend
-            if self.backend and self.backend.client:
+            if self.account and self.backend and self.backend.client:
+                # create chat part command
+                msg = "account {} chat part {}".format(self.account.aid,
+                                                       self.name)
+                # send command message to backend
                 self.backend.client.send_command(msg)
             return
 
         if msg.startswith("/invite "):
             parts = msg.split()
             if len(parts) > 1:
-                # create chat invite command
-                user = parts[1]
-                msg = "account {} chat invite {} {}".format(self.account.aid,
-                                                            self.name, user)
-                # send command message to backend
-                if self.backend and self.backend.client:
+                if self.account and self.backend and self.backend.client:
+                    # create chat invite command
+                    user = parts[1]
+                    msg = "account {} chat invite {} {}".format(
+                        self.account.aid, self.name, user)
+                    # send command message to backend
                     self.backend.client.send_command(msg)
                 return
 
         if msg == "/join":
             # TODO: allow specification of another group chat?
-            # create chat join command
-            msg = "account {} chat join {}".format(self.account.aid, self.name)
-            # send command message to backend
-            if self.backend and self.backend.client:
+            if self.account and self.backend and self.backend.client:
+                # create chat join command
+                msg = "account {} chat join {}".format(self.account.aid,
+                                                       self.name)
+                # send command message to backend
                 self.backend.client.send_command(msg)
             return
 
         # send and log group chat message
-        if self.backend.client:
+        if self.account and self.backend.client:
             self.backend.client.send_group_msg(self.account.aid, self.name,
                                                msg)
         nuqql.history.log(self, log_msg)
