@@ -5,7 +5,13 @@ Nuqql UI Windows
 import curses
 import re
 
+from typing import TYPE_CHECKING, Any, List
+
 import nuqql.win
+
+if TYPE_CHECKING:   # imports for typing
+    from nuqql.config import WinConfig
+    from nuqql.conversation import Conversation
 
 
 class ListWin(nuqql.win.Win):
@@ -13,7 +19,8 @@ class ListWin(nuqql.win.Win):
     Class for List Windows
     """
 
-    def __init__(self, config, conversation, title):
+    def __init__(self, config: "WinConfig", conversation: "Conversation",
+                 title: str) -> None:
         nuqql.win.Win.__init__(self, config, conversation, title)
 
         # filter for conversation list
@@ -27,9 +34,9 @@ class ListWin(nuqql.win.Win):
         }
 
         # list entries/message log
-        self.list = []
+        self.list: List["Conversation"] = []
 
-    def add(self, entry):
+    def add(self, entry: "Conversation") -> None:
         """
         Add entry to internal list
         """
@@ -37,7 +44,7 @@ class ListWin(nuqql.win.Win):
         # add entry to own list via base class function
         self.list_add(self.list, entry)
 
-    def _match_filter(self, name):
+    def _match_filter(self, name: str) -> bool:
         """
         check if name matches the currently active filter
         """
@@ -58,7 +65,7 @@ class ListWin(nuqql.win.Win):
 
         return False
 
-    def _print_list(self, *args):
+    def _print_list(self, *args: Any) -> None:
         """
         Helper for printing the list
         """
@@ -108,7 +115,7 @@ class ListWin(nuqql.win.Win):
                          pos_y + win_size_y - 2,
                          pos_x + win_size_x - 2)
 
-    def redraw_pad(self):
+    def redraw_pad(self) -> None:
         """
         Redraw pad in window
         """
@@ -155,18 +162,18 @@ class ListWin(nuqql.win.Win):
         if self.filter:
             self._process_filter_show()
 
-    def _cursor_top(self, *args):
+    def _cursor_top(self, *args: Any) -> None:
         # jump to first conversation
         if self.state.cur_y > 0:
             self.pad.move(0, 0)
 
-    def _cursor_bottom(self, *args):
+    def _cursor_bottom(self, *args: Any) -> None:
         # jump to last conversation
         lines = len(self.list)
         if self.state.cur_y < lines - 1:
             self.pad.move(lines - 1, self.state.cur_x)
 
-    def _cursor_page_up(self, *args):
+    def _cursor_page_up(self, *args: Any) -> None:
         # move cursor up one page until first entry in log
         win_size_y, unused_win_size_x = self.win.getmaxyx()
 
@@ -177,7 +184,7 @@ class ListWin(nuqql.win.Win):
             else:
                 self.pad.move(0, self.state.cur_x)
 
-    def _cursor_page_down(self, *args):
+    def _cursor_page_down(self, *args: Any) -> None:
         # move cursor down one page until last entry in log
         win_size_y, unused_win_size_x = self.win.getmaxyx()
 
@@ -189,17 +196,17 @@ class ListWin(nuqql.win.Win):
             else:
                 self.pad.move(lines - 1, self.state.cur_x)
 
-    def _cursor_up(self, *args):
+    def _cursor_up(self, *args: Any) -> None:
         # move cursor up until first entry in list
         if self.state.cur_y > 0:
             self.pad.move(self.state.cur_y - 1, self.state.cur_x)
 
-    def _cursor_down(self, *args):
+    def _cursor_down(self, *args: Any) -> None:
         # move cursor down until end of list
         if self.state.cur_y < len(self.list) - 1:
             self.pad.move(self.state.cur_y + 1, self.state.cur_x)
 
-    def _go_next(self, *args):
+    def _go_next(self, *args: Any) -> None:
         # find a new(er) conversation and jump into it
         set_last_used = True
         conv = self.conversation.get_new()
@@ -210,7 +217,7 @@ class ListWin(nuqql.win.Win):
             return
         self.jump_to_conv(conv, set_last_used=set_last_used)
 
-    def _go_prev(self, *args):
+    def _go_prev(self, *args: Any) -> None:
         # find older conversation and jump into it
         prev = self.list[self.state.cur_y].get_prev()
         if not prev:
@@ -219,7 +226,7 @@ class ListWin(nuqql.win.Win):
         # deactivate this and switch to other conversation
         prev.wins.list_win.jump_to_conv(prev, set_last_used=False)
 
-    def _go_conv(self, *args):
+    def _go_conv(self, *args: Any) -> None:
         # filter conversations and find specific conversation
         self.filter = "/"
 
@@ -231,7 +238,7 @@ class ListWin(nuqql.win.Win):
         self._go_conv()
         self.redraw_pad()
 
-    def _go_log(self, *args):
+    def _go_log(self, *args: Any) -> None:
         # go to conversation's log
         # create windows, if they do not exists
         if not self.list[self.state.cur_y].has_windows():
@@ -239,7 +246,7 @@ class ListWin(nuqql.win.Win):
         # activate conversation's history
         self.list[self.state.cur_y].activate_log()
 
-    def _enter(self, *args):
+    def _enter(self, *args: Any) -> None:
         # enter conversation
         # create windows, if they do not exists
         if not self.list[self.state.cur_y].has_windows():
@@ -249,11 +256,11 @@ class ListWin(nuqql.win.Win):
         # reset filter
         self.filter = ""
 
-    def _quit(self, *args):
+    def _quit(self, *args: Any) -> None:
         # quit nuqql
         self.state.active = False   # Exit the while loop
 
-    def _process_filter_up(self):
+    def _process_filter_up(self) -> None:
         # move cursor up to next filter match
         conv_index = self.state.cur_y
         for index, conv in enumerate(self.list[:self.state.cur_y]):
@@ -262,14 +269,14 @@ class ListWin(nuqql.win.Win):
 
         self.pad.move(conv_index, self.state.cur_x)
 
-    def _process_filter_down(self):
+    def _process_filter_down(self) -> None:
         # move cursor down to next filter match
         for index, conv in enumerate(self.list[self.state.cur_y + 1:]):
             if self._match_filter(conv.get_name()):
                 self.pad.move(index + self.state.cur_y + 1, self.state.cur_x)
                 return
 
-    def _process_filter_nearest(self):
+    def _process_filter_nearest(self) -> None:
         # move cursor do nearest filter match
         above = -1
         below = -1
@@ -301,7 +308,7 @@ class ListWin(nuqql.win.Win):
         if below != -1:
             self.pad.move(below, self.state.cur_x)
 
-    def _process_filter_show(self):
+    def _process_filter_show(self) -> None:
         """
         Show current filter string
         """
@@ -317,12 +324,12 @@ class ListWin(nuqql.win.Win):
         self.win.addnstr(max_y - 1, 2, show, max_x - 4)
         self.win.refresh()
 
-    def _process_filter_abort(self):
+    def _process_filter_abort(self) -> None:
         # abort filter mode/reset filter
         self.filter = ""
         self._process_filter_show()
 
-    def _process_filter_enter(self):
+    def _process_filter_enter(self) -> None:
         # enter conversation in filter mode
         # create windows, if they do not exists
         if not self.list[self.state.cur_y].has_windows():
@@ -335,7 +342,7 @@ class ListWin(nuqql.win.Win):
         self.filter = ""
         self._process_filter_show()
 
-    def _process_filter_del_char(self):
+    def _process_filter_del_char(self) -> None:
         # delete character from filter
         self.filter = self.filter[:-1]
         self._process_filter_nearest()
@@ -343,7 +350,7 @@ class ListWin(nuqql.win.Win):
             # if filter is now empty, make sure it is not shown any more
             self._process_filter_show()
 
-    def process_input(self, char):
+    def process_input(self, char: str) -> None:
         """
         Process input from user (character)
         """
@@ -369,7 +376,8 @@ class ListWin(nuqql.win.Win):
         # display changes in the pad
         self.redraw_pad()
 
-    def jump_to_conv(self, conversation, set_last_used=True):
+    def jump_to_conv(self, conversation: "Conversation",
+                     set_last_used: bool = True) -> None:
         """
         Jump directly into specified conversation
         """
