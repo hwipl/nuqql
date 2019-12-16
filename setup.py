@@ -25,9 +25,10 @@ setup(
     author="hwipl",
     author_email="nuqql@hwipl.net",
     url="https://github.com/hwipl/nuqql",
-    packages=["nuqql"],
+    packages=["nuqql", "nuqql.tools"],
     entry_points={
-        "console_scripts": ["nuqql = nuqql.main:run"]
+        "console_scripts": ["nuqql = nuqql.main:run",
+                            "nuqql-keys = nuqql.tools.nuqql_keys:main"]
     },
     classifiers=CLASSIFIERS,
     python_requires='>=3.6',
