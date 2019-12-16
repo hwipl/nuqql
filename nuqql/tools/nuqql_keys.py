@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+"""
+Nuqql-keys: helper script for nuqql keymaps and keybinds.
+"""
+
 import curses
 import curses.ascii
 import configparser
