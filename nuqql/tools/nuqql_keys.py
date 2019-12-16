@@ -209,9 +209,9 @@ def go_menu(win):
             go_restore_default_keymap(win)
 
 
-def main(stdscr):
+def run(stdscr):
     """
-    Main function
+    Run everything, called from curses.wrapper
     """
 
     curses.curs_set(0)  # invisible cursor
@@ -221,5 +221,13 @@ def main(stdscr):
         pass
 
 
+def main():
+    """
+    Main function
+    """
+
+    curses.wrapper(run)
+
+
 if __name__ == "__main__":
-    curses.wrapper(main)
+    main()
