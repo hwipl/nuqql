@@ -9,6 +9,7 @@ import curses.ascii
 import configparser
 
 from pathlib import Path
+from typing import Any, Dict
 
 # default keymap for special keys
 DEFAULT_KEYMAP = {
@@ -47,7 +48,7 @@ DEFAULT_KEYMAP = {
 }
 
 
-def _write_keymap_to_file(keymap):
+def _write_keymap_to_file(keymap: Dict[str, Any]) -> None:
     """
     Write keymap to nuqql keymap configuration file
     """
@@ -55,7 +56,7 @@ def _write_keymap_to_file(keymap):
     # read config file if it exists
     config_file = Path.home() / ".config/nuqql/config.ini"
     config = configparser.ConfigParser()
-    config.optionxform = lambda option: option
+    config.optionxform = lambda option: option  # type: ignore
     config.read(config_file)
 
     # write (updated) config to file again
@@ -64,7 +65,7 @@ def _write_keymap_to_file(keymap):
         config.write(configfile)
 
 
-def go_restore_default_keymap(win):
+def go_restore_default_keymap(win: Any) -> None:
     """
     Restore default nuqql keymap configuration
     """
@@ -81,7 +82,7 @@ def go_restore_default_keymap(win):
     _write_keymap_to_file(DEFAULT_KEYMAP)
 
 
-def go_configure_keymap(win):
+def go_configure_keymap(win: Any) -> None:
     """
     Configure nuqql keymap
     """
@@ -103,7 +104,7 @@ def go_configure_keymap(win):
             try:
                 key_num = ord(char)
             except TypeError:
-                key_num = char
+                key_num = int(char)
         else:
             key_num = char
 
@@ -132,7 +133,7 @@ def go_configure_keymap(win):
     _write_keymap_to_file(keymap)
 
 
-def go_key_numbers(win):
+def go_key_numbers(win: Any) -> None:
     """
     Read input key and ouput its number if possible
     """
@@ -173,7 +174,7 @@ def go_key_numbers(win):
         win.addstr(msg)
 
 
-def go_menu(win):
+def go_menu(win: Any) -> None:
     """
     Print menu to screen
     """
@@ -209,7 +210,7 @@ def go_menu(win):
             go_restore_default_keymap(win)
 
 
-def run(stdscr):
+def run(stdscr: Any) -> None:
     """
     Run everything, called from curses.wrapper
     """
@@ -221,7 +222,7 @@ def run(stdscr):
         pass
 
 
-def main():
+def main() -> None:
     """
     Main function
     """
