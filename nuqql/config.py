@@ -40,6 +40,8 @@ DEFAULT_KEYMAP: Dict[str, Any] = {
     "KEY_CTRL_V":       ord(curses.ascii.ctrl("v")),
     "KEY_CTRL_X":       ord(curses.ascii.ctrl("x")),
     "KEY_DEL":          curses.ascii.DEL,
+    "KEY_BS":           curses.ascii.BS,
+    "KEY_BACKSPACE":    curses.KEY_BACKSPACE,
     "KEY_DC":           curses.KEY_DC,
     "KEY_HOME":         curses.KEY_HOME,
     "KEY_END":          curses.KEY_END,
@@ -60,7 +62,7 @@ DEFAULT_INPUT_WIN_KEYBINDS = {
     "CURSOR_LINE_END":      "KEY_PAGE_DOWN",
     "CURSOR_MSG_START":     "KEY_HOME, KEY_CTRL_A",
     "CURSOR_MSG_END":       "KEY_END, KEY_CTRL_E",
-    "DEL_CHAR":             "KEY_DEL",
+    "DEL_CHAR":             "KEY_DEL, KEY_BACKSPACE, KEY_BS",
     "DEL_CHAR_RIGHT":       "KEY_DC",
     "DEL_LINE_END":         "KEY_CTRL_K",
     "DEL_LINE":             "KEY_CTRL_U",
@@ -116,7 +118,7 @@ DEFAULT_LIST_WIN_FILTER_KEYBINDS = {
     "CURSOR_UP":            "KEY_UP",
     "GO_BACK":              "KEY_ESC",
     "ENTER":                "KEY_ENTER",
-    "DEL_CHAR":             "KEY_DEL",
+    "DEL_CHAR":             "KEY_DEL, KEY_BACKSPACE, KEY_BS",
 }
 
 # default ui layout
