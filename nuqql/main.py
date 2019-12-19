@@ -38,7 +38,7 @@ def main_loop() -> str:
 
     try:
         # init and start all backends
-        nuqql.backend.start_backends()
+        nuqql.backend.start_backends(VERSION)
 
         # loop as long as user does not quit
         while nuqql.ui.handle_input():

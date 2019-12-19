@@ -637,6 +637,10 @@ class NuqqlBackend(Backend):
     Class for the nuqql dummy backend
     """
 
+    def __init__(self, name: str) -> None:
+        Backend.__init__(self, name)
+        self.version = ""
+
     def _handle_nuqql_global_status(self, parts: List[str]) -> None:
         """
         Handle nuqql command: global-status
@@ -1288,27 +1292,29 @@ def start_backend_clients() -> None:
         start_backend_client(backend)
 
 
-def start_nuqql() -> None:
+def start_nuqql(version: str) -> None:
     """
     Start the nuqql dummy backend
     """
 
     # create backend
     backend = NuqqlBackend("nuqql")
+    backend.version = version
 
     # add conversation and show it in list window
     conv = nuqql.conversation.NuqqlConversation(backend, None, backend.name)
     conv.create_windows()
     backend.conversation = conv
+    nuqql.conversation.log_main_window(f"Started nuqql v{version}.")
 
 
-def start_backends() -> None:
+def start_backends(version: str) -> None:
     """
     Helper for starting all backends
     """
 
     # start nuqql dummy backend
-    start_nuqql()
+    start_nuqql(version)
 
     # start backends
     nuqql.conversation.log_main_window("Starting backends.")
