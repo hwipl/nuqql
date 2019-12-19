@@ -297,6 +297,10 @@ def handle_input() -> bool:
     Read and handle user input
     """
 
+    # list window is inactive -> user quit
+    if not nuqql.win.MAIN_WINS["list"].state.active:
+        return False
+
     # wait for user input and get timeout or character to process
     char = read_input()
 
@@ -321,14 +325,10 @@ def handle_input() -> bool:
             conv.process_input(char)
             return True
 
-    # if no conversation is active pass input to active list window
-    if nuqql.win.MAIN_WINS["list"].state.active:
-        # list window navigation
-        nuqql.win.MAIN_WINS["list"].process_input(char)
-        return True
-
-    # list window is also inactive -> user quit
-    return False
+    # if no conversation is active pass input to active list window for
+    # list window navigation
+    nuqql.win.MAIN_WINS["list"].process_input(char)
+    return True
 
 
 def start(stdscr: Any, func: Callable) -> str:
