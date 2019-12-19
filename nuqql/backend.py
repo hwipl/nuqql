@@ -47,6 +47,9 @@ BACKEND_ERROR = "Error accessing backend."
 # start based backend?
 BACKEND_START_BASED = False
 
+# disable the python backends' own history?
+BACKEND_DISABLE_HISTORY = True
+
 
 class BackendServer:
     """
@@ -1218,6 +1221,8 @@ def start_based() -> Optional[Backend]:
     backend_exe = "nuqql-based"
     backend_path = str(Path.home()) + "/.config/nuqql/backend/based"
     backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile based.sock"
+    if BACKEND_DISABLE_HISTORY:
+        backend_cmd_fmt += " --disable-history"
     backend_sockfile = backend_path + "/based.sock"
 
     return start_backend(backend_name, backend_exe, backend_path,
@@ -1237,6 +1242,8 @@ def start_slixmppd() -> Optional[Backend]:
     backend_exe = "nuqql-slixmppd"
     backend_path = str(Path.home()) + "/.config/nuqql/backend/slixmppd"
     backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile slixmppd.sock"
+    if BACKEND_DISABLE_HISTORY:
+        backend_cmd_fmt += " --disable-history"
     backend_sockfile = backend_path + "/slixmppd.sock"
 
     return start_backend(backend_name, backend_exe, backend_path,
@@ -1256,6 +1263,8 @@ def start_matrixd() -> Optional[Backend]:
     backend_exe = "nuqql-matrixd"
     backend_path = str(Path.home()) + "/.config/nuqql/backend/matrixd"
     backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile matrixd.sock"
+    if BACKEND_DISABLE_HISTORY:
+        backend_cmd_fmt += " --disable-history"
     backend_sockfile = backend_path + "/matrixd.sock"
 
     return start_backend(backend_name, backend_exe, backend_path,
