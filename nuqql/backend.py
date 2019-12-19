@@ -791,6 +791,16 @@ class NuqqlBackend(Backend):
             self.conversation.wins.input_win.state.active = False
             self.conversation.wins.list_win.state.active = False
 
+    def _handle_version(self, _parts: List[str]) -> None:
+        """
+        Handle version command, print nuqql version
+        """
+
+        # log message
+        msg = f"version: nuqql v{self.version}"
+        if self.conversation:
+            self.conversation.log("nuqql", msg)
+
     def handle_nuqql_command(self, msg: str) -> None:
         """
         Handle a nuqql command (from the nuqql conversation)
@@ -808,6 +818,7 @@ class NuqqlBackend(Backend):
             "start": self._handle_start,
             "restart": self._handle_restart,
             "quit": self._handle_quit,
+            "version": self._handle_version,
         }
         command = parts[0]
         if command in command_map:
