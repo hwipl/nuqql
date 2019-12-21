@@ -2,6 +2,26 @@
 
 This file contains the changes in each nuqql version:
 
+## devel:
+* Add version information
+  * Add `--version` command line argument
+  * Add `version` command to the nuqql conversation
+* Backend changes:
+  * Change expected names of python backend executables to `nuqql-based`,
+    `nuqql-matrixd`, and `nuqql-slixmppd`
+  * Do not run `nuqql-based` by default any more
+  * Disable additional message history in python backends
+* Improve backspace handling
+* Improve LogWin zooming and searching
+  * Add jumping and zooming from InputWin with `F9`
+  * Search for next match with `F10`
+* Rename `nuqql.py` helper script to `run.py`
+* Add `setup.py` for installation and package distribution
+* Move nuqql-keys into the `tools/` subfolder and install it as `nuqql-keys`
+  with `setup.py`
+* Add python type annotations
+* Cleanups, fixes, and improvements
+
 ## v0.7:
 * Improve backend handling
   * Add "stop", "start", and "restart" commands to nuqql conversation for
