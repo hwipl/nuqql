@@ -1,13 +1,31 @@
 # Setup
 
-The basic setup of nuqql consists of installing a backend (purpled,
-nuqql-slixmppd, and/or nuqql-matrixd) and adding your instant messaging
-accounts to it.
+The basic setup of nuqql consists of installing a backend (nuqql-slixmppd,
+nuqql-matrixd, and/or purpled) and adding your instant messaging accounts
+to it.
 
 ## Installing backends
 
-You can use purpled, nuqql-slixmppd, and/or slixmppd-matrixd  to connect to
+You can use nuqql-slixmppd, slixmppd-matrixd, and/or purpled to connect to
 different chat networks.
+
+### nuqql-slixmppd
+
+nuqql can use nuqql-slixmppd to connect to XMPP chat networks. If you have not
+done already, you can install nuqql-slixmppd with the following command:
+
+```console
+$ pip install --user nuqql-slixmppd
+```
+
+### nuqql-matrixd
+
+nuqql can use nuqql-matrixd to connect to Matrix chat networks. If you have not
+done already, you can install nuqql-matrixd with the following command:
+
+```console
+$ pip install --user nuqql-matrixd
+```
 
 ### purpled
 
@@ -20,27 +38,6 @@ done already, install purpled with the following steps:
   * `ninja -C builddir install`
 
 (Note: these steps require the [meson](https://mesonbuild.com/) build system.)
-
-### nuqql-slixmppd
-
-nuqql can use nuqql-slixmppd to connect to XMPP chat networks. If you have not
-done already, install nuqql-slixmppd with the following steps:
-
-* Download [nuqql-slixmppd](https://github.com/hwipl/nuqql-slixmppd)
-* nuqql looks for nuqql-slixmppd in your $PATH and the current directory. So, a
-  good way is symlinking the *slixmppd.py* executable from the nuqql-slixmppd
-  folder into your nuqql folder.
-
-### nuqql-matrixd
-
-nuqql can use nuqql-matrixd to connect to Matrix chat networks. If you have not
-done already, install nuqql-matrixd with the following steps:
-
-* Download [nuqql-matrixd](https://github.com/hwipl/nuqql-matrixd)
-* nuqql looks for nuqql-matrixd in your $PATH and the current directory. So, a
-  good way is symlinking the *matrixd.py* executable from the nuqql-matrixd
-  folder into your nuqql folder.
-
 
 ## Adding accounts
 
@@ -62,5 +59,5 @@ to your backends. You can do this from nuqql with the following steps:
 
 ## Hacky stuff/additional tools
 
-If certain keys do not work, `nuqql-keys.py` is a tool that might help you to
+If certain keys do not work, `nuqql-keys` is a tool that might help you to
 set up or reconfigure the keymaps within the nuqql code.
