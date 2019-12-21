@@ -2,7 +2,7 @@
 
 This file contains the changes in each nuqql version:
 
-## devel:
+## v0.8:
 * Add version information
   * Add `--version` command line argument
   * Add `version` command to the nuqql conversation
