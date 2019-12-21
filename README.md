@@ -4,24 +4,35 @@ nuqql is a command line instant messenger inspired by
 [centericq](http://thekonst.net/centericq/) and
 [centerim](http://www.centerim.org) written in Python and using ncurses.
 
-nuqql uses so-called backends for connecting to chat networks.
-Currently, nuqql supports [purpled](https://github.com/hwipl/purpled),
-[nuqql-slixmppd](https://github.com/hwipl/nuqql-slixmppd), and
-[nuqql-matrixd](https://github.com/hwipl/nuqql-matrixd) as backends.
+nuqql uses so-called backends for connecting to chat networks. Currently, nuqql
+supports [nuqql-slixmppd](https://github.com/hwipl/nuqql-slixmppd),
+[nuqql-matrixd](https://github.com/hwipl/nuqql-matrixd), and
+[purpled](https://github.com/hwipl/purpled) as backends. nuqql-slixmppd uses
+slixmpp and allows nuqql to connect to XMPP chat networks. nuqql-matrixd uses
+the Matrix Python SDK and allows nuqql to connect to Matrix chat networks.
 purpled uses libpurple and allows nuqql to connect to multiple chat networks.
-nuqql-slixmppd uses slixmpp and allows nuqql to connect to XMPP chat networks.
-nuqql-matrixd uses the Matrix Python SDK and allows nuqql to connect to Matrix
-chat networks.
 
 
-## Usage
+## Quick Start
 
-After the setup steps (see the "Setup" section), you can start and use nuqql
-as described in the following.
+You can install nuqql, for example, with pip for your user only with the
+following command:
+
+```console
+$ pip install --user nuqql
+```
+
+The basic nuqql setup consist of installing one or more backends and adding
+your instant messaging accounts to them. See [setup](doc/setup.md) for more
+information about how to setup nuqql.
 
 ### Run
 
-Run nuqql with `./nuqql.py`.
+After the installation, you can run nuqql with the `nuqql` command:
+
+```console
+$ nuqql
+```
 
 ### Overview
 
@@ -72,11 +83,6 @@ Basic controls of nuqql are:
 
 See [controls](doc/controls.md) for more information about nuqql's controls.
 
-## Setup
-
-The basic setup consist of installing one or more backends and adding your
-instant messaging  accounts to them. See [setup](doc/setup.md) for more
-information about how to setup nuqql.
 
 ## Development
 
