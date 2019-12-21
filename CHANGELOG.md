@@ -11,7 +11,7 @@ This file contains the changes in each nuqql version:
     `nuqql-matrixd`, and `nuqql-slixmppd`
   * Do not run `nuqql-based` by default any more
   * Disable additional message history in python backends
-* Improve backspace handling
+* Improve backspace and quit handling
 * Improve LogWin zooming and searching
   * Add jumping and zooming from InputWin with `F9`
   * Search for next match with `F10`
@@ -20,7 +20,8 @@ This file contains the changes in each nuqql version:
 * Move nuqql-keys into the `tools/` subfolder and install it as `nuqql-keys`
   with `setup.py`
 * Add python type annotations
-* Cleanups, fixes, and improvements
+* Fixes and improvements
+* Requires nuqql-slixmppd v0.5, nuqql-matrixd v0.3, or purpled v0.5
 
 ## v0.7:
 * Improve backend handling
