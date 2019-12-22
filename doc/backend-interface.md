@@ -557,6 +557,33 @@ buddy: 0 status: GROUP_CHAT_INVITE name: test@c.jab.org alias: test@c.jab.org
 Backend related commands:
 
 
+### Getting the Version of a Backend
+
+```
+version
+```
+
+Retrieve the version information of the backend.
+
+
+#### Reply
+
+```
+info: <version>
+```
+
+The backend replies with an `info` message containing backend-specific version
+information.
+
+
+#### Examples
+
+```
+version
+info: version: slixmppd v0.5
+```
+
+
 ### Disconnecting from a Backend
 
 ```
