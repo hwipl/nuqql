@@ -221,7 +221,7 @@ class BackendClient:
             return
 
         try:
-            self.sock.send(msg.encode())
+            self.sock.sendall(msg.encode())
         except OSError:
             nuqql.conversation.log_main_window(BACKEND_ERROR)
             if self.backend:
