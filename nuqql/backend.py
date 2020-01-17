@@ -971,6 +971,13 @@ def parse_info_msg(orig_msg: str) -> Tuple:
     """
 
     info = orig_msg[6:]
+
+    # filter known messages that would spam the log. TODO: change this and/or
+    # other message formats/protocol behaviour
+    if info.startswith("got buddies for account "):
+        # filter got buddies info spam
+        return ("", )
+
     return "info", info
 
 
