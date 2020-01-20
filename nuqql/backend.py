@@ -44,8 +44,8 @@ CLIENT_RETRY_SLEEP = 0.1
 # backend error message
 BACKEND_ERROR = "Error accessing backend."
 
-# start based backend?
-BACKEND_START_BASED = False
+# filenames that should not get started as backends
+BACKEND_BLACKLIST = ["nuqql-keys", "nuqql-based"]
 
 # disable the python backends' own history?
 BACKEND_DISABLE_HISTORY = True
@@ -763,18 +763,22 @@ class NuqqlBackend(Backend):
             # backend already running
             return
 
-        backend_map = {
-            "based":    start_based,
-            "matrixd":  start_matrixd,
-            "purpled":  start_purpled,
-            "slixmppd": start_slixmppd,
-        }
+        # try to start backend
+        backend = None
 
-        if backend_name in backend_map:
-            # start the backend and its client
-            backend = backend_map[backend_name]()
-            if backend:
-                start_backend_client(backend)
+        # extra check for purpled, other backends are started from PATH
+        if backend_name == "purpled":
+            backend = start_purpled()
+        else:
+            for filename in get_backends_from_path():
+                # ignore "nuqql-" in filename
+                if backend_name == filename[6:]:
+                    backend = start_backend_from_path(filename)
+                    break
+
+        # start the backend client
+        if backend:
+            start_backend_client(backend)
 
     @staticmethod
     def _handle_restart(parts: List[str]) -> None:
@@ -1215,67 +1219,49 @@ def start_purpled() -> Optional[Backend]:
                          backend_cmd_fmt, backend_sockfile)
 
 
-def start_based() -> Optional[Backend]:
+def start_backend_from_path(filename) -> Optional[Backend]:
     """
-    Helper for starting the "based" backend
+    Helper for starting a single backend found in PATH.
     """
 
-    ###############
-    # nuqql-based #
-    ###############
-
-    backend_name = "based"
-    backend_exe = "nuqql-based"
-    backend_path = str(Path.home()) + "/.config/nuqql/backend/based"
-    backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile based.sock"
+    backend_name = filename[6:]
+    backend_exe = filename
+    backend_path = str(Path.home()) + f"/.config/nuqql/backend/{backend_name}"
+    backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile " + \
+        f"{backend_name}.sock"
     if BACKEND_DISABLE_HISTORY:
         backend_cmd_fmt += " --disable-history"
-    backend_sockfile = backend_path + "/based.sock"
+    backend_sockfile = backend_path + f"/{backend_name}.sock"
 
     return start_backend(backend_name, backend_exe, backend_path,
                          backend_cmd_fmt, backend_sockfile)
 
 
-def start_slixmppd() -> Optional[Backend]:
+def get_backends_from_path() -> List[str]:
     """
-    Helper for starting the "slixmppd" backend
-    """
-
-    ##################
-    # nuqql-slixmppd #
-    ##################
-
-    backend_name = "slixmppd"
-    backend_exe = "nuqql-slixmppd"
-    backend_path = str(Path.home()) + "/.config/nuqql/backend/slixmppd"
-    backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile slixmppd.sock"
-    if BACKEND_DISABLE_HISTORY:
-        backend_cmd_fmt += " --disable-history"
-    backend_sockfile = backend_path + "/slixmppd.sock"
-
-    return start_backend(backend_name, backend_exe, backend_path,
-                         backend_cmd_fmt, backend_sockfile)
-
-
-def start_matrixd() -> Optional[Backend]:
-    """
-    Helper for starting the "matrixd" backend
+    Get a list of backends found in PATH.
     """
 
-    ##################
-    # nuqql-matrixd #
-    ##################
+    backends: List[str] = []
+    for path_dir in os.get_exec_path():
+        with os.scandir(path_dir) as path:
+            for entry in path:
+                if entry.is_file() and \
+                   entry.name.startswith("nuqql-") and \
+                   entry.name not in BACKEND_BLACKLIST and \
+                   entry.name not in backends:
+                    backends.append(entry.name)
+    return backends
 
-    backend_name = "matrixd"
-    backend_exe = "nuqql-matrixd"
-    backend_path = str(Path.home()) + "/.config/nuqql/backend/matrixd"
-    backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile matrixd.sock"
-    if BACKEND_DISABLE_HISTORY:
-        backend_cmd_fmt += " --disable-history"
-    backend_sockfile = backend_path + "/matrixd.sock"
 
-    return start_backend(backend_name, backend_exe, backend_path,
-                         backend_cmd_fmt, backend_sockfile)
+def start_backends_from_path() -> None:
+    """
+    Helper for starting all backends found in PATH.
+    These backends are expected to have the same command line arguments.
+    """
+
+    for filename in get_backends_from_path():
+        start_backend_from_path(filename)
 
 
 def start_backend_client(backend: Backend) -> None:
@@ -1346,10 +1332,7 @@ def start_backends(version: str) -> None:
     # start backends
     nuqql.conversation.log_main_window("Starting backends.")
     start_purpled()
-    if BACKEND_START_BASED:
-        start_based()
-    start_slixmppd()
-    start_matrixd()
+    start_backends_from_path()
 
     # start backend clients
     start_backend_clients()
