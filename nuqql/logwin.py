@@ -9,9 +9,10 @@ import nuqql.inputwin
 import nuqql.win
 
 if TYPE_CHECKING:   # imports for typing
-    from nuqql.config import WinConfig
-    from nuqql.conversation import Conversation
-    from nuqql.history import LogMessage
+    # pylint: disable=cyclic-import
+    from nuqql.config import WinConfig  # noqa
+    from nuqql.conversation import Conversation  # noqa
+    from nuqql.history import LogMessage  # noqa
 
 
 class LogWin(nuqql.win.Win):

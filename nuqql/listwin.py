@@ -10,8 +10,9 @@ from typing import TYPE_CHECKING, Any, List
 import nuqql.win
 
 if TYPE_CHECKING:   # imports for typing
-    from nuqql.config import WinConfig
-    from nuqql.conversation import Conversation
+    # pylint: disable=cyclic-import
+    from nuqql.config import WinConfig  # noqa
+    from nuqql.conversation import Conversation  # noqa
 
 
 class ListWin(nuqql.win.Win):

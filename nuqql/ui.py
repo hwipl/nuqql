@@ -17,6 +17,7 @@ import nuqql.conversation
 import nuqql.history
 
 if TYPE_CHECKING:
+    # pylint: disable=cyclic-import
     from nuqql.buddy import Buddy  # noqa
 
 

@@ -12,6 +12,7 @@ from typing import Optional, TYPE_CHECKING
 import nuqql.conversation
 
 if TYPE_CHECKING:   # imports for typing
+    # pylint: disable=cyclic-import
     from backend import Backend
 
 

@@ -8,8 +8,9 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
 if TYPE_CHECKING:   # imports for typing
-    from nuqql.config import WinConfig
-    from nuqql.conversation import Conversation
+    # pylint: disable=cyclic-import
+    from nuqql.config import WinConfig  # noqa
+    from nuqql.conversation import Conversation  # noqa
 
 # screen and main windows
 MAIN_WINS: Dict[str, Any] = {}

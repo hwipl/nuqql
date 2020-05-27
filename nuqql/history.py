@@ -9,7 +9,8 @@ import os
 
 from typing import TYPE_CHECKING, Optional, Tuple
 if TYPE_CHECKING:   # imports for typing
-    from nuqql.conversation import Conversation
+    # pylint: disable=cyclic-import
+    from nuqql.conversation import Conversation  # noqa
 
 HISTORY_FILE = "/history"
 LASTREAD_FILE = "/lastread"
