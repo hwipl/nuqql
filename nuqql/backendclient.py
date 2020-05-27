@@ -13,7 +13,7 @@ import nuqql.conversation
 
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
-    from backend import Backend
+    from nuqql.backend import Backend
 
 
 # how often should a backend client try to connect to its server and
