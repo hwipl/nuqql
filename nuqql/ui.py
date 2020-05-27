@@ -17,7 +17,7 @@ import nuqql.conversation
 import nuqql.history
 
 if TYPE_CHECKING:
-    from nuqql.backend import Buddy
+    from nuqql.buddy import Buddy  # noqa
 
 
 def handle_message(*args: Any) -> None:

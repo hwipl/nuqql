@@ -16,7 +16,8 @@ import nuqql.logwin
 import nuqql.win
 
 if TYPE_CHECKING:   # imports for typing
-    from nuqql.backend import Account, Backend, Buddy   # noqa
+    from nuqql.backend import Account, Backend  # noqa
+    from nuqql.buddy import Buddy   # noqa
 
 # list of active conversations
 CONVERSATIONS: List["Conversation"] = []
