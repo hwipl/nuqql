@@ -3,10 +3,9 @@ Dummy Nuqql Backend
 """
 
 from pathlib import Path
-from typing import List
+from typing import Callable, List
 
-from .backend import Backend, BACKENDS
-from .helpers import restart_backend
+from .backend import Backend
 
 
 class NuqqlBackend(Backend):
@@ -17,6 +16,9 @@ class NuqqlBackend(Backend):
     def __init__(self, name: str) -> None:
         Backend.__init__(self, name)
         self.version = ""
+
+        # function for (re)starting backends
+        self.restart_func: Callable[[str], None]
 
     def _handle_nuqql_global_status(self, parts: List[str]) -> None:
         """
@@ -48,7 +50,7 @@ class NuqqlBackend(Backend):
         self._write_global_status(status)
 
         # set status in all backends and their accounts
-        for backend in BACKENDS.values():
+        for backend in self.backends.values():
             for acc in backend.accounts.values():
                 if backend.client:
                     backend.client.send_status_set(acc.aid, status)
@@ -90,8 +92,7 @@ class NuqqlBackend(Backend):
         with open(global_status_file, "w+") as status_file:
             status_file.writelines(lines)
 
-    @staticmethod
-    def _handle_stop(parts: List[str]) -> None:
+    def _handle_stop(self, parts: List[str]) -> None:
         """
         Handle stop command, stop a backend
         """
@@ -100,11 +101,10 @@ class NuqqlBackend(Backend):
             return
 
         backend_name = parts[0]
-        if backend_name in BACKENDS:
-            BACKENDS[backend_name].stop()
+        if backend_name in self.backends:
+            self.backends[backend_name].stop()
 
-    @staticmethod
-    def _handle_start(parts: List[str]) -> None:
+    def _handle_start(self, parts: List[str]) -> None:
         """
         Handle start command, start a backend
         """
@@ -113,16 +113,16 @@ class NuqqlBackend(Backend):
             return
 
         backend_name = parts[0]
-        restart_backend(backend_name)
+        assert self.restart_func
+        self.restart_func(backend_name)
 
-    @staticmethod
-    def _handle_restart(parts: List[str]) -> None:
+    def _handle_restart(self, parts: List[str]) -> None:
         """
         Handle restart command, stop and start a backend
         """
 
-        NuqqlBackend._handle_stop(parts)
-        NuqqlBackend._handle_start(parts)
+        self._handle_stop(parts)
+        self._handle_start(parts)
 
     def _handle_quit(self, _parts: List[str]) -> None:
         """

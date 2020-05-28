@@ -7,10 +7,10 @@ import os
 import time
 
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import nuqql.conversation
-from .backend import Backend, BACKENDS
+from .backend import Backend
 from .nuqqlbackend import NuqqlBackend
 
 # how long should we wait for backends (in seconds) before starting clients
@@ -21,6 +21,9 @@ BACKEND_DISABLE_HISTORY = True
 
 # filenames that should not get started as backends
 BACKEND_BLACKLIST = ["nuqql-keys", "nuqql-based"]
+
+# dictionary for all active backends
+BACKENDS: Dict[str, "Backend"] = {}
 
 
 def update_buddies() -> None:
@@ -59,6 +62,7 @@ def start_backend(backend_name: str, backend_exe: str, backend_path: str,
     backend_cmd = backend_cmd_fmt.format(exe, backend_path)
 
     backend = Backend(backend_name)
+    backend.backends = BACKENDS
     backend.start_server(cmd=backend_cmd, path=backend_path)
     backend.init_client(sock_file=backend_sockfile)
 
@@ -222,6 +226,7 @@ def start_nuqql(version: str) -> None:
     # create backend
     backend = NuqqlBackend("nuqql")
     backend.version = version
+    backend.restart_func = restart_backend
 
     # add conversation and show it in list window
     conv = nuqql.conversation.NuqqlConversation(backend, None, backend.name)

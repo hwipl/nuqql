@@ -20,9 +20,6 @@ from nuqql.account import Account
 from .server import BackendServer
 from .client import BackendClient
 
-# dictionary for all active backends
-BACKENDS: Dict[str, "Backend"] = {}
-
 
 class Backend:
     """
@@ -36,6 +33,9 @@ class Backend:
         self.accounts: Dict[str, Account] = {}
         # conversation for communication with the backend.
         self.conversation: Optional[nuqql.conversation.Conversation] = None
+
+        # all backends
+        self.backends: Dict[str, Backend] = {}
 
         # server
         self.server: Optional[BackendServer] = None
@@ -374,7 +374,7 @@ class Backend:
         self.stop_server()
 
         # remove backend from backends dict
-        del BACKENDS[self.name]  # changes BACKENDS, be carefull
+        del self.backends[self.name]  # changes BACKENDS, be carefull
 
         # remove conversation and update list window
         nuqql.conversation.remove_backend_conversations(self)
