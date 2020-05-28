@@ -136,20 +136,10 @@ class Backend:
 
         self._handle_network(msg)
 
-    def handle_message_msg(self, parsed_msg: Tuple[str, ...]) -> None:
-        """
-        Handle "message" message
-        """
-
-        # msg_type = parsed_msg[0]
-        acc_id = parsed_msg[1]
-        # destination = parsed_msg[2]
-        tstamp = parsed_msg[3]
-        sender = parsed_msg[4]
+    def _parse_message_account_specific(self, acc_id: str, sender: str,
+                                        parsed_msg: Tuple[str, ...]
+                                        ) -> Tuple[str, str]:
         msg = parsed_msg[5]
-
-        # account specific message parsing
-        # TODO: remove duplicate code?
         resource = ""
         for tmp_acc in self.accounts.values():
             if tmp_acc.aid == acc_id:
@@ -168,11 +158,26 @@ class Backend:
                         resource = sender_parts[1]
                     break
                 if tmp_acc.type == "matrix":
-                    # TODO: improve?
-                    sender = sender[1:].split(":")[0]
-                    resource = sender
+                    resource = sender[1:].split(":")[0]
                     sender = parsed_msg[2]
                     break
+        return sender, resource
+
+    def handle_message_msg(self, parsed_msg: Tuple[str, ...]) -> None:
+        """
+        Handle "message" message
+        """
+
+        # msg_type = parsed_msg[0]
+        acc_id = parsed_msg[1]
+        # destination = parsed_msg[2]
+        tstamp = parsed_msg[3]
+        sender = parsed_msg[4]
+        msg = parsed_msg[5]
+
+        # account specific message parsing
+        sender, resource = self._parse_message_account_specific(
+            acc_id, sender, parsed_msg)
 
         # let ui handle the message
         nuqql.ui.handle_message(self, acc_id, tstamp, sender, msg, resource)
@@ -193,26 +198,10 @@ class Backend:
             sender = parsed_msg[5]
             msg = parsed_msg[6]
 
-            # account specific message parsing
-            # TODO: remove duplicate code?
-            for tmp_acc in self.accounts.values():
-                if tmp_acc.aid == acc_id:
-                    if tmp_acc.type == "icq":
-                        if sender[-1] == ":":
-                            sender = sender[:-1]
-                        if msg[:6] == "<BODY>":
-                            msg = msg[6:]
-                        if msg[-7:] == "</BODY>":
-                            msg = msg[:-7]
-                        break
-                    if tmp_acc.type == "xmpp":
-                        sender_parts = sender.split("/")
-                        sender = sender_parts[0]
-                        break
-                    if tmp_acc.type == "matrix":
-                        # TODO: improve?
-                        sender = sender[1:].split(":")[0]
-                        break
+            # account specific message parsing, use resource as sender
+            _, sender = self._parse_message_account_specific(
+                acc_id, sender, parsed_msg)
+
             # handle message in ui
             nuqql.ui.handle_chat_msg_message(self, acc_id, chat, timestamp,
                                              sender, msg)
