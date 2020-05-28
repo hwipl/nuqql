@@ -83,18 +83,7 @@ class Backend:
         if self.client:
             self.client.stop()
 
-    def handle_network(self) -> None:
-        """
-        Try to read from the client connection and handle messages.
-        """
-
-        # try to read message
-        if not self.client:
-            return
-        msg = self.client.read()
-        if msg is None:
-            return
-
+    def _handle_network(self, msg) -> None:
         # parse it
         parsed_msg = nuqql.parse.parse_msg(msg)
         msg_type = parsed_msg[0]
@@ -132,6 +121,20 @@ class Backend:
         # TODO: handle error messages somewhere else?
         if msg_type in ("message", "parsing error"):
             self.handle_message_msg(parsed_msg)
+
+    def handle_network(self) -> None:
+        """
+        Try to read from the client connection and handle messages.
+        """
+
+        # try to read message
+        if not self.client:
+            return
+        msg = self.client.read()
+        if msg is None:
+            return
+
+        self._handle_network(msg)
 
     def handle_message_msg(self, parsed_msg: Tuple[str, ...]) -> None:
         """
