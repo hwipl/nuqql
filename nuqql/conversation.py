@@ -17,7 +17,8 @@ import nuqql.win
 
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
-    from nuqql.backend import Account, Backend  # noqa
+    from nuqql.backend import Backend  # noqa
+    from nuqql.account import Account  # noqa
     from nuqql.buddy import Buddy   # noqa
 
 # list of active conversations

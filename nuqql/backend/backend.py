@@ -18,9 +18,9 @@ import nuqql.conversation
 import nuqql.ui
 import nuqql.parse
 
-from nuqql.backendserver import BackendServer
-from nuqql.backendclient import BackendClient
 from nuqql.account import Account
+from .server import BackendServer
+from .client import BackendClient
 
 # dictionary for all active backends
 BACKENDS: Dict[str, "Backend"] = {}

@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
-    from nuqql.backend import Backend, Account  # noqa
+    from nuqql.backend import Backend  # noqa
+    from nuqql.account import Account  # noqa
 
 
 class Buddy:
