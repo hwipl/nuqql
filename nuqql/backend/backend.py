@@ -1,10 +1,6 @@
 """
-Backend part of nuqql.
+Backend class
 """
-
-################
-# NETWORK PART #
-################
 
 import socket
 import time
