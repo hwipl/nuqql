@@ -10,7 +10,8 @@ from pathlib import Path
 from typing import List, Optional
 
 import nuqql.conversation
-from .backend import Backend, BACKENDS, NuqqlBackend
+from .backend import Backend, BACKENDS
+from .nuqqlbackend import NuqqlBackend
 
 # how long should we wait for backends (in seconds) before starting clients
 BACKENDS_WAIT_TIME = 1

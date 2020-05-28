@@ -10,7 +10,7 @@ import socket
 import time
 
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 import nuqql.conversation
 import nuqql.ui
@@ -19,7 +19,6 @@ import nuqql.parse
 from nuqql.account import Account
 from .server import BackendServer
 from .client import BackendClient
-from .helpers import restart_backend
 
 # dictionary for all active backends
 BACKENDS: Dict[str, "Backend"] = {}
@@ -290,7 +289,7 @@ class Backend:
         self.client.send_collect(acc.aid)
 
         # if there is a global_status, set account status to it
-        status = NuqqlBackend.read_global_status()
+        status = self.read_global_status()
         if status != "":
             self.client.send_status_set(acc_id, status)
 
@@ -340,108 +339,6 @@ class Backend:
 
         return None
 
-    def stop(self) -> None:
-        """
-        Stop the backend, Note: changes BACKENDS
-        """
-
-        # print to main window
-        log_msg = "Stopping client and server for backend \"{0}\".".format(
-            self.name)
-        nuqql.conversation.log_main_window(log_msg)
-
-        # stop client and server
-        self.stop_client()
-        self.stop_server()
-
-        # remove backend from backends dict
-        del BACKENDS[self.name]  # changes BACKENDS, be carefull
-
-        # remove conversation and update list window
-        nuqql.conversation.remove_backend_conversations(self)
-
-
-class NuqqlBackend(Backend):
-    """
-    Class for the nuqql dummy backend
-    """
-
-    def __init__(self, name: str) -> None:
-        Backend.__init__(self, name)
-        self.version = ""
-
-    def _handle_nuqql_global_status(self, parts: List[str]) -> None:
-        """
-        Handle nuqql command: global-status
-        Call getter and setter funcions
-        """
-
-        if not parts:
-            return
-        sub_command = parts[0]
-        if sub_command == "set":
-            if len(parts) < 2:
-                return
-            self._handle_nuqql_global_status_set(parts[1])
-        elif sub_command == "get":
-            self._handle_nuqql_global_status_get()
-
-    def _handle_nuqql_global_status_set(self, status: str) -> None:
-        """
-        Handle nuqql command: global-status set
-        Set status and store it in global_status file
-        """
-
-        # only use the first word as status
-        if not status or status == "":
-            return
-
-        # write status
-        self._write_global_status(status)
-
-        # set status in all backends and their accounts
-        for backend in BACKENDS.values():
-            for acc in backend.accounts.values():
-                if backend.client:
-                    backend.client.send_status_set(acc.aid, status)
-
-        # log message
-        msg = "global-status: " + status
-        if self.conversation:
-            self.conversation.log("nuqql", msg)
-
-    def _handle_nuqql_global_status_get(self) -> None:
-        """
-        Handle nuqql command: global-status get
-        Read status from global_status file
-        """
-
-        # read status
-        status = self.read_global_status()
-        if status == "":
-            return
-
-        # log message
-        msg = "global-status: " + status
-        if self.conversation:
-            self.conversation.log("nuqql", msg)
-
-    @staticmethod
-    def _write_global_status(status: str) -> None:
-        """
-        Write global status to global_status file
-        """
-
-        # write status to file
-        global_status_dir = str(Path.home()) + "/.config/nuqql"
-        Path(global_status_dir).mkdir(parents=True, exist_ok=True)
-        global_status_file = global_status_dir + "/global_status"
-        line = status + "\n"
-        lines = []
-        lines.append(line)
-        with open(global_status_file, "w+") as status_file:
-            status_file.writelines(lines)
-
     @staticmethod
     def read_global_status() -> str:
         """
@@ -462,78 +359,22 @@ class NuqqlBackend(Backend):
         except FileNotFoundError:
             return ""
 
-    @staticmethod
-    def _handle_stop(parts: List[str]) -> None:
+    def stop(self) -> None:
         """
-        Handle stop command, stop a backend
-        """
-
-        if not parts:
-            return
-
-        backend_name = parts[0]
-        if backend_name in BACKENDS:
-            BACKENDS[backend_name].stop()
-
-    @staticmethod
-    def _handle_start(parts: List[str]) -> None:
-        """
-        Handle start command, start a backend
+        Stop the backend, Note: changes BACKENDS
         """
 
-        if not parts:
-            return
+        # print to main window
+        log_msg = "Stopping client and server for backend \"{0}\".".format(
+            self.name)
+        nuqql.conversation.log_main_window(log_msg)
 
-        backend_name = parts[0]
-        restart_backend(backend_name)
+        # stop client and server
+        self.stop_client()
+        self.stop_server()
 
-    @staticmethod
-    def _handle_restart(parts: List[str]) -> None:
-        """
-        Handle restart command, stop and start a backend
-        """
+        # remove backend from backends dict
+        del BACKENDS[self.name]  # changes BACKENDS, be carefull
 
-        NuqqlBackend._handle_stop(parts)
-        NuqqlBackend._handle_start(parts)
-
-    def _handle_quit(self, _parts: List[str]) -> None:
-        """
-        Handle quit command, quit nuqql
-        """
-
-        if self.conversation:
-            self.conversation.wins.input_win.state.active = False
-            self.conversation.wins.list_win.state.active = False
-
-    def _handle_version(self, _parts: List[str]) -> None:
-        """
-        Handle version command, print nuqql version
-        """
-
-        # log message
-        msg = f"version: nuqql v{self.version}"
-        if self.conversation:
-            self.conversation.log("nuqql", msg)
-
-    def handle_nuqql_command(self, msg: str) -> None:
-        """
-        Handle a nuqql command (from the nuqql conversation)
-        """
-
-        # parse message
-        parts = msg.split()
-        if not parts:
-            return
-
-        # check command and call helper functions
-        command_map = {
-            "global-status": self._handle_nuqql_global_status,
-            "stop": self._handle_stop,
-            "start": self._handle_start,
-            "restart": self._handle_restart,
-            "quit": self._handle_quit,
-            "version": self._handle_version,
-        }
-        command = parts[0]
-        if command in command_map:
-            command_map[command](parts[1:])
+        # remove conversation and update list window
+        nuqql.conversation.remove_backend_conversations(self)
