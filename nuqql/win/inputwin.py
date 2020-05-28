@@ -6,7 +6,7 @@ import unicodedata
 
 from typing import TYPE_CHECKING, Any
 
-import nuqql.win
+from .win import Win, MAIN_WINS
 
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
@@ -14,14 +14,14 @@ if TYPE_CHECKING:   # imports for typing
     from nuqql.conversation import Conversation  # noqa
 
 
-class InputWin(nuqql.win.Win):
+class InputWin(Win):
     """
     Class for Input Windows
     """
 
     def __init__(self, config: "WinConfig", conversation: "Conversation",
                  title: str) -> None:
-        nuqql.win.Win.__init__(self, config, conversation, title)
+        Win.__init__(self, config, conversation, title)
 
         # input message
         self.msg = ""
@@ -252,8 +252,8 @@ class InputWin(nuqql.win.Win):
         self.conversation.wins.log_win.state.active = False
 
         # redraw main windows
-        nuqql.win.MAIN_WINS["input"].redraw()
-        nuqql.win.MAIN_WINS["log"].redraw()
+        MAIN_WINS["input"].redraw()
+        MAIN_WINS["log"].redraw()
 
         # assume user read all messages and set lastread to last message
         self.conversation.set_lastread()

@@ -7,7 +7,7 @@ import re
 
 from typing import TYPE_CHECKING, Any, List
 
-import nuqql.win
+from .win import Win
 
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
@@ -15,14 +15,14 @@ if TYPE_CHECKING:   # imports for typing
     from nuqql.conversation import Conversation  # noqa
 
 
-class ListWin(nuqql.win.Win):
+class ListWin(Win):
     """
     Class for List Windows
     """
 
     def __init__(self, config: "WinConfig", conversation: "Conversation",
                  title: str) -> None:
-        nuqql.win.Win.__init__(self, config, conversation, title)
+        Win.__init__(self, config, conversation, title)
 
         # filter for conversation list
         self.filter = ""

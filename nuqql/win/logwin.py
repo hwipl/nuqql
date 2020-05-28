@@ -5,8 +5,8 @@ Nuqql UI Log Windows
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, List, Optional
 
-import nuqql.inputwin
-import nuqql.win
+from .inputwin import LogDialogInputWin
+from .win import Win, MAIN_WINS
 
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
@@ -15,14 +15,14 @@ if TYPE_CHECKING:   # imports for typing
     from nuqql.history import LogMessage  # noqa
 
 
-class LogWin(nuqql.win.Win):
+class LogWin(Win):
     """
     Class for Log Windows
     """
 
     def __init__(self, config: "WinConfig", conversation: "Conversation",
                  title: str) -> None:
-        nuqql.win.Win.__init__(self, config, conversation, title)
+        Win.__init__(self, config, conversation, title)
 
         # window in zoomed/fullscreen mode
         self.zoomed = False
@@ -31,7 +31,7 @@ class LogWin(nuqql.win.Win):
         self.list: List["LogMessage"] = []
 
         # dialog window for user input
-        self.dialog: Optional[nuqql.inputwin.LogDialogInputWin] = None
+        self.dialog: Optional[LogDialogInputWin] = None
 
         # string to search for
         self.search_text = ""
@@ -153,7 +153,7 @@ class LogWin(nuqql.win.Win):
         """
 
         props = SimpleNamespace()
-        props.max_y, props.max_x = nuqql.win.MAIN_WINS["screen"].getmaxyx()
+        props.max_y, props.max_x = MAIN_WINS["screen"].getmaxyx()
         if self.zoomed:
             # window is currently zoomed
             props.pos_y, props.pos_x = 0, 0
@@ -383,8 +383,8 @@ class LogWin(nuqql.win.Win):
         if self.zoomed:
             self.redraw()
         else:
-            nuqql.win.MAIN_WINS["screen"].clear()
-            nuqql.win.MAIN_WINS["screen"].refresh()
+            MAIN_WINS["screen"].clear()
+            MAIN_WINS["screen"].refresh()
             self.conversation.wins.list_win.redraw()
             self.conversation.wins.log_win.redraw()
             self.conversation.wins.input_win.redraw()
@@ -420,7 +420,7 @@ class LogWin(nuqql.win.Win):
         Search: Start a new search dialog
         """
 
-        self.dialog = nuqql.inputwin.LogDialogInputWin(
+        self.dialog = LogDialogInputWin(
             self.conversation.wins.input_win.config, self.conversation,
             "Search History")
         self.dialog.redraw()
