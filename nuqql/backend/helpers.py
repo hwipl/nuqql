@@ -133,6 +133,9 @@ def get_backends_from_path() -> List[str]:
 
     backends: List[str] = []
     for path_dir in os.get_exec_path():
+        if not os.path.isdir(path_dir):
+            # PATH may contain directories that do not exist, skip them
+            continue
         with os.scandir(path_dir) as path:
             for entry in path:
                 if entry.is_file() and \
