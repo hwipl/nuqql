@@ -47,7 +47,7 @@ def find_version(*file_paths):
 # run setup
 setup(
     name="nuqql",
-    version=find_version("nuqql", "main.py"),
+    version=find_version("nuqql", "__init__.py"),
     description=DESCRIPTION,
     license="MIT",
     long_description=LONG_DESCRIPTION,

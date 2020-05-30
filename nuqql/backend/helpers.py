@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import nuqql.conversation
+from nuqql import VERSION
+
 from .backend import Backend
 from .nuqqlbackend import NuqqlBackend
 
@@ -218,30 +220,30 @@ def restart_backend(backend_name: str) -> None:
         start_backend_client(backend)
 
 
-def start_nuqql(version: str) -> None:
+def start_nuqql() -> None:
     """
     Start the nuqql dummy backend
     """
 
     # create backend
     backend = NuqqlBackend("nuqql")
-    backend.version = version
+    backend.version = VERSION
     backend.restart_func = restart_backend
 
     # add conversation and show it in list window
     conv = nuqql.conversation.NuqqlConversation(backend, None, backend.name)
     conv.create_windows()
     backend.conversation = conv
-    nuqql.conversation.log_main_window(f"Started nuqql v{version}.")
+    nuqql.conversation.log_main_window(f"Started nuqql v{VERSION}.")
 
 
-def start_backends(version: str) -> None:
+def start_backends() -> None:
     """
     Helper for starting all backends
     """
 
     # start nuqql dummy backend
-    start_nuqql(version)
+    start_nuqql()
 
     # start backends
     nuqql.conversation.log_main_window("Starting backends.")
