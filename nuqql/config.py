@@ -2,6 +2,7 @@
 Nuqql's User Interface configuration
 """
 
+import argparse
 import configparser
 import curses.ascii
 import curses
@@ -9,6 +10,8 @@ import sys
 
 from pathlib import Path
 from typing import Any, Dict, Tuple
+
+from nuqql import VERSION
 
 #############
 # UI Config #
@@ -719,3 +722,15 @@ def init(screen: Any) -> None:
     init_path()
     init_win(screen)
     init_conversation_settings()
+
+
+def parse_args() -> None:
+    """
+    Parse command line arguments.
+    """
+
+    # if we add more, consider moving it to config or somewhere else
+    parser = argparse.ArgumentParser(
+        description="Run nuqql command line instant messenger.")
+    parser.add_argument("--version", action="version", version=VERSION)
+    parser.parse_args()
