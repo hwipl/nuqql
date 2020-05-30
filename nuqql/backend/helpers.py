@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import nuqql.config
 import nuqql.conversation
 from nuqql import VERSION
 
@@ -120,6 +121,9 @@ def start_backend_from_path(filename) -> Optional[Backend]:
         f"{backend_name}.sock"
     if BACKEND_DISABLE_HISTORY:
         backend_cmd_fmt += " --disable-history"
+    loglevel = nuqql.config.get("loglevel")
+    if loglevel:
+        backend_cmd_fmt += f" --loglevel {loglevel}"
     backend_sockfile = backend_path + f"/{backend_name}.sock"
 
     return start_backend(backend_name, backend_exe, backend_path,

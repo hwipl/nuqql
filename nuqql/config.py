@@ -733,4 +733,12 @@ def parse_args() -> None:
     parser = argparse.ArgumentParser(
         description="Run nuqql command line instant messenger.")
     parser.add_argument("--version", action="version", version=VERSION)
-    parser.parse_args()
+    parser.add_argument("--loglevel", choices=["debug", "info", "warn",
+                                               "error"],
+                        help="Logging level")
+    args = parser.parse_args()
+
+    # configure loglevel
+    CONFIGS["loglevel"] = ""
+    if args.loglevel:
+        CONFIGS["loglevel"] = args.loglevel
