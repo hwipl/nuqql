@@ -6,6 +6,9 @@ import argparse
 import configparser
 import curses.ascii
 import curses
+import logging
+import os
+import stat
 import sys
 
 from pathlib import Path
@@ -724,6 +727,37 @@ def init(screen: Any) -> None:
     init_conversation_settings()
 
 
+def init_logging() -> None:
+    """
+    Initialize logging
+    """
+
+    init_path()
+
+    # map loglevel
+    loglevel_map = {
+        "":         logging.WARNING,    # default loglevel
+        "debug":    logging.DEBUG,
+        "info":     logging.INFO,
+        "warn":     logging.WARNING,
+        "error":    logging.ERROR,
+    }
+    loglevel = loglevel_map[get("loglevel")]
+
+    # configure logging
+    file_name = Path.home() / ".config/nuqql" / "nuqql.log"
+    fmt = "%(asctime)s %(levelname)-5.5s %(message)s"
+    date_fmt = "%s"
+    logging.basicConfig(filename=file_name, format=fmt, datefmt=date_fmt,
+                        level=loglevel)
+
+    # restrict log file access
+    os.chmod(file_name, stat.S_IRUSR | stat.S_IWUSR)
+
+    # log debug message
+    logging.debug("logging initialized")
+
+
 def parse_args() -> None:
     """
     Parse command line arguments.
@@ -738,7 +772,8 @@ def parse_args() -> None:
                         help="Logging level")
     args = parser.parse_args()
 
-    # configure loglevel
+    # configure loglevel and logging
     CONFIGS["loglevel"] = ""
     if args.loglevel:
         CONFIGS["loglevel"] = args.loglevel
+    init_logging()
