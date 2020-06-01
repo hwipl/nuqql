@@ -2,6 +2,7 @@
 Backend client
 """
 
+import logging
 import socket
 import select
 import time
@@ -54,9 +55,11 @@ class BackendClient:
         if self.sock_af == socket.AF_INET:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.connect((self.ip_addr, self.port))
+            logging.debug("BackendClient: connected AF_INET socket")
         elif self.sock_af == socket.AF_UNIX:
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             self.sock.connect(self.sock_file)
+            logging.debug("BackendClient: connected AF_UNIX socket")
 
     def start(self) -> None:
         """
@@ -65,6 +68,7 @@ class BackendClient:
 
         # open sockets and connect
         retries = 0
+        logging.debug("BackendClient: starting client")
         while not self.sock and retries < CLIENT_MAX_RETRIES:
             try:
                 self._connect()
@@ -78,6 +82,7 @@ class BackendClient:
         Stop the backend's client
         """
 
+        logging.debug("BackendClient: stopping client")
         if self.sock:
             try:
                 self.sock.close()
@@ -129,6 +134,8 @@ class BackendClient:
         msg = self.buffer[:eom]
         # remove message including "\r\n" from buffer
         self.buffer = self.buffer[eom + 2:]
+
+        logging.debug("BackendClient: read message: %s", msg)
         return msg
 
     def _send(self, msg: str) -> None:
@@ -141,6 +148,7 @@ class BackendClient:
 
         try:
             self.sock.sendall(msg.encode())
+            logging.debug("BackendClient: sent message: %s", msg)
         except OSError:
             nuqql.conversation.log_main_window(BACKEND_ERROR)
             if self.backend:
@@ -153,6 +161,7 @@ class BackendClient:
         """
 
         msg = cmd + "\r\n"
+        logging.debug("BackendClient: sending command: %s", msg)
         self._send(msg)
 
     def send_msg(self, account_id: str, buddy: str, msg: str) -> None:
@@ -164,6 +173,7 @@ class BackendClient:
         msg = html.escape(msg)
         msg = "<br/>".join(msg.split("\n"))
         msg = prefix + msg + "\r\n"
+        logging.debug("BackendClient: sending message: %s", msg)
         self._send(msg)
 
     def send_group_msg(self, account_id: str, buddy: str, msg: str) -> None:
@@ -175,6 +185,7 @@ class BackendClient:
         msg = html.escape(msg)
         msg = "<br/>".join(msg.split("\n"))
         msg = prefix + msg + "\r\n"
+        logging.debug("BackendClient: sending group message: %s", msg)
         self._send(msg)
 
     def send_collect(self, account_id: str) -> None:
@@ -188,6 +199,7 @@ class BackendClient:
         # nuqql's startup, FIXME?
         msg = "account {0} collect 0\r\n".format(account_id)
         # self.collect_acc = account
+        logging.debug("BackendClient: sending collect message: %s", msg)
         self._send(msg)
 
     def send_buddies(self, account_id: str) -> None:
@@ -197,6 +209,7 @@ class BackendClient:
         """
 
         msg = "account {0} buddies\r\n".format(account_id)
+        logging.debug("BackendClient: sending buddies message: %s", msg)
         self._send(msg)
 
     def send_accounts(self) -> None:
@@ -206,6 +219,7 @@ class BackendClient:
         """
 
         msg = "account list\r\n"
+        logging.debug("BackendClient: sending account list message: %s", msg)
         self._send(msg)
 
     def send_status_set(self, account_id: str, status: str) -> None:
@@ -215,4 +229,5 @@ class BackendClient:
         """
 
         msg = "account {} status set {}\r\n".format(account_id, status)
+        logging.debug("BackendClient: sending status set message: %s", msg)
         self._send(msg)
