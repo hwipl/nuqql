@@ -2,6 +2,7 @@
 Backend server
 """
 
+import logging
 import subprocess
 
 from pathlib import Path
@@ -31,6 +32,8 @@ class BackendServer:
         Start the backend's server process
         """
 
+        logging.debug("BackendServer: starting server")
+
         # make sure server's working directory exists
         Path(self.server_path).mkdir(parents=True, exist_ok=True)
 
@@ -56,6 +59,8 @@ class BackendServer:
         """
         Stop the backend's server process
         """
+
+        logging.debug("BackendServer: stopping server")
 
         # stop running server
         if self.proc:
