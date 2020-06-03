@@ -2,6 +2,8 @@
 Dummy Nuqql Backend
 """
 
+import logging
+
 from pathlib import Path
 from typing import Callable, List
 
@@ -45,6 +47,7 @@ class NuqqlBackend(Backend):
         # only use the first word as status
         if not status or status == "":
             return
+        logging.debug("NuqqlBackend: setting global status to %s", status)
 
         # write status
         self._write_global_status(status)
@@ -67,9 +70,11 @@ class NuqqlBackend(Backend):
         """
 
         # read status
+        logging.debug("NuqqlBackend: getting global status")
         status = self.read_global_status()
         if status == "":
             return
+        logging.debug("NuqqlBackend: global status is %s", status)
 
         # log message
         msg = "global-status: " + status
@@ -83,6 +88,7 @@ class NuqqlBackend(Backend):
         """
 
         # write status to file
+        logging.debug("NuqqlBackend: writing global status %s to file", status)
         global_status_dir = str(Path.home()) + "/.config/nuqql"
         Path(global_status_dir).mkdir(parents=True, exist_ok=True)
         global_status_file = global_status_dir + "/global_status"
@@ -101,6 +107,7 @@ class NuqqlBackend(Backend):
             return
 
         backend_name = parts[0]
+        logging.debug("NuqqlBackend: stopping backend %s", backend_name)
         if backend_name in self.backends:
             self.backends[backend_name].stop()
 
@@ -113,6 +120,7 @@ class NuqqlBackend(Backend):
             return
 
         backend_name = parts[0]
+        logging.debug("NuqqlBackend: starting backend %s", backend_name)
         assert self.restart_func
         self.restart_func(backend_name)
 
@@ -121,6 +129,11 @@ class NuqqlBackend(Backend):
         Handle restart command, stop and start a backend
         """
 
+        if not parts:
+            return
+
+        backend_name = parts[0]
+        logging.debug("NuqqlBackend: restarting backend %s", backend_name)
         self._handle_stop(parts)
         self._handle_start(parts)
 
@@ -129,6 +142,7 @@ class NuqqlBackend(Backend):
         Handle quit command, quit nuqql
         """
 
+        logging.debug("NuqqlBackend: quitting nuqql")
         if self.conversation:
             self.conversation.wins.input_win.state.active = False
             self.conversation.wins.list_win.state.active = False
@@ -140,6 +154,7 @@ class NuqqlBackend(Backend):
 
         # log message
         msg = f"version: nuqql v{self.version}"
+        logging.debug("NuqqlBackend: getting nuqql version: %s", msg)
         if self.conversation:
             self.conversation.log("nuqql", msg)
 
@@ -147,6 +162,8 @@ class NuqqlBackend(Backend):
         """
         Handle a nuqql command (from the nuqql conversation)
         """
+
+        logging.debug("NuqqlBackend: handling nuqql command %s", msg)
 
         # parse message
         parts = msg.split()
