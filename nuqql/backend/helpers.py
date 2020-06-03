@@ -235,6 +235,7 @@ def start_nuqql() -> None:
     # create backend
     backend = NuqqlBackend("nuqql")
     backend.version = VERSION
+    backend.backends = BACKENDS
     backend.restart_func = restart_backend
 
     # add conversation and show it in list window
