@@ -188,6 +188,7 @@ def start_backend_client(backend: Backend) -> None:
     if not backend.client or not backend.client.sock:
         log_msg = "Could not connect to backend \"{0}\".".format(
             backend.name)
+        logging.error("could not connect to backend %s", backend.name)
         nuqql.conversation.log_main_window(log_msg)
         backend.stop()
         return
