@@ -108,6 +108,7 @@ def get_logger(name, file_name: str) -> logging.Logger:
 
     # create logger
     logger = logging.getLogger(name)
+    logger.propagate = False
     logger.setLevel(logging.DEBUG)
 
     # create handler
