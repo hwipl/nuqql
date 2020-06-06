@@ -143,8 +143,8 @@ def init_logger(conv: "Conversation") -> Tuple[logging.Logger, str]:
     log_dir = get_conv_path(conv)
 
     # create logger with log name and log file
-    log_name = "{} {} {}".format(conv.backend.name, conv.account.aid,
-                                 conv.name)
+    log_name = "nuqql.history.{}.{}.{}".format(conv.backend.name,
+                                               conv.account.aid, conv.name)
     log_file = log_dir + HISTORY_FILE
     logger = get_logger(log_name, log_file)
 
