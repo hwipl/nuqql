@@ -37,14 +37,15 @@ class BackendServer:
 
         def logger() -> None:
             assert self.proc and self.proc.stdout
+            log = logging.getLogger("nuqql.backend")
             while not self.stop_logger.is_set():
                 try:
                     for line in iter(self.proc.stdout.readline, b''):
-                        logging.debug("BackendServer: got backend subprocess "
-                                      "%s output:\n %s", name, line.decode())
+                        log.debug("BackendServer: got backend subprocess %s "
+                                  "output:\n %s", name, line.decode())
                 except OSError:
-                    logging.error("BackendServer: error reading subprocess %s"
-                                  "output (read)", name)
+                    log.error("BackendServer: error reading subprocess %s "
+                              "output (read)", name)
                     return
         self.output_logger = threading.Thread(target=logger)
         self.output_logger.start()
@@ -54,7 +55,8 @@ class BackendServer:
         Start the backend's server process
         """
 
-        logging.debug("BackendServer: starting server")
+        log = logging.getLogger("nuqql.backend")
+        log.debug("BackendServer: starting server")
 
         # make sure server's working directory exists
         Path(self.server_path).mkdir(parents=True, exist_ok=True)
@@ -84,7 +86,8 @@ class BackendServer:
         Stop the backend's server process
         """
 
-        logging.debug("BackendServer: stopping server")
+        log = logging.getLogger("nuqql.backend")
+        log.debug("BackendServer: stopping server")
 
         # stop running server
         if self.proc:

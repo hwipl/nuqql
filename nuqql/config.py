@@ -745,17 +745,25 @@ def init_logging() -> None:
     loglevel = loglevel_map[get("loglevel")]
 
     # configure logging
-    file_name = Path.home() / ".config/nuqql" / "nuqql.log"
     fmt = "%(asctime)s %(levelname)-5.5s %(message)s"
     date_fmt = "%s"
-    logging.basicConfig(filename=file_name, format=fmt, datefmt=date_fmt,
-                        level=loglevel)
+    formatter = logging.Formatter(fmt=fmt, datefmt=date_fmt)
+
+    file_name = Path.home() / ".config/nuqql" / "nuqql.log"
+    fileh = logging.FileHandler(file_name)
+    fileh.setLevel(loglevel)
+    fileh.setFormatter(formatter)
+
+    logger = logging.getLogger("nuqql")
+    logger.propagate = False
+    logger.setLevel(loglevel)
+    logger.addHandler(fileh)
 
     # restrict log file access
     os.chmod(file_name, stat.S_IRUSR | stat.S_IWUSR)
 
     # log debug message
-    logging.debug("logging initialized")
+    logger.debug("logging initialized")
 
 
 def parse_args() -> None:

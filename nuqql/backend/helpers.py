@@ -55,9 +55,11 @@ def start_backend(backend_name: str, backend_exe: str, backend_path: str,
     Helper for starting a backend
     """
 
-    logging.debug("starting backend: name %s, exe %s, path %s, cmd_fmt %s, "
-                  "sockfile %s", backend_name, backend_exe, backend_path,
-                  backend_cmd_fmt, backend_sockfile)
+    log = logging.getLogger("nuqql.backend")
+    log.debug("starting backend: name %s, exe %s, path %s, cmd_fmt %s, "
+              "sockfile %s", backend_name, backend_exe, backend_path,
+              backend_cmd_fmt, backend_sockfile)
+
     # check if backend exists in path
     exe = shutil.which(backend_exe, path=os.getcwd())
     if exe is None:
@@ -91,7 +93,9 @@ def start_purpled() -> Optional[Backend]:
     Helper for starting the "purpled" backend
     """
 
-    logging.debug("trying to find backend purpled")
+    log = logging.getLogger("nuqql.backend")
+    log.debug("trying to find backend purpled")
+
     # check if purpled exists in path
     exe = shutil.which("purpled", path=os.getcwd())
     if exe is None:
@@ -99,13 +103,15 @@ def start_purpled() -> Optional[Backend]:
     if exe is None:
         # does not exist, stop here
         return None
-    logging.debug("found backend purpled in file %s", exe)
+    log.debug("found backend purpled in file %s", exe)
 
     ###########
     # purpled #
     ###########
 
-    logging.debug("starting backend purpled")
+    log = logging.getLogger("nuqql.backend")
+    log.debug("starting backend purpled")
+
     backend_name = "purpled"
     backend_exe = "purpled"
     backend_path = str(Path.home()) + "/.config/nuqql/backend/purpled"
@@ -121,7 +127,9 @@ def start_backend_from_path(filename) -> Optional[Backend]:
     Helper for starting a single backend found in PATH.
     """
 
-    logging.debug("starting backend found in PATH")
+    log = logging.getLogger("nuqql.backend")
+    log.debug("starting backend found in PATH")
+
     backend_name = filename[6:]
     backend_exe = filename
     backend_path = str(Path.home()) + f"/.config/nuqql/backend/{backend_name}"
@@ -164,9 +172,11 @@ def start_backends_from_path() -> None:
     These backends are expected to have the same command line arguments.
     """
 
-    logging.debug("trying to find backends in PATH")
+    log = logging.getLogger("nuqql.backend")
+    log.debug("trying to find backends in PATH")
+
     for filename in get_backends_from_path():
-        logging.debug("found backend file %s in PATH", filename)
+        log.debug("found backend file %s in PATH", filename)
         start_backend_from_path(filename)
 
 
@@ -175,7 +185,8 @@ def start_backend_client(backend: Backend) -> None:
     Helper for starting a single backend client
     """
 
-    logging.debug("starting backend client for backend %s", backend.name)
+    log = logging.getLogger("nuqql.backend")
+    log.debug("starting backend client for backend %s", backend.name)
 
     # let user know we are connecting
     log_msg = "Starting client for backend \"{0}\".".format(backend.name)
@@ -186,9 +197,8 @@ def start_backend_client(backend: Backend) -> None:
 
     # make sure the connection to the backend was successful
     if not backend.client or not backend.client.sock:
-        log_msg = "Could not connect to backend \"{0}\".".format(
-            backend.name)
-        logging.error("could not connect to backend %s", backend.name)
+        log_msg = "Could not connect to backend \"{0}\".".format(backend.name)
+        log.error("could not connect to backend %s", backend.name)
         nuqql.conversation.log_main_window(log_msg)
         backend.stop()
         return
@@ -207,7 +217,9 @@ def start_backend_clients() -> None:
     Helper for starting all backend clients
     """
 
-    logging.debug("starting backend clients")
+    log = logging.getLogger("nuqql.backend")
+    log.debug("starting backend clients")
+
     # give backend servers some time
     time.sleep(BACKENDS_WAIT_TIME)
 
@@ -220,7 +232,9 @@ def restart_backend(backend_name: str) -> None:
     (Re)start a backend and the client connection. Called from NuqqlBackend
     """
 
-    logging.debug("restarting backend %s", backend_name)
+    log = logging.getLogger("nuqql.backend")
+    log.debug("restarting backend %s", backend_name)
+
     if backend_name in BACKENDS:
         # backend already running
         return
@@ -248,7 +262,8 @@ def start_nuqql() -> None:
     Start the nuqql dummy backend
     """
 
-    logging.debug("starting nuqql backend")
+    log = logging.getLogger("nuqql.backend")
+    log.debug("starting nuqql backend")
 
     # create backend
     backend = NuqqlBackend("nuqql")
@@ -261,7 +276,7 @@ def start_nuqql() -> None:
     conv.create_windows()
     backend.conversation = conv
     nuqql.conversation.log_main_window(f"Started nuqql v{VERSION}.")
-    logging.debug("started nuqql backend version %s", VERSION)
+    log.debug("started nuqql backend version %s", VERSION)
 
 
 def start_backends() -> None:
@@ -269,7 +284,9 @@ def start_backends() -> None:
     Helper for starting all backends
     """
 
-    logging.debug("starting all available backends")
+    log = logging.getLogger("nuqql.backend")
+    log.debug("starting all available backends")
+
     # start nuqql dummy backend
     start_nuqql()
 
@@ -287,6 +304,7 @@ def stop_backends() -> None:
     Helper for stopping all backends
     """
 
-    logging.debug("stopping all backends")
+    log = logging.getLogger("nuqql.backend")
+    log.debug("stopping all backends")
     for backend in dict(BACKENDS).values():
         backend.stop()  # changes BACKENDS

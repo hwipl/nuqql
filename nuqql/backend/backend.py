@@ -47,8 +47,9 @@ class Backend:
         Add a server to this backend and start it
         """
 
-        logging.debug("Backend: starting server of backend %s: "
-                      "cmd: %s, path: %s", self.name, cmd, path)
+        log = logging.getLogger("nuqql.backend")
+        log.debug("Backend: starting server of backend %s: cmd: %s, path: %s",
+                  self.name, cmd, path)
         self.server = BackendServer(cmd, path)
         self.server.start()
 
@@ -57,7 +58,8 @@ class Backend:
         Stop the server of this backend
         """
 
-        logging.debug("Backend: stopping server of backend %s", self.name)
+        log = logging.getLogger("nuqql.backend")
+        log.debug("Backend: stopping server of backend %s", self.name)
         if self.server:
             self.server.stop()
 
@@ -66,7 +68,8 @@ class Backend:
         Start the backend's client
         """
 
-        logging.debug("Backend: starting client of backend %s", self.name)
+        log = logging.getLogger("nuqql.backend")
+        log.debug("Backend: starting client of backend %s", self.name)
         if self.client:
             self.client.start()
 
@@ -77,9 +80,10 @@ class Backend:
         Add a client to this backend
         """
 
-        logging.debug("Backend: initializing client of backend %s: "
-                      "sock_af: %s, ip_addr: %s, port: %s, sock_file: %s",
-                      self.name, sock_af, ip_addr, port, sock_file)
+        log = logging.getLogger("nuqql.backend")
+        log.debug("Backend: initializing client of backend %s: "
+                  "sock_af: %s, ip_addr: %s, port: %s, sock_file: %s",
+                  self.name, sock_af, ip_addr, port, sock_file)
         self.client = BackendClient(sock_af, ip_addr, port, sock_file)
         self.client.backend = self
 
@@ -88,7 +92,8 @@ class Backend:
         Stop the client of this backend
         """
 
-        logging.debug("Backend: stopping client of backend %s", self.name)
+        log = logging.getLogger("nuqql.backend")
+        log.debug("Backend: stopping client of backend %s", self.name)
         if self.client:
             self.client.stop()
 
@@ -143,8 +148,9 @@ class Backend:
         if msg is None:
             return
 
-        logging.debug("Backend: handling message from network in backend %s: "
-                      "%s", self.name, msg)
+        log = logging.getLogger("nuqql.backend")
+        log.debug("Backend: handling message from network in backend %s: %s",
+                  self.name, msg)
         self._handle_network(msg)
 
     def _parse_message_account_specific(self, acc_id: str, sender: str,
@@ -179,7 +185,9 @@ class Backend:
         Handle "message" message
         """
 
-        logging.debug("Backend: handling message in backend %s", self.name)
+        log = logging.getLogger("nuqql.backend")
+        log.debug("Backend: handling message in backend %s", self.name)
+
         # msg_type = parsed_msg[0]
         acc_id = parsed_msg[1]
         # destination = parsed_msg[2]
@@ -199,8 +207,9 @@ class Backend:
         Handle Chat message
         """
 
-        logging.debug("Backend: handling chat message in backend %s",
-                      self.name)
+        log = logging.getLogger("nuqql.backend")
+        log.debug("Backend: handling chat message in backend %s", self.name)
+
         # "chat", ctype, acc, chat, nick
         ctype = parsed_msg[1]
         acc_id = parsed_msg[2]
@@ -249,8 +258,9 @@ class Backend:
         Handle Account message
         """
 
-        logging.debug("Backend: handling account message in backend %s",
-                      self.name)
+        log = logging.getLogger("nuqql.backend")
+        log.debug("Backend: handling account message in backend %s", self.name)
+
         # "account", acc_id, acc_alias, acc_prot, acc_user, acc_status
         # msg_type = parsed_msg[0]
         acc_id = parsed_msg[1]
@@ -302,8 +312,9 @@ class Backend:
         Handle Buddy message
         """
 
-        logging.debug("Backend: handling buddy message in backend %s",
-                      self.name)
+        log = logging.getLogger("nuqql.backend")
+        log.debug("Backend: handling buddy message in backend %s", self.name)
+
         # get message parts
         # msg_type = parsed_msg[0]
         acc_id = parsed_msg[1]
@@ -332,8 +343,8 @@ class Backend:
         # update buddies
         for acc in self.accounts.values():
             if acc.update_buddies():
-                logging.debug("Backend: updating buddies in backend %s",
-                              self.name)
+                log = logging.getLogger("nuqql.backend")
+                log.debug("Backend: updating buddies in backend %s", self.name)
                 self.client.send_buddies(acc.aid)
 
     def get_account(self, account_id: int) -> Optional["Account"]:
@@ -341,8 +352,8 @@ class Backend:
         Get account with specified account id
         """
 
-        logging.debug("Backend: getting account in backend %s",
-                      self.name)
+        log = logging.getLogger("nuqql.backend")
+        log.debug("Backend: getting account in backend %s", self.name)
         for acc in self.accounts.values():
             if acc.aid == account_id:
                 return acc
@@ -354,8 +365,9 @@ class Backend:
         Read global status from global_status file
         """
 
-        logging.debug("Backend: reading global status in backend %s",
-                      self.name)
+        log = logging.getLogger("nuqql.backend")
+        log.debug("Backend: reading global status in backend %s", self.name)
+
         # if there is a global_status file, read it
         global_status_dir = str(Path.home()) + "/.config/nuqql"
         Path(global_status_dir).mkdir(parents=True, exist_ok=True)
@@ -375,7 +387,9 @@ class Backend:
         Stop the backend, Note: changes BACKENDS
         """
 
-        logging.debug("Backend: stopping backend %s", self.name)
+        log = logging.getLogger("nuqql.backend")
+        log.debug("Backend: stopping backend %s", self.name)
+
         # print to main window
         log_msg = "Stopping client and server for backend \"{0}\".".format(
             self.name)
