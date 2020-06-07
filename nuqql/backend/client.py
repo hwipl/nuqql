@@ -16,6 +16,7 @@ if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
     from nuqql.backend import Backend
 
+logger = logging.getLogger(__name__)
 
 # how often should a backend client try to connect to its server and
 # how long (in seconds) should a backend client sleep between retries?
@@ -52,15 +53,14 @@ class BackendClient:
         Helper for connecting to the server
         """
 
-        log = logging.getLogger("nuqql.backend")
         if self.sock_af == socket.AF_INET:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.connect((self.ip_addr, self.port))
-            log.debug("BackendClient: connected AF_INET socket")
+            logger.debug("connected AF_INET socket")
         elif self.sock_af == socket.AF_UNIX:
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             self.sock.connect(self.sock_file)
-            log.debug("BackendClient: connected AF_UNIX socket")
+            logger.debug("connected AF_UNIX socket")
 
     def start(self) -> None:
         """
@@ -69,8 +69,7 @@ class BackendClient:
 
         # open sockets and connect
         retries = 0
-        log = logging.getLogger("nuqql.backend")
-        log.debug("BackendClient: starting client")
+        logger.debug("starting client")
         while not self.sock and retries < CLIENT_MAX_RETRIES:
             try:
                 self._connect()
@@ -84,8 +83,7 @@ class BackendClient:
         Stop the backend's client
         """
 
-        log = logging.getLogger("nuqql.backend")
-        log.debug("BackendClient: stopping client")
+        logger.debug("stopping client")
         if self.sock:
             try:
                 self.sock.close()
@@ -101,20 +99,19 @@ class BackendClient:
         if not self.sock:
             return None
 
-        log = logging.getLogger("nuqql.backend")
         try:
             reads, unused_writes, errs = select.select([self.sock, ], [],
                                                        [self.sock, ], 0)
         except OSError:
             nuqql.conversation.log_main_window(BACKEND_ERROR)
-            log.error("BackendClient: read error (select)")
+            logger.error("read error (select)")
             if self.backend:
                 self.backend.stop()
             return None
 
         if self.sock in errs:
             # something is wrong
-            log.error("BackendClient: read error (socket)")
+            logger.error("read error (socket)")
             if self.backend:
                 self.backend.stop()
             return None
@@ -125,7 +122,7 @@ class BackendClient:
                 data = self.sock.recv(BUFFER_SIZE)
             except OSError:
                 nuqql.conversation.log_main_window(BACKEND_ERROR)
-                log.error("BackendClient: read error (recv)")
+                logger.error("read error (recv)")
                 if self.backend:
                     self.backend.stop()
                 return None
@@ -142,7 +139,7 @@ class BackendClient:
         # remove message including "\r\n" from buffer
         self.buffer = self.buffer[eom + 2:]
 
-        log.debug("BackendClient: read message: %s", msg)
+        logger.debug("read message: %s", msg)
         return msg
 
     def _send(self, msg: str) -> None:
@@ -153,13 +150,12 @@ class BackendClient:
         if not self.sock:
             return
 
-        log = logging.getLogger("nuqql.backend")
         try:
             self.sock.sendall(msg.encode())
-            log.debug("BackendClient: sent message: %s", msg)
+            logger.debug("sent message: %s", msg)
         except OSError:
             nuqql.conversation.log_main_window(BACKEND_ERROR)
-            log.error("BackendClient: send error")
+            logger.error("send error")
             if self.backend:
                 self.backend.stop()
             return
@@ -170,8 +166,7 @@ class BackendClient:
         """
 
         msg = cmd + "\r\n"
-        log = logging.getLogger("nuqql.backend")
-        log.debug("BackendClient: sending command: %s", msg)
+        logger.debug("sending command: %s", msg)
         self._send(msg)
 
     def send_msg(self, account_id: str, buddy: str, msg: str) -> None:
@@ -183,8 +178,7 @@ class BackendClient:
         msg = html.escape(msg)
         msg = "<br/>".join(msg.split("\n"))
         msg = prefix + msg + "\r\n"
-        log = logging.getLogger("nuqql.backend")
-        log.debug("BackendClient: sending message: %s", msg)
+        logger.debug("sending message: %s", msg)
         self._send(msg)
 
     def send_group_msg(self, account_id: str, buddy: str, msg: str) -> None:
@@ -196,8 +190,7 @@ class BackendClient:
         msg = html.escape(msg)
         msg = "<br/>".join(msg.split("\n"))
         msg = prefix + msg + "\r\n"
-        log = logging.getLogger("nuqql.backend")
-        log.debug("BackendClient: sending group message: %s", msg)
+        logger.debug("sending group message: %s", msg)
         self._send(msg)
 
     def send_collect(self, account_id: str) -> None:
@@ -211,8 +204,7 @@ class BackendClient:
         # nuqql's startup, FIXME?
         msg = "account {0} collect 0\r\n".format(account_id)
         # self.collect_acc = account
-        log = logging.getLogger("nuqql.backend")
-        log.debug("BackendClient: sending collect message: %s", msg)
+        logger.debug("sending collect message: %s", msg)
         self._send(msg)
 
     def send_buddies(self, account_id: str) -> None:
@@ -222,8 +214,7 @@ class BackendClient:
         """
 
         msg = "account {0} buddies\r\n".format(account_id)
-        log = logging.getLogger("nuqql.backend")
-        log.debug("BackendClient: sending buddies message: %s", msg)
+        logger.debug("sending buddies message: %s", msg)
         self._send(msg)
 
     def send_accounts(self) -> None:
@@ -233,8 +224,7 @@ class BackendClient:
         """
 
         msg = "account list\r\n"
-        log = logging.getLogger("nuqql.backend")
-        log.debug("BackendClient: sending account list message: %s", msg)
+        logger.debug("sending account list message: %s", msg)
         self._send(msg)
 
     def send_status_set(self, account_id: str, status: str) -> None:
@@ -244,6 +234,5 @@ class BackendClient:
         """
 
         msg = "account {} status set {}\r\n".format(account_id, status)
-        log = logging.getLogger("nuqql.backend")
-        log.debug("BackendClient: sending status set message: %s", msg)
+        logger.debug("sending status set message: %s", msg)
         self._send(msg)

@@ -9,6 +9,8 @@ import threading
 from pathlib import Path
 from typing import Optional
 
+logger = logging.getLogger(__name__)
+
 # enable/disable logging of subprocess output
 SUBPROCESS_LOGGING = True
 
@@ -35,19 +37,18 @@ class BackendServer:
 
         name = self.server_cmd.split()[0]
 
-        def logger() -> None:
+        def proc_logger() -> None:
             assert self.proc and self.proc.stdout
-            log = logging.getLogger("nuqql.backend")
             while not self.stop_logger.is_set():
                 try:
                     for line in iter(self.proc.stdout.readline, b''):
-                        log.debug("BackendServer: got backend subprocess %s "
-                                  "output:\n %s", name, line.decode())
+                        logger.debug("got backend subprocess %s output:\n %s",
+                                     name, line.decode())
                 except OSError:
-                    log.error("BackendServer: error reading subprocess %s "
-                              "output (read)", name)
+                    logger.error("error reading subprocess %s output (read)",
+                                 name)
                     return
-        self.output_logger = threading.Thread(target=logger)
+        self.output_logger = threading.Thread(target=proc_logger)
         self.output_logger.start()
 
     def start(self) -> None:
@@ -55,8 +56,7 @@ class BackendServer:
         Start the backend's server process
         """
 
-        log = logging.getLogger("nuqql.backend")
-        log.debug("BackendServer: starting server")
+        logger.debug("starting server")
 
         # make sure server's working directory exists
         Path(self.server_path).mkdir(parents=True, exist_ok=True)
@@ -86,8 +86,7 @@ class BackendServer:
         Stop the backend's server process
         """
 
-        log = logging.getLogger("nuqql.backend")
-        log.debug("BackendServer: stopping server")
+        logger.debug("stopping server")
 
         # stop running server
         if self.proc:

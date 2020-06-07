@@ -745,9 +745,8 @@ def init_logging() -> None:
     loglevel = loglevel_map[get("loglevel")]
 
     # configure logging
-    fmt = "%(asctime)s %(levelname)-5.5s %(message)s"
-    date_fmt = "%s"
-    formatter = logging.Formatter(fmt=fmt, datefmt=date_fmt)
+    fmt = "%(asctime)s - %(levelname)-5.5s - %(name)s - %(message)s"
+    formatter = logging.Formatter(fmt=fmt)
 
     file_name = Path.home() / ".config/nuqql" / "nuqql.log"
     fileh = logging.FileHandler(file_name)
