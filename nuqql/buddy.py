@@ -2,12 +2,16 @@
 Nuqql Buddy
 """
 
+import logging
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
     from nuqql.backend import Backend  # noqa
     from nuqql.account import Account  # noqa
+
+logger = logging.getLogger(__name__)
 
 
 class Buddy:
@@ -23,6 +27,10 @@ class Buddy:
         self.alias = name
         self.status = "off"     # use short status name
         self.updated = True
+        logger.debug("created buddy: backend %s, account %s, "
+                     "name %s, alias %s, status %s",
+                     self.backend.name, self.account.aid, self.name,
+                     self.alias, self.status)
 
     # dictionary for mapping status names to shorter version (key: lower case)
     status_map = {
@@ -59,6 +67,10 @@ class Buddy:
 
         # check if buddy has changed
         if old_status != self.status or old_alias != self.alias:
+            logger.debug("updated buddy: backend %s, account %s, "
+                         "name %s, alias %s, status %s",
+                         self.backend.name, self.account.aid, self.name,
+                         self.alias, self.status)
             return True
 
         # has not changed
