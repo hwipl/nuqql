@@ -3,6 +3,7 @@ Nuqql Conversations
 """
 
 import datetime
+import logging
 import urllib.parse
 
 from types import SimpleNamespace
@@ -18,6 +19,8 @@ if TYPE_CHECKING:   # imports for typing
     from nuqql.backend import Backend  # noqa
     from nuqql.account import Account  # noqa
     from nuqql.buddy import Buddy   # noqa
+
+logger = logging.getLogger(__name__)
 
 # list of active conversations
 CONVERSATIONS: List["Conversation"] = []
@@ -70,6 +73,7 @@ class Conversation:
             self.clear_notifications()
             if set_last_used:
                 self.stats["last_used"] = datetime.datetime.now().timestamp()
+            logger.debug("activated conversation %s", self.name)
             return
 
     def activate_log(self) -> None:
@@ -84,6 +88,7 @@ class Conversation:
             self.wins.log_win.state.active = True
             self.wins.log_win.redraw()
             self.clear_notifications()
+            logger.debug("activated log of conversation %s", self.name)
             return
 
     def has_windows(self) -> bool:
@@ -115,6 +120,10 @@ class Conversation:
         """
         Log message to conversation's history/log window
         """
+
+        logger.debug("logging message in conversation %s: "
+                     "sender %s, timestamp %s, msg %s",
+                     self.name, sender, tstamp, msg)
 
         # create a log message
         if tstamp is None:
@@ -231,14 +240,15 @@ class Conversation:
 
         return False
 
-    @staticmethod
-    def get_new() -> Optional["Conversation"]:
+    def get_new(self) -> Optional["Conversation"]:
         """
         Check if there is any conversation with new messages and return it
         """
 
         for conv in CONVERSATIONS:
             if conv.notification > 0:
+                logger.debug("found new conversation in conversation %s: %s",
+                             self.name, conv.name)
                 return conv
 
         return None
@@ -258,6 +268,8 @@ class Conversation:
                     # already found a next newer conversation
                     continue
                 next_conv = conv
+                logger.debug("found next conversation in conversation %s: %s",
+                             self.name, next_conv.name)
 
         return next_conv
 
@@ -276,6 +288,8 @@ class Conversation:
                     # already found a next older conversation
                     continue
                 prev_conv = conv
+                logger.debug("found previous conversation in conversation %s: "
+                             "%s", self.name, prev_conv.name)
 
         return prev_conv
 
@@ -331,6 +345,8 @@ class BuddyConversation(Conversation):
         """
         Create windows for this conversation
         """
+
+        logger.debug("creating windows for conversation %s", self.name)
 
         # create standard chat windows
         log_title = "Chat log with {0}".format(self.name)
@@ -397,6 +413,8 @@ class BuddyConversation(Conversation):
         Send message coming from the UI/input window
         """
 
+        logger.debug("sending message %s in conversation %s", msg, self.name)
+
         # send message and log it in the history file
         if not self.account or not self.backend.client:
             return
@@ -430,6 +448,8 @@ class BuddyConversation(Conversation):
 
         # if there is a log message, write it to lastread
         if log_msg:
+            logger.debug("setting lastread in conversation %s to %s",
+                         self.name, log_msg)
             nuqql.history.set_lastread(self, log_msg)
 
 
@@ -456,6 +476,8 @@ class GroupConversation(BuddyConversation):
         """
         Send message coming from the UI/input window
         """
+
+        logger.debug("sending message %s in conversation %s", msg, self.name)
 
         # log message
         log_msg = self.log("you", msg, own=True)
@@ -525,6 +547,8 @@ class BackendConversation(Conversation):
         """
         Create windows for this conversation
         """
+
+        logger.debug("creating windows for conversation %s", self.name)
 
         # create windows command windows for backends
         log_title = "Command log of {0}".format(self.name)
@@ -639,6 +663,8 @@ class BackendConversation(Conversation):
         Send message coming from the UI/input window
         """
 
+        logger.debug("sending message %s in conversation %s", msg, self.name)
+
         # TODO: unify the logging in a method of Conversation?
         # log message
         tstamp = datetime.datetime.now()
@@ -673,6 +699,8 @@ class NuqqlConversation(Conversation):
         """
         Create windows for this conversation
         """
+
+        logger.debug("creating windows for conversation %s", self.name)
 
         # create command windows for nuqql
         log_title = "Command log of {0}".format(self.name)
@@ -739,6 +767,8 @@ class NuqqlConversation(Conversation):
         Send message coming from the UI/input window
         """
 
+        logger.debug("sending message %s in conversation %s", msg, self.name)
+
         # TODO: unify the logging in a method of Conversation?
         # log message
         tstamp = datetime.datetime.now()
@@ -762,10 +792,13 @@ def remove_backend_conversations(backend: "Backend") -> None:
     Remove all conversations beloning to the backend
     """
 
+    logger.debug("removing all conversations of backend %s", backend.name)
     for conv in CONVERSATIONS[:]:
         if conv.backend == backend:
             CONVERSATIONS.remove(conv)
             conv.wins.list_win.redraw()
+            logger.debug("removed conversation %s of backend %s",
+                         conv.name, backend.name)
 
 
 def log_main_window(msg: str) -> None:
@@ -773,6 +806,7 @@ def log_main_window(msg: str) -> None:
     Log message to main windows
     """
 
+    logger.debug("logging message to main window: %s", msg)
     now = datetime.datetime.now()
     log_msg = nuqql.history.LogMessage(now, "nuqql", msg)
     nuqql.win.MAIN_WINS["log"].add(log_msg)
@@ -782,6 +816,8 @@ def resize_main_window() -> None:
     """
     Resize main window
     """
+
+    logger.debug("resizing main window")
 
     # get main win
     screen = nuqql.win.MAIN_WINS["screen"]
