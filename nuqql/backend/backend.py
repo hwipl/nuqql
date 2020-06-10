@@ -11,11 +11,11 @@ from typing import Dict, Optional, Tuple
 
 import nuqql.conversation
 import nuqql.ui
-import nuqql.parse
 
 from nuqql.account import Account
 from .server import BackendServer
 from .client import BackendClient
+from .parse import parse_msg
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ class Backend:
 
     def _handle_network(self, msg) -> None:
         # parse it
-        parsed_msg = nuqql.parse.parse_msg(msg)
+        parsed_msg = parse_msg(msg)
         msg_type = parsed_msg[0]
 
         # handle info message or error message
