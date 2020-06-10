@@ -8,7 +8,8 @@ from .conversation import \
         Conversation, \
         CONVERSATIONS, \
         GroupConversation, \
+        NuqqlConversation
+from .helper import \
         log_main_window, \
-        NuqqlConversation, \
         remove_backend_conversations, \
         resize_main_window
