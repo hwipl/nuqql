@@ -7,7 +7,7 @@ import logging
 
 import nuqql.history
 
-from .conversation import BuddyConversation
+from .buddyconversation import BuddyConversation
 
 logger = logging.getLogger(__name__)
 
