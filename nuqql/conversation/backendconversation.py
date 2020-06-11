@@ -55,16 +55,9 @@ class BackendConversation(Conversation):
         Get a key for sorting this conversation
         """
 
-        # defaults
-        sort_notify = 0 - self.notification
-        sort_used = 0
-        sort_type = 0
-        sort_status = 0
-        sort_name = self.name
-        sort_type = 1
-
-        # return tuple of sort keys
-        return sort_notify, sort_used, sort_type, sort_status, sort_name
+        # return tuple of sort keys:
+        # notify, used, type, status, name
+        return 0 - self.notification, 0, 1, 0, self.name
 
     @staticmethod
     def _check_chat_command(backend: "Backend", account: "Account", cmd: str,

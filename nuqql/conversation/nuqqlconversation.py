@@ -70,16 +70,9 @@ class NuqqlConversation(Conversation):
         Get a key for sorting this conversation
         """
 
-        # defaults
-        sort_notify = 0 - self.notification
-        sort_used = 0
-        sort_type = 0
-        sort_status = 0
-        sort_name = self.name
-        sort_type = 2
-
-        # return tuple of sort keys
-        return sort_notify, sort_used, sort_type, sort_status, sort_name
+        # return tuple of sort keys:
+        # notify, used, type, status, name
+        return 0 - self.notification, 0, 2, 0, self.name
 
     def send_msg(self, msg: str) -> None:
         """
