@@ -64,14 +64,9 @@ class BuddyConversation(Conversation):
         Get the name of the conversation, depending on type
         """
 
-        # check if there are pending notifications
-        if self.notification > 0:
-            notify = "# "
-        else:
-            notify = ""
-
         if self.peers:
             peer = self.peers[0]
+            notify = self._get_name_notification()
             # unquote the alias, e.g., remove %20 for whitespace
             alias = urllib.parse.unquote(peer.alias)
             return "{0}[{1}] {2}".format(notify, peer.status, alias)

@@ -48,12 +48,7 @@ class BackendConversation(Conversation):
         Get the name of the conversation, depending on type
         """
 
-        # check if there are pending notifications
-        if self.notification > 0:
-            notify = "# "
-        else:
-            notify = ""
-
+        notify = self._get_name_notification()
         return "{0}{{backend}} {1}".format(notify, self.name)
 
     def get_key(self) -> Tuple:

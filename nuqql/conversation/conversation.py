@@ -105,6 +105,19 @@ class Conversation:
 
         # implemented in sub classes
 
+    def _get_name_notification(self) -> str:
+        """
+        get notification prefix for name
+        """
+
+        # check if there are pending notifications
+        if self.notification > 0:
+            notify = "# "
+        else:
+            notify = ""
+
+        return notify
+
     def get_name(self) -> str:
         """
         Get the name of the conversation, depending on type

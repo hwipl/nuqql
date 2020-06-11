@@ -63,12 +63,7 @@ class NuqqlConversation(Conversation):
         Get the name of the conversation, depending on type
         """
 
-        # check if there are pending notifications
-        if self.notification > 0:
-            notify = "# "
-        else:
-            notify = ""
-
+        notify = self._get_name_notification()
         return "{0}{{nuqql}}".format(notify)
 
     def get_key(self) -> Tuple:
