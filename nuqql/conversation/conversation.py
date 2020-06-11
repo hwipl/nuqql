@@ -13,8 +13,10 @@ import nuqql.config
 
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
-    from nuqql.backend import Backend  # noqa
+    # pylint hack: avoid code-duplication warning with buddyconversation
+    # (see: https://github.com/PyCQA/pylint/issues/214)
     from nuqql.account import Account  # noqa
+    from nuqql.backend import Backend  # noqa
     from nuqql.buddy import Buddy   # noqa
 
 logger = logging.getLogger(__name__)
