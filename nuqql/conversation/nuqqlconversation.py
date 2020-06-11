@@ -2,7 +2,6 @@
 special nuqql conversation
 """
 
-import datetime
 import logging
 
 from typing import Tuple
@@ -89,18 +88,7 @@ class NuqqlConversation(Conversation):
 
         logger.debug("sending message %s in conversation %s", msg, self.name)
 
-        # TODO: unify the logging in a method of Conversation?
-        # log message
-        tstamp = datetime.datetime.now()
-        log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
-        self.wins.log_win.add(log_msg)
-
-        # statistics
-        self.stats["last_send"] = datetime.datetime.now().timestamp()
-        self.stats["num_send"] += 1
-
-        # redraw list_win in case sorting is affected by stats update above
-        self.wins.list_win.redraw_pad()
+        self._send_msg_prepare(msg)
 
         # handle nuqql command
         assert isinstance(self.backend, nuqql.backend.NuqqlBackend)

@@ -318,6 +318,24 @@ class Conversation:
             self.wins.log_win.process_input(char)
             return
 
+    def _send_msg_prepare(self, msg) -> None:
+        """
+        helper for running common operations when sending a message
+        """
+
+        # TODO: unify the logging in a method of Conversation?
+        # log message
+        tstamp = datetime.datetime.now()
+        log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
+        self.wins.log_win.add(log_msg)
+
+        # statistics
+        self.stats["last_send"] = datetime.datetime.now().timestamp()
+        self.stats["num_send"] += 1
+
+        # redraw list_win in case sorting is affected by stats update above
+        self.wins.list_win.redraw_pad()
+
     def send_msg(self, msg: str) -> None:
         """
         Send message coming from the UI/input window
