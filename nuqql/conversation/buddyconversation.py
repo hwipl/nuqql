@@ -10,7 +10,6 @@ from typing import List, Tuple, TYPE_CHECKING
 
 import nuqql.win
 
-from nuqql.win import InputWin, LogWin
 from .conversation import Conversation
 
 if TYPE_CHECKING:   # imports for typing
@@ -49,12 +48,7 @@ class BuddyConversation(Conversation):
         # create standard chat windows
         log_title = "Chat log with {0}".format(self.name)
         input_title = "Message to {0}".format(self.name)
-
-        log_config = nuqql.config.get("log_win")
-        self.wins.log_win = LogWin(log_config, self, log_title)
-        self.wins.log_win.list = self.history.log
-        input_config = nuqql.config.get("input_win")
-        self.wins.input_win = InputWin(input_config, self, input_title)
+        self._create_windows_common(log_title, input_title)
 
         # try to read old messages from message history
         nuqql.history.init_log_from_file(self)

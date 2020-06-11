@@ -11,6 +11,8 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 import nuqql.history
 import nuqql.config
 
+from nuqql.win import InputWin, LogWin
+
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
     # pylint hack: avoid code-duplication warning with buddyconversation
@@ -99,6 +101,17 @@ class Conversation:
             return True
 
         return False
+
+    def _create_windows_common(self, log_title, input_title) -> None:
+        """
+        Helper for creating common windows
+        """
+
+        log_config = nuqql.config.get("log_win")
+        self.wins.log_win = LogWin(log_config, self, log_title)
+        self.wins.log_win.list = self.history.log
+        input_config = nuqql.config.get("input_win")
+        self.wins.input_win = InputWin(input_config, self, input_title)
 
     def create_windows(self) -> None:
         """

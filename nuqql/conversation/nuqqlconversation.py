@@ -8,7 +8,7 @@ from typing import Tuple
 
 import nuqql.config
 
-from nuqql.win import InputWin, ListWin, LogWin
+from nuqql.win import ListWin
 from .conversation import Conversation, CONVERSATIONS
 
 logger = logging.getLogger(__name__)
@@ -27,14 +27,9 @@ class NuqqlConversation(Conversation):
         logger.debug("creating windows for conversation %s", self.name)
 
         # create command windows for nuqql
-        log_title = "Command log of {0}".format(self.name)
-        input_title = "Command to {0}".format(self.name)
-
-        log_config = nuqql.config.get("log_win")
-        self.wins.log_win = LogWin(log_config, self, log_title)
-        self.wins.log_win.list = self.history.log
-        input_config = nuqql.config.get("input_win")
-        self.wins.input_win = InputWin(input_config, self, input_title)
+        log_title = "Command log of nuqql"
+        input_title = "Command to nuqql"
+        self._create_windows_common(log_title, input_title)
 
         # nuqql itself needs a list window for buddy list
         list_config = nuqql.config.get("list_win")

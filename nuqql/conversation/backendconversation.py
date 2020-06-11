@@ -8,7 +8,6 @@ from typing import Tuple, TYPE_CHECKING
 
 import nuqql.win
 
-from nuqql.win import InputWin, LogWin
 from .conversation import Conversation, CONVERSATIONS
 
 if TYPE_CHECKING:   # imports for typing
@@ -31,16 +30,12 @@ class BackendConversation(Conversation):
 
         logger.debug("creating windows for conversation %s", self.name)
 
-        # create windows command windows for backends
+        # create command windows for backends
         log_title = "Command log of {0}".format(self.name)
         input_title = "Command to {0}".format(self.name)
+        self._create_windows_common(log_title, input_title)
 
         self.wins.list_win = nuqql.win.MAIN_WINS["list"]
-        log_config = nuqql.config.get("log_win")
-        self.wins.log_win = LogWin(log_config, self, log_title)
-        self.wins.log_win.list = self.history.log
-        input_config = nuqql.config.get("input_win")
-        self.wins.input_win = InputWin(input_config, self, input_title)
 
     def get_name(self) -> str:
         """
