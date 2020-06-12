@@ -40,7 +40,7 @@ def handle_message(*args: Any) -> None:
            conv.name == sender:
             # log message
             log_msg = conv.log(conv.name, msg, tstamp=tstamp)
-            nuqql.history.log(conv, log_msg)
+            conv.history.log_to_file(log_msg)
 
             # if window is not already active notify user
             if not conv.is_input_win_active():
@@ -61,7 +61,7 @@ def handle_message(*args: Any) -> None:
 
         # log message
         log_msg = conv.log(conv.name, msg, tstamp=tstamp)
-        nuqql.history.log(conv, log_msg)
+        conv.history.log_to_file(log_msg)
 
         # if window is not already active notify user
         if not conv.is_input_win_active():
@@ -87,7 +87,7 @@ def handle_chat_msg_message(*args: Any) -> None:
            conv.name == chat:
             # log message
             log_msg = conv.log(sender, msg, tstamp=tstamp)
-            nuqql.history.log(conv, log_msg)
+            conv.history.log_to_file(log_msg)
 
             # if window is not already active notify user
             if not conv.is_input_win_active():
@@ -108,7 +108,7 @@ def handle_chat_msg_message(*args: Any) -> None:
 
         # log message
         log_msg = conv.log(sender, msg, tstamp=tstamp)
-        nuqql.history.log(conv, log_msg)
+        conv.history.log_to_file(log_msg)
 
         # if window is not already active notify user
         if not conv.is_input_win_active():
@@ -136,7 +136,7 @@ def handle_chat_message(*args: Any) -> bool:
             else:
                 log_msg = conv.log(chat, "{} {} ({}) [{}]".format(
                     ctype, alias, nick, status))
-            nuqql.history.log(conv, log_msg)
+            conv.history.log_to_file(log_msg)
 
             # if window is not already active notify user
             if not conv.is_input_win_active():
@@ -214,8 +214,8 @@ def add_buddy(buddy: "Buddy") -> None:
     conv.wins.list_win.redraw()
 
     # check if there are unread messages for this new buddy in the history
-    last_log_msg = nuqql.history.get_last_log_line(conv)
-    last_read_msg = nuqql.history.get_lastread(conv)
+    last_log_msg = conv.history.get_last_log_line()
+    last_read_msg = conv.history.get_lastread()
     if last_log_msg:
         if not last_read_msg or not last_log_msg.is_equal(last_read_msg):
             # there are unread messages, notify user if

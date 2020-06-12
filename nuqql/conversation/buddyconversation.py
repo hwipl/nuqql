@@ -35,8 +35,7 @@ class BuddyConversation(Conversation):
 
         self.peers: List["Buddy"] = []
         self.wins.list_win = nuqql.win.MAIN_WINS["list"]
-        self.history.logger, self.history.log_file = nuqql.history.init_logger(
-            self)
+        self.history.init_logger()
 
     def create_windows(self) -> None:
         """
@@ -51,7 +50,7 @@ class BuddyConversation(Conversation):
         self._create_windows_common(log_title, input_title)
 
         # try to read old messages from message history
-        nuqql.history.init_log_from_file(self)
+        self.history.init_log_from_file()
 
     def get_name(self) -> str:
         """
@@ -116,7 +115,7 @@ class BuddyConversation(Conversation):
 
         # log message
         log_msg = self.log("you", msg, own=True)
-        nuqql.history.log(self, log_msg)
+        self.history.log_to_file(log_msg)
 
     def set_lastread(self) -> None:
         """
@@ -137,4 +136,4 @@ class BuddyConversation(Conversation):
         if log_msg:
             logger.debug("setting lastread in conversation %s to %s",
                          self.name, log_msg)
-            nuqql.history.set_lastread(self, log_msg)
+            self.history.set_lastread(log_msg)

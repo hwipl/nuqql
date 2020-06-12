@@ -55,10 +55,7 @@ class Conversation:
         self.wins.list_win = None
 
         # history and logging
-        self.history = SimpleNamespace()
-        self.history.log = []
-        self.history.logger = None
-        self.history.log_file = None
+        self.history = nuqql.history.History(self)
 
     def activate(self, set_last_used: bool = True) -> None:
         """

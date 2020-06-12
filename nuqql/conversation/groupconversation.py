@@ -5,8 +5,6 @@ Group conversation
 import datetime
 import logging
 
-import nuqql.history
-
 from .buddyconversation import BuddyConversation
 
 logger = logging.getLogger(__name__)
@@ -94,4 +92,4 @@ class GroupConversation(BuddyConversation):
         if self.account and self.backend.client:
             self.backend.client.send_group_msg(self.account.aid, self.name,
                                                msg)
-        nuqql.history.log(self, log_msg)
+        self.history.log_to_file(log_msg)
