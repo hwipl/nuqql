@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING, Any, Callable, Optional
 
 import nuqql.config
 import nuqql.conversation
-import nuqql.history
 
 if TYPE_CHECKING:
     # pylint: disable=cyclic-import

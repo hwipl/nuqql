@@ -8,11 +8,11 @@ import logging
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
-import nuqql.history
 import nuqql.config
 
-from nuqql.logmessage import LogMessage
 from nuqql.win import InputWin, LogWin
+from .history import History
+from .logmessage import LogMessage
 
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
@@ -56,7 +56,7 @@ class Conversation:
         self.wins.list_win = None
 
         # history and logging
-        self.history = nuqql.history.History(self)
+        self.history = History(self)
 
     def activate(self, set_last_used: bool = True) -> None:
         """

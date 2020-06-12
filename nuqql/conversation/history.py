@@ -9,11 +9,11 @@ import os
 
 from typing import List, Optional, TYPE_CHECKING
 
-from nuqql.logmessage import LogMessage
+from .logmessage import LogMessage
 
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
-    from nuqql.conversation import Conversation  # noqa
+    from .conversation import Conversation  # noqa
 
 HISTORY_FILE = "/history"
 LASTREAD_FILE = "/lastread"

@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING
 
 import nuqql.win
 
-from nuqql.logmessage import LogMessage
 from .conversation import CONVERSATIONS
+from .logmessage import LogMessage
 
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
