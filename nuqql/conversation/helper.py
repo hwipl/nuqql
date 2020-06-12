@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 import nuqql.win
 
+from nuqql.logmessage import LogMessage
 from .conversation import CONVERSATIONS
 
 if TYPE_CHECKING:   # imports for typing
@@ -39,7 +40,7 @@ def log_main_window(msg: str) -> None:
 
     logger.debug("logging message to main window: %s", msg)
     now = datetime.datetime.now()
-    log_msg = nuqql.history.LogMessage(now, "nuqql", msg)
+    log_msg = LogMessage(now, "nuqql", msg)
     nuqql.win.MAIN_WINS["log"].add(log_msg)
 
 

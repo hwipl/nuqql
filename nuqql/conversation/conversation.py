@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 import nuqql.history
 import nuqql.config
 
+from nuqql.logmessage import LogMessage
 from nuqql.win import InputWin, LogWin
 
 if TYPE_CHECKING:   # imports for typing
@@ -138,7 +139,7 @@ class Conversation:
         # implemented in sub classes
 
     def log(self, sender: str, msg: str, tstamp: datetime.datetime = None,
-            own: bool = False) -> nuqql.history.LogMessage:
+            own: bool = False) -> LogMessage:
         """
         Log message to conversation's history/log window
         """
@@ -150,7 +151,7 @@ class Conversation:
         # create a log message
         if tstamp is None:
             tstamp = datetime.datetime.now()
-        log_msg = nuqql.history.LogMessage(tstamp, sender, msg, own=own)
+        log_msg = LogMessage(tstamp, sender, msg, own=own)
 
         # if conversation has not been initialized yet, stop here.
         # Messages must be loaded from the history file first
@@ -161,7 +162,7 @@ class Conversation:
         if self.history.log:
             last_msg = self.history.log[-1]
             if last_msg.tstamp.date() != tstamp.date():
-                date_change_msg = nuqql.history.LogMessage(
+                date_change_msg = LogMessage(
                     log_msg.tstamp, "<event>", "<Date changed to {}>".format(
                         log_msg.tstamp.date()), own=True)
                 date_change_msg.is_read = True
@@ -338,7 +339,7 @@ class Conversation:
         # TODO: unify the logging in a method of Conversation?
         # log message
         tstamp = datetime.datetime.now()
-        log_msg = nuqql.history.LogMessage(tstamp, "you", msg, own=True)
+        log_msg = LogMessage(tstamp, "you", msg, own=True)
         self.wins.log_win.add(log_msg)
 
         # statistics
