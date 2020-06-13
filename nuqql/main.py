@@ -2,12 +2,14 @@
 Main part of nuqql.
 """
 
+import logging
 import signal
 
 import nuqql.backend
 import nuqql.config
 import nuqql.ui
 
+logger = logging.getLogger(__name__)
 
 
 # main loop of nuqql
@@ -16,6 +18,7 @@ def main_loop() -> str:
     Main loop of nuqql.
     """
 
+    logger.debug("entering main loop")
     try:
         # init and start all backends
         nuqql.backend.start_backends()
@@ -40,6 +43,9 @@ def run() -> None:
     """
     Main entry point of nuqql
     """
+
+    # does not go to nuqql log file
+    logger.debug("starting nuqql")
 
     # parse command line arguments
     nuqql.config.parse_args()
