@@ -9,6 +9,7 @@ User Interface part of nuqql
 import curses
 import curses.ascii
 import datetime
+import logging
 
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
@@ -18,6 +19,8 @@ import nuqql.conversation
 if TYPE_CHECKING:
     # pylint: disable=cyclic-import
     from nuqql.buddy import Buddy  # noqa
+
+logger = logging.getLogger(__name__)
 
 
 def handle_message(*args: Any) -> None:
@@ -38,6 +41,7 @@ def handle_message(*args: Any) -> None:
            conv.account and conv.account.aid == acc_id and \
            conv.name == sender:
             # log message
+            logger.debug("found conversation %s for message", conv.name)
             log_msg = conv.log(conv.name, msg, tstamp=tstamp)
             conv.history.log_to_file(log_msg)
 
@@ -50,6 +54,7 @@ def handle_message(*args: Any) -> None:
     # or create temporary conversation
     account = backend.get_account(acc_id)
     if account is None:
+        logger.debug("no conversation found for message")
         backend.conversation.log(sender, msg, tstamp=tstamp)
     else:
         # create buddy conversation
@@ -57,6 +62,7 @@ def handle_message(*args: Any) -> None:
         conv.temporary = True
         conv.wins.list_win.add(conv)
         conv.wins.list_win.redraw()
+        logger.debug("created temporary conversation %s", conv.name)
 
         # log message
         log_msg = conv.log(conv.name, msg, tstamp=tstamp)
@@ -85,6 +91,7 @@ def handle_chat_msg_message(*args: Any) -> None:
            conv.account and conv.account.aid == acc_id and \
            conv.name == chat:
             # log message
+            logger.debug("found group conversation %s for message", conv.name)
             log_msg = conv.log(sender, msg, tstamp=tstamp)
             conv.history.log_to_file(log_msg)
 
@@ -97,6 +104,7 @@ def handle_chat_msg_message(*args: Any) -> None:
     # or create temporary conversation
     account = backend.get_account(acc_id)
     if account is None:
+        logger.debug("no group conversation found for message")
         backend.conversation.log(sender, msg, tstamp=tstamp)
     else:
         # create group conversation
@@ -104,6 +112,7 @@ def handle_chat_msg_message(*args: Any) -> None:
         conv.temporary = True
         conv.wins.list_win.add(conv)
         conv.wins.list_win.redraw()
+        logger.debug("created temporary group conversation %s", conv.name)
 
         # log message
         log_msg = conv.log(sender, msg, tstamp=tstamp)
@@ -140,9 +149,11 @@ def handle_chat_message(*args: Any) -> bool:
             # if window is not already active notify user
             if not conv.is_input_win_active():
                 conv.notify()
+            logger.debug("handled chat message")
             return True
 
     # did not handle the message, return False
+    logger.debug("chat message not handled")
     return False
 
 
@@ -161,6 +172,10 @@ def update_buddy(buddy: "Buddy") -> None:
         conv_buddy = conv.peers[0]
         if conv_buddy is buddy:
             conv.wins.list_win.redraw()
+            logger.debug("updated buddy %s in ui", buddy.name)
+            return
+
+    logger.debug("buddy %s not updated", buddy.name)
 
 
 def add_buddy_to_temporary_conv(buddy: "Buddy") -> \
@@ -181,9 +196,12 @@ def add_buddy_to_temporary_conv(buddy: "Buddy") -> \
             conv.peers.append(buddy)
             # conversation/buddy is now in backend, remove temporary flag
             conv.temporary = False
+            logger.debug("added buddy %s to temporary conversation %s",
+                         buddy.name, conv.name)
             return conv
 
     # nothing found, tell caller
+    logger.debug("no temporary conversation found for buddy %s", buddy.name)
     return None
 
 
@@ -208,6 +226,7 @@ def add_buddy(buddy: "Buddy") -> None:
                                                         buddy.name)
         conv.peers.append(buddy)
         conv.wins.list_win.add(conv)
+        logger.debug("added conversation for buddy %s", buddy.name)
 
     # redraw list to show update
     conv.wins.list_win.redraw()
@@ -221,6 +240,8 @@ def add_buddy(buddy: "Buddy") -> None:
             # conversation is inactive
             if not conv.is_active():
                 conv.notify()
+
+    logger.debug("added buddy %s to ui", buddy.name)
 
 
 def remove_buddy(buddy: "Buddy") -> None:
@@ -239,6 +260,10 @@ def remove_buddy(buddy: "Buddy") -> None:
         if conv_buddy is buddy:
             del nuqql.conversation.CONVERSATIONS[index]
             conv.wins.list_win.redraw()
+            logger.debug("removed buddy %s from ui", buddy.name)
+            return
+
+    logger.debug("buddy %s not found/removed", buddy.name)
 
 
 def read_input() -> str:
@@ -274,6 +299,7 @@ def show_terminal_warning() -> None:
     # print as much of the error message as possible
     msg = "Invalid terminal size. Please resize."[:max_x - 1]
     nuqql.win.MAIN_WINS["screen"].addstr(0, 0, msg)
+    logger.debug("showed terminal size invalid warning")
 
 
 def is_input_valid(char: str) -> bool:
@@ -336,6 +362,8 @@ def start(stdscr: Any, func: Callable) -> str:
     Start UI and run provided function
     """
 
+    logger.debug("starting ui")
+
     # save stdscr
     nuqql.win.MAIN_WINS["screen"] = stdscr
 
@@ -351,6 +379,7 @@ def start(stdscr: Any, func: Callable) -> str:
 
     # create main windows, if terminal size is valid, otherwise just stop here
     if not nuqql.config.WinConfig.is_terminal_valid():
+        logger.error("terminal size invalid")
         return "Terminal size invalid."
 
     # run function provided by caller
@@ -362,6 +391,7 @@ def init(func: Callable) -> None:
     Initialize UI
     """
 
+    logger.debug("initializing ui")
     retval = curses.wrapper(start, func)
     if retval and retval != "":
         print(retval)
