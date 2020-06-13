@@ -2,10 +2,6 @@
 Main part of nuqql.
 """
 
-#############
-# Main Part #
-#############
-
 import signal
 
 import nuqql.backend
@@ -13,10 +9,8 @@ import nuqql.config
 import nuqql.ui
 
 
-###############
-# MAIN (LOOP) #
-###############
 
+# main loop of nuqql
 def main_loop() -> str:
     """
     Main loop of nuqql.
