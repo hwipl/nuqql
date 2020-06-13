@@ -15,6 +15,8 @@ if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
     from .conversation import Conversation  # noqa
 
+logger = logging.getLogger(__name__)
+
 HISTORY_FILE = "/history"
 LASTREAD_FILE = "/lastread"
 
@@ -55,9 +57,9 @@ class History:
         """
 
         # create logger
-        logger = logging.getLogger(name)
-        logger.propagate = False
-        logger.setLevel(logging.DEBUG)
+        conv_logger = logging.getLogger(name)
+        conv_logger.propagate = False
+        conv_logger.setLevel(logging.DEBUG)
 
         # create handler
         fileh = logging.FileHandler(file_name)
@@ -74,16 +76,18 @@ class History:
         fileh.setFormatter(formatter)
 
         # add handler to logger
-        if not logger.hasHandlers():
-            logger.addHandler(fileh)
+        if not conv_logger.hasHandlers():
+            conv_logger.addHandler(fileh)
 
         # return logger to caller
-        return logger
+        return conv_logger
 
     def init_logger(self) -> None:
         """
         Init logger for a conversation
         """
+
+        logger.debug("initializing logger of conversation %s", self.conv.name)
 
         # get log dir and make sure it exists
         assert self.conv.account
@@ -139,6 +143,7 @@ class History:
         Get last read message from "lastread" file of the conversation
         """
 
+        logger.debug("getting lastread of conversation %s", self.conv.name)
         lastread_file = self.conv_path + LASTREAD_FILE
         try:
             with open(lastread_file, newline="\r\n") as in_file:
@@ -146,14 +151,20 @@ class History:
                     log_msg = self._parse_log_line(line)
                     log_msg.is_read = True
                     return log_msg
+                logger.debug("lastread file of conversation %s is empty",
+                             self.conv.name)
                 return None
         except FileNotFoundError:
+            logger.debug("lastread file of conversation %s not found",
+                         self.conv.name)
             return None
 
     def set_lastread(self, log_msg: LogMessage) -> None:
         """
         Set last read message in "lastread" file of the conversation
         """
+
+        logger.debug("setting lastread of conversation %s", self.conv.name)
 
         # create log line and write it to lastread file
         line = self._create_log_line(log_msg) + "\r\n"
@@ -169,6 +180,8 @@ class History:
         Read last LogMessage from log file
         """
 
+        logger.debug("getting last log line of conversation %s",
+                     self.conv.name)
         history_file = self.conv_path + HISTORY_FILE
         try:
             # negative seeking requires binary mode
@@ -176,6 +189,8 @@ class History:
                 # check if file contains at least 2 bytes
                 in_file.seek(0, os.SEEK_END)
                 if in_file.tell() < 3:
+                    logger.debug("log of conversation %s seems to be empty",
+                                 self.conv.name)
                     return None
 
                 # try to find last line
@@ -193,12 +208,17 @@ class History:
                 log_msg = self._parse_log_line(last_line.decode())
                 return log_msg
         except FileNotFoundError:
+            logger.debug("log file of conversation %s not found",
+                         self.conv.name)
             return None
 
     def init_log_from_file(self) -> None:
         """
         Initialize a conversation's log from the conversation's log file
         """
+
+        logger.debug("initializing log of conversation %s from file %s",
+                     self.conv.name, self.log_file)
 
         # get last read log message
         last_read = self.get_lastread()
@@ -244,6 +264,8 @@ class History:
         Write LogMessage to history log file and set lastread message
         """
 
+        logger.debug("logging msg to log file of conversation %s: %s",
+                     self.conv.name, log_msg)
         # create line and write it to history
         line = self._create_log_line(log_msg)
         assert self.logger
