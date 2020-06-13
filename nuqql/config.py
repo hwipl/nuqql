@@ -16,6 +16,8 @@ from typing import Any, Dict, Tuple
 
 from nuqql import VERSION
 
+logger = logging.getLogger(__name__)
+
 #############
 # UI Config #
 #############
@@ -248,6 +250,8 @@ class WinConfig:
         if self._type == "input_win":
             self._rel_yx = layout["INPUT_WIN_Y_PER"], layout["INPUT_WIN_X_PER"]
 
+        logger.debug("initialized window layout of %s", self._type)
+
     @staticmethod
     def _get_window_config() -> Dict[str, Any]:
         """
@@ -297,6 +301,8 @@ class WinConfig:
 
         # use settings depending on window type
         self.settings = win_config[self._type]
+
+        logger.debug("initialized window specific settings of %s", self._type)
 
     @staticmethod
     def _get_color_config() -> Tuple[Dict[str, str], Dict[str, str]]:
@@ -433,6 +439,8 @@ class WinConfig:
             # set color and attrib in configuration
             self.attr[key] = colors[value] | attrib
 
+        logger.debug("initialized colors of %s", self._type)
+
     @staticmethod
     def _get_keymap_config() -> Dict[int, Any]:
         """
@@ -476,6 +484,7 @@ class WinConfig:
         """
 
         self.keymap = self._get_keymap_config()
+        logger.debug("initialized keymap of %s", self._type)
 
     @staticmethod
     def _get_keybinds_config() -> Dict[str, Any]:
@@ -542,6 +551,7 @@ class WinConfig:
 
         keybinds = self._get_keybinds_config()
         self.keybinds = keybinds[self._type]
+        logger.debug("initialized key binds of %s", self._type)
 
     def get_win_size(self, max_y: int, max_x: int) -> Tuple[int, int]:
         """
@@ -617,6 +627,7 @@ class WinConfig:
         # height and width of screen should not get below minimum size
         max_y, max_x = get("screen").getmaxyx()
         if max_y < 6 or max_x < 6:
+            logger.debug("terminal is invalid")
             return False
 
         # everything seems to be ok
@@ -667,6 +678,8 @@ def init_win(screen: Any) -> None:
     # special "config" for main screen/window
     CONFIGS["screen"] = screen
 
+    logger.debug("initialized window configurations")
+
 
 def _get_conversation_config() -> Dict[str, str]:
     """
@@ -706,6 +719,7 @@ def init_conversation_settings() -> None:
 
     settings = _get_conversation_config()
     CONFIGS["conversations"] = settings
+    logger.debug("initialized conversation settings")
 
 
 def init_path() -> None:
@@ -715,6 +729,7 @@ def init_path() -> None:
 
     config_path = Path.home() / ".config/nuqql"
     Path(config_path).mkdir(parents=True, exist_ok=True)
+    logger.debug("initialized config path %s", config_path)
 
 
 def init(screen: Any) -> None:
@@ -722,6 +737,7 @@ def init(screen: Any) -> None:
     Initialize configurations
     """
 
+    logger.debug("initializing config with screen %s", screen)
     init_path()
     init_win(screen)
     init_conversation_settings()
@@ -731,6 +747,9 @@ def init_logging() -> None:
     """
     Initialize logging
     """
+
+    # does not go to the log file
+    logger.debug("initializing logging")
 
     init_path()
 
@@ -753,22 +772,25 @@ def init_logging() -> None:
     fileh.setLevel(loglevel)
     fileh.setFormatter(formatter)
 
-    logger = logging.getLogger("nuqql")
-    logger.propagate = False
-    logger.setLevel(loglevel)
-    logger.addHandler(fileh)
+    main_logger = logging.getLogger("nuqql")
+    main_logger.propagate = False
+    main_logger.setLevel(loglevel)
+    main_logger.addHandler(fileh)
 
     # restrict log file access
     os.chmod(file_name, stat.S_IRUSR | stat.S_IWUSR)
 
     # log debug message
-    logger.debug("logging initialized")
+    main_logger.debug("logging initialized")
 
 
 def parse_args() -> None:
     """
     Parse command line arguments.
     """
+
+    # does not go to the log file
+    logger.debug("parsing command line arguments")
 
     # if we add more, consider moving it to config or somewhere else
     parser = argparse.ArgumentParser(
