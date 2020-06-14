@@ -5,7 +5,7 @@ Nuqql UI Log Windows
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, List, Optional
 
-from .inputwin import LogDialogInputWin
+from .logdialoginputwin import LogDialogInputWin
 from .win import Win, MAIN_WINS
 
 if TYPE_CHECKING:   # imports for typing
