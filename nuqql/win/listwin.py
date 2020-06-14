@@ -3,6 +3,7 @@ Nuqql UI Windows
 """
 
 import curses
+import logging
 import re
 
 from typing import TYPE_CHECKING, Any, List
@@ -13,6 +14,8 @@ if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
     from nuqql.config import WinConfig  # noqa
     from nuqql.conversation import Conversation  # noqa
+
+logger = logging.getLogger(__name__)
 
 
 class ListWin(Win):
@@ -43,6 +46,7 @@ class ListWin(Win):
         """
 
         # add entry to own list via base class function
+        logger.debug("adding entry %s", entry)
         self.list_add(self.list, entry)
 
     def _match_filter(self, name: str) -> bool:
@@ -166,12 +170,14 @@ class ListWin(Win):
     def _cursor_top(self, *args: Any) -> None:
         # jump to first conversation
         if self.state.cur_y > 0:
+            logger.debug("jumping to first conversation")
             self.pad.move(0, 0)
 
     def _cursor_bottom(self, *args: Any) -> None:
         # jump to last conversation
         lines = len(self.list)
         if self.state.cur_y < lines - 1:
+            logger.debug("jumping to last conversation")
             self.pad.move(lines - 1, self.state.cur_x)
 
     def _cursor_page_up(self, *args: Any) -> None:
@@ -179,6 +185,7 @@ class ListWin(Win):
         win_size_y, unused_win_size_x = self.win.getmaxyx()
 
         if self.state.cur_y > 0:
+            logger.debug("moving cursor one page up")
             if self.state.cur_y - (win_size_y - 2) >= 0:
                 self.pad.move(self.state.cur_y - (win_size_y - 2),
                               self.state.cur_x)
@@ -191,6 +198,7 @@ class ListWin(Win):
 
         lines = len(self.list)
         if self.state.cur_y < lines:
+            logger.debug("moving cursor one page down")
             if self.state.cur_y + win_size_y - 2 < lines:
                 self.pad.move(self.state.cur_y + win_size_y - 2,
                               self.state.cur_x)
@@ -200,21 +208,27 @@ class ListWin(Win):
     def _cursor_up(self, *args: Any) -> None:
         # move cursor up until first entry in list
         if self.state.cur_y > 0:
+            logger.debug("moving cursor up")
             self.pad.move(self.state.cur_y - 1, self.state.cur_x)
 
     def _cursor_down(self, *args: Any) -> None:
         # move cursor down until end of list
         if self.state.cur_y < len(self.list) - 1:
+            logger.debug("moving cursor down")
             self.pad.move(self.state.cur_y + 1, self.state.cur_x)
 
     def _go_next(self, *args: Any) -> None:
+        logger.debug("jumping to next conversation")
+
         # find a new(er) conversation and jump into it
         set_last_used = True
         conv = self.conversation.get_new()
         if not conv:
+            logger.debug("conversation with new messages not found")
             conv = self.list[self.state.cur_y].get_next()
             set_last_used = False
         if not conv:
+            logger.debug("next conversation not found")
             return
         self.jump_to_conv(conv, set_last_used=set_last_used)
 
@@ -225,10 +239,12 @@ class ListWin(Win):
             return
 
         # deactivate this and switch to other conversation
+        logger.debug("jumping to previous conversation")
         prev.wins.list_win.jump_to_conv(prev, set_last_used=False)
 
     def _go_conv(self, *args: Any) -> None:
         # filter conversations and find specific conversation
+        logger.debug("starting conversation filtering")
         self.filter = "/"
 
     def go_conv(self):
@@ -240,6 +256,7 @@ class ListWin(Win):
         self.redraw_pad()
 
     def _go_log(self, *args: Any) -> None:
+        logger.debug("entering conversation's log")
         # go to conversation's log
         # create windows, if they do not exists
         if not self.list[self.state.cur_y].has_windows():
@@ -248,6 +265,7 @@ class ListWin(Win):
         self.list[self.state.cur_y].activate_log()
 
     def _enter(self, *args: Any) -> None:
+        logger.debug("entering conversation")
         # enter conversation
         # create windows, if they do not exists
         if not self.list[self.state.cur_y].has_windows():
@@ -259,6 +277,7 @@ class ListWin(Win):
 
     def _quit(self, *args: Any) -> None:
         # quit nuqql
+        logger.debug("quitting nuqql")
         self.state.active = False   # Exit the while loop
 
     def _process_filter_up(self) -> None:
@@ -266,6 +285,7 @@ class ListWin(Win):
         conv_index = self.state.cur_y
         for index, conv in enumerate(self.list[:self.state.cur_y]):
             if self._match_filter(conv.get_name()):
+                logger.debug("moving filter up to next match")
                 conv_index = index
 
         self.pad.move(conv_index, self.state.cur_x)
@@ -274,6 +294,7 @@ class ListWin(Win):
         # move cursor down to next filter match
         for index, conv in enumerate(self.list[self.state.cur_y + 1:]):
             if self._match_filter(conv.get_name()):
+                logger.debug("moving filter down to next match")
                 self.pad.move(index + self.state.cur_y + 1, self.state.cur_x)
                 return
 
@@ -300,13 +321,16 @@ class ListWin(Win):
                 above_diff = above - self.state.cur_y
                 below_diff = self.state.cur_y - below
                 if above_diff < below_diff:
+                    logger.debug("moving filter to nearest match above")
                     self.pad.move(above, self.state.cur_x)
                 else:
+                    logger.debug("moving filter to nearest match below")
                     self.pad.move(below, self.state.cur_x)
             return
 
         # nothing above current cursor position, below?
         if below != -1:
+            logger.debug("moving filter to nearest match below")
             self.pad.move(below, self.state.cur_x)
 
     def _process_filter_show(self) -> None:
@@ -327,11 +351,14 @@ class ListWin(Win):
 
     def _process_filter_abort(self) -> None:
         # abort filter mode/reset filter
+        logger.debug("leaving filter mode")
         self.filter = ""
         self._process_filter_show()
 
     def _process_filter_enter(self) -> None:
         # enter conversation in filter mode
+        logger.debug("entering filter mode")
+
         # create windows, if they do not exists
         if not self.list[self.state.cur_y].has_windows():
             self.list[self.state.cur_y].create_windows()
@@ -345,6 +372,7 @@ class ListWin(Win):
 
     def _process_filter_del_char(self) -> None:
         # delete character from filter
+        logger.debug("deleting char from filter")
         self.filter = self.filter[:-1]
         self._process_filter_nearest()
         if not self.filter:
@@ -382,6 +410,8 @@ class ListWin(Win):
         """
         Jump directly into specified conversation
         """
+
+        logger.debug("jumping into conversation %s", conversation)
 
         # create conversation's windows if necessary
         if not conversation.has_windows():
