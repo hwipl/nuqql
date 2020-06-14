@@ -2,6 +2,8 @@
 Log Dialog Input Window
 """
 
+import logging
+
 from typing import TYPE_CHECKING, Any
 
 from .inputwin import InputWin
@@ -10,6 +12,8 @@ if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
     from nuqql.config import WinConfig  # noqa
     from nuqql.conversation import Conversation  # noqa
+
+logger = logging.getLogger(__name__)
 
 
 class LogDialogInputWin(InputWin):
@@ -26,6 +30,8 @@ class LogDialogInputWin(InputWin):
         # self.msg = conversation.wins.log_win.search_text
 
     def _go_back(self, *args: Any) -> None:
+        logger.debug("leaving search")
+
         # do not use window any more
         self.conversation.wins.log_win.dialog = None
 
@@ -46,4 +52,5 @@ class LogDialogInputWin(InputWin):
             return
 
         # jump to first match
+        logger.debug("starting search for %s", self.msg)
         self.conversation.wins.log_win.search_next()
