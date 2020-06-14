@@ -2,6 +2,8 @@
 Nuqql UI Log Windows
 """
 
+import logging
+
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, List, Optional
 
@@ -13,6 +15,8 @@ if TYPE_CHECKING:   # imports for typing
     from nuqql.config import WinConfig  # noqa
     from nuqql.conversation import Conversation  # noqa
     from nuqql.conversation.history import LogMessage  # noqa
+
+logger = logging.getLogger(__name__)
 
 
 class LogWin(Win):
@@ -48,6 +52,7 @@ class LogWin(Win):
         """
 
         # add entry to own list via base class function
+        logger.debug("adding entry %s", entry)
         self.list_add(self.list, entry)
 
     def _get_log_view(self, props: SimpleNamespace) -> List["LogMessage"]:
@@ -211,6 +216,7 @@ class LogWin(Win):
 
     def _cursor_top(self, *args: Any) -> None:
         # jump to first line in log
+        logger.debug("move cursor to top of log")
         if self.view.cur > 0:
             # view is not at the top yet, so move it there
             self.view.begin = 0
@@ -224,6 +230,7 @@ class LogWin(Win):
 
     def _cursor_bottom(self, *args: Any) -> None:
         # jump to last line in log
+        logger.debug("move cursor to bottom of log")
         props = self._get_properties()
         view_size = props.win_size_y - props.pad_y_delta
 
@@ -240,6 +247,7 @@ class LogWin(Win):
 
     def _cursor_page_up(self, *args: Any) -> None:
         # move cursor up one page until first entry in log
+        logger.debug("move cursor up one page")
         props = self._get_properties()
         view_size = props.win_size_y - props.pad_y_delta
 
@@ -274,6 +282,7 @@ class LogWin(Win):
 
     def _cursor_page_down(self, *args: Any) -> None:
         # move cursor down one page until last entry in log
+        logger.debug("move cursor down one page")
         props = self._get_properties()
         view_size = props.win_size_y - props.pad_y_delta
 
@@ -311,6 +320,7 @@ class LogWin(Win):
 
     def _cursor_up(self, *args: Any) -> None:
         # move cursor up until first entry in list
+        logger.debug("move cursor up")
         if self.state.cur_y > 0:
             # inside current view, simply move cursor up
             self.state.cur_y, self.state.cur_x = self.state.cur_y - 1, 0
@@ -333,6 +343,7 @@ class LogWin(Win):
 
     def _cursor_down(self, *args: Any) -> None:
         # move cursor down until end of list
+        logger.debug("move cursor down")
         props = self._get_properties()
         lines = self.pad.getmaxyx()[0] - 1
         view_size = props.win_size_y - props.pad_y_delta
@@ -366,8 +377,10 @@ class LogWin(Win):
 
         # get positions and sizes for zoomed and normal mode
         if self.zoomed:
+            logger.debug("zooming out")
             self.zoomed = False
         else:
+            logger.debug("zooming in")
             self.zoomed = True
         props = self._get_properties()
 
@@ -395,9 +408,12 @@ class LogWin(Win):
         """
 
         # logwin should already be zoomed. So, just jump to next match
+        logger.debug("searching for next url")
         self._search_next()
 
     def _go_back(self, *args: Any) -> None:
+        logger.debug("leaving window")
+
         # if window was zoomed, switch back to normal view
         if self.zoomed:
             self._zoom_win()
@@ -420,6 +436,7 @@ class LogWin(Win):
         Search: Start a new search dialog
         """
 
+        logger.debug("starting search")
         self.dialog = LogDialogInputWin(
             self.conversation.wins.input_win.config, self.conversation,
             "Search History")
@@ -477,6 +494,7 @@ class LogWin(Win):
         """
 
         # make sure we find something on the current line
+        logger.debug("searching for next match")
         self.state.cur_x = self.pad.getmaxyx()[1]
         self._search_next()
 
@@ -488,6 +506,8 @@ class LogWin(Win):
         # skip this if we are not in search mode
         if self.search_text == "":
             return
+
+        logger.debug("searching for previous match")
 
         # init
         props = self._get_properties()
