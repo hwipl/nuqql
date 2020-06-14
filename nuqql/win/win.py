@@ -3,6 +3,7 @@ Nuqql UI Windows
 """
 
 import curses
+import logging
 
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, Callable, Dict, List
@@ -14,6 +15,8 @@ if TYPE_CHECKING:   # imports for typing
 
 # screen and main windows
 MAIN_WINS: Dict[str, Any] = {}
+
+logger = logging.getLogger(__name__)
 
 
 class Win:
@@ -60,6 +63,7 @@ class Win:
         """
 
         # add entry to own list
+        logger.debug("adding entry %s to internal list", entry)
         internal_list.append(entry)
 
         # if terminal size is invalid, stop here
@@ -183,6 +187,8 @@ class Win:
         if not self.config.is_terminal_valid():
             return
 
+        logger.debug("resizing window to y = %d and x = %d",
+                     win_y_max, win_x_max)
         # TODO: change function parameters?
         self.win.resize(win_y_max, win_x_max)
 
@@ -195,6 +201,8 @@ class Win:
         if not self.config.is_terminal_valid():
             return
 
+        logger.debug("moving window to y = %d and x = %d",
+                     pos_y, pos_x)
         self.win.mvwin(pos_y, pos_x)
 
     def _go_back(self, *args: Any) -> None:
@@ -430,6 +438,7 @@ class Win:
             cint = char
         if cint in self.config.keymap and \
            self.config.keymap[cint] in keybinds:
+            logger.debug("handling keybind %d", cint)
             func = keyfunc[keybinds[self.config.keymap[cint]]]
             func(*args[1:])     # call function with remaining arguments
             return True         # handled a special key
@@ -442,6 +451,7 @@ class Win:
         Initialize key to function mapping
         """
 
+        logger.debug("initializing key to function mapping")
         self.keyfunc = {
             "CURSOR_RIGHT": self._cursor_right,
             "CURSOR_LEFT": self._cursor_left,
