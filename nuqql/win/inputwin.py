@@ -2,6 +2,7 @@
 Nuqql UI Input Windows
 """
 
+import logging
 import unicodedata
 
 from typing import TYPE_CHECKING, Any
@@ -12,6 +13,8 @@ if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
     from nuqql.config import WinConfig  # noqa
     from nuqql.conversation import Conversation  # noqa
+
+logger = logging.getLogger(__name__)
 
 
 class InputWin(Win):
@@ -44,6 +47,7 @@ class InputWin(Win):
     def _cursor_up(self, *args: Any) -> None:
         segment = args[0]
         if self.state.cur_y > 0:
+            logger.debug("moving cursor up")
             self.pad.move(self.state.cur_y - 1,
                           min(self.state.cur_x,
                               len(segment[self.state.cur_y - 1])))
@@ -58,6 +62,7 @@ class InputWin(Win):
         segment = args[0]
         if self.state.cur_y < pad_y_max and \
            self.state.cur_y < len(segment) - 1:
+            logger.debug("moving cursor down")
             self.pad.move(self.state.cur_y + 1,
                           min(self.state.cur_x,
                               len(segment[self.state.cur_y + 1])))
@@ -67,6 +72,7 @@ class InputWin(Win):
 
     def _cursor_left(self, *args: Any) -> None:
         if self.state.cur_x > 0:
+            logger.debug("moving cursor left")
             self.pad.move(self.state.cur_y, self.state.cur_x - 1)
 
         # display changes in the pad
@@ -79,6 +85,7 @@ class InputWin(Win):
         segment = args[0]
         if self.state.cur_x < pad_x_max and \
            self.state.cur_x < len(segment[self.state.cur_y]):
+            logger.debug("moving cursor right")
             self.pad.move(self.state.cur_y, self.state.cur_x + 1)
 
         # display changes in the pad
@@ -86,6 +93,7 @@ class InputWin(Win):
 
     def _cursor_line_start(self, *args: Any) -> None:
         if self.state.cur_x > 0:
+            logger.debug("moving cursor to start of line")
             self.pad.move(self.state.cur_y, 0)
 
         # display changes in the pad
@@ -98,6 +106,7 @@ class InputWin(Win):
         segment = args[0]
         if self.state.cur_x < pad_x_max and \
            self.state.cur_x < len(segment[self.state.cur_y]):
+            logger.debug("moving cursor to end of line")
             self.pad.move(self.state.cur_y, len(segment[self.state.cur_y]))
 
         # display changes in the pad
@@ -105,6 +114,7 @@ class InputWin(Win):
 
     def _cursor_msg_start(self, *args: Any) -> None:
         if self.state.cur_y > 0 or self.state.cur_x > 0:
+            logger.debug("moving cursor to start of message")
             self.pad.move(0, 0)
 
         # display changes in the pad
@@ -114,6 +124,7 @@ class InputWin(Win):
         segment = args[0]
         if self.state.cur_y < len(segment) - 1 or \
            self.state.cur_x < len(segment[-1]):
+            logger.debug("moving cursor to end of message")
             self.pad.move(len(segment) - 1, len(segment[-1]))
 
         # display changes in the pad
@@ -123,6 +134,8 @@ class InputWin(Win):
         # do not send empty messages
         if self.msg == "":
             return
+
+        logger.debug("sending message %s", self.msg)
 
         # let conversation actually send the message
         self.conversation.send_msg(self.msg)
@@ -142,11 +155,13 @@ class InputWin(Win):
         segment = args[0]
         if self.state.cur_x > 0:
             # delete charater within a line
+            logger.debug("deleting character")
             segment[self.state.cur_y] = \
                 segment[self.state.cur_y][:self.state.cur_x - 1] +\
                 segment[self.state.cur_y][self.state.cur_x:]
         elif self.state.cur_y > 0:
             # delete newline
+            logger.debug("deleting newline character")
             old_prev_len = len(segment[self.state.cur_y - 1])
             segment[self.state.cur_y - 1] = segment[self.state.cur_y - 1] +\
                 segment[self.state.cur_y]
@@ -181,11 +196,13 @@ class InputWin(Win):
         # delete character
         if self.state.cur_x < len(segment[self.state.cur_y]):
             # delete charater within a line
+            logger.debug("deleting right character")
             segment[self.state.cur_y] = \
                 segment[self.state.cur_y][:self.state.cur_x] +\
                 segment[self.state.cur_y][self.state.cur_x + 1:]
         elif self.state.cur_y < len(segment) - 1:
             # delete newline
+            logger.debug("deleting right newline character")
             segment[self.state.cur_y] = segment[self.state.cur_y] +\
                 segment[self.state.cur_y + 1]
             del segment[self.state.cur_y + 1]
@@ -213,6 +230,7 @@ class InputWin(Win):
         segment = args[0]
 
         # delete from cursor to end of line
+        logger.debug("deleting from cursor to end of line")
         segment[self.state.cur_y] = \
             segment[self.state.cur_y][:self.state.cur_x]
 
@@ -228,6 +246,7 @@ class InputWin(Win):
         segment = args[0]
 
         # delete the current line
+        logger.debug("deleting current line")
         del segment[self.state.cur_y]
 
         # reconstruct message
@@ -248,6 +267,7 @@ class InputWin(Win):
         self.redraw_pad()
 
     def _go_back(self, *args: Any) -> None:
+        logger.debug("leaving input window")
         self.state.active = False
         self.conversation.wins.log_win.state.active = False
 
@@ -263,6 +283,7 @@ class InputWin(Win):
         Jump to log
         """
 
+        logger.debug("jumping to log")
         self.state.active = False
         self.conversation.wins.log_win.state.active = True
 
@@ -271,6 +292,7 @@ class InputWin(Win):
         Jump to log and zoom window
         """
 
+        logger.debug("jumping to log and zooming window")
         self._go_log()
         self.conversation.wins.log_win.keyfunc["WIN_ZOOM"]()
 
@@ -279,6 +301,7 @@ class InputWin(Win):
         Jump to log, zoom window and search for next url
         """
 
+        logger.debug("jumping to log, zooming window, and starting url search")
         self._go_log()
         self.conversation.wins.log_win.keyfunc["WIN_ZOOM"]()
         self.conversation.wins.log_win.search_text = "http"
@@ -290,15 +313,19 @@ class InputWin(Win):
         conversation
         """
 
+        logger.debug("jumping to next conversation")
+
         # find next new conversation
         set_last_used = True
         conv = self.conversation.get_new()
         if not conv:
             # no new messages, try to go to next conversation
+            logger.debug("conversation with new messages not found")
             conv = self.conversation.get_next()
             set_last_used = False
         if not conv:
             # nothing found, return
+            logger.debug("next conversation not found")
             return
 
         # deactivate this and switch to other conversation
@@ -315,6 +342,7 @@ class InputWin(Win):
             return
 
         # deactivate this and switch to other conversation
+        logger.debug("jumping to previous conversation")
         self._go_back()
         prev.wins.list_win.jump_to_conv(prev, set_last_used=False)
 
@@ -324,6 +352,7 @@ class InputWin(Win):
         """
 
         # deactivate this and switch to filter mode in list window
+        logger.debug("jumping to specific conversation")
         self._go_back()
         self.conversation.wins.list_win.go_conv()
 
