@@ -357,7 +357,7 @@ class ListWin(Win):
 
     def _process_filter_enter(self) -> None:
         # enter conversation in filter mode
-        logger.debug("entering filter mode")
+        logger.debug("entering conversation from filter mode")
 
         # create windows, if they do not exists
         if not self.list[self.state.cur_y].has_windows():
