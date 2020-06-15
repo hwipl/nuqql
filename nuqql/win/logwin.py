@@ -5,9 +5,8 @@ Nuqql UI Log Windows
 import logging
 
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, List
 
-from .logdialoginputwin import LogDialogInputWin
 from .win import Win, MAIN_WINS
 
 if TYPE_CHECKING:   # imports for typing
@@ -33,9 +32,6 @@ class LogWin(Win):
 
         # list entries/message log
         self.list: List["LogMessage"] = []
-
-        # dialog window for user input
-        self.dialog: Optional[LogDialogInputWin] = None
 
         # string to search for
         self.search_text = ""
@@ -437,17 +433,11 @@ class LogWin(Win):
         """
 
         logger.debug("starting search")
-        self.dialog = LogDialogInputWin(
-            self.conversation.wins.input_win.config, self.conversation,
-            "Search History")
-        self.dialog.redraw()
 
     def _process_dialog_input(self, char):
         """
         Process user input in dialog mode
         """
-
-        self.dialog.process_input(char)
 
     def _search_next(self, *args: Any) -> None:
         """
@@ -553,11 +543,6 @@ class LogWin(Win):
         """
 
         self.state.cur_y, self.state.cur_x = self.pad.getyx()
-
-        # dialog mode
-        if self.dialog:
-            self._process_dialog_input(char)
-            return
 
         # look for special key mappings in keymap
         self.handle_keybinds(char)
