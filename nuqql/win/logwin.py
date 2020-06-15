@@ -34,7 +34,13 @@ class LogWin(Win):
         self.list: List["LogMessage"] = []
 
         # string to search for
+        self.search_input = ""
         self.search_text = ""
+        self.search_keyfunc = {
+            "DEL_CHAR":     self._process_search_input_del_char,
+            "ENTER":        self._process_search_input_enter,
+            "GO_BACK":      self._process_search_input_abort,
+        }
 
         # user's view of the log
         self.view = SimpleNamespace(
@@ -432,12 +438,62 @@ class LogWin(Win):
         Search: Start a new search dialog
         """
 
-        logger.debug("starting search")
+        logger.debug("starting search input mode")
 
-    def _process_dialog_input(self, char):
+        # enter search input mode
+        self.search_input = "/"
+        self._process_search_input_show()
+
+    def _process_search_input_show(self) -> None:
         """
-        Process user input in dialog mode
+        Show current search string
         """
+
+        if not self.search_input:
+            # show window border again
+            self.redraw()
+            return
+
+        # TODO: use config get_size or something?
+        max_y, max_x = self.win.getmaxyx()
+        show = self.search_input.ljust(max_x - 4, " ")
+        self.win.addnstr(max_y - 1, 2, show, max_x - 4)
+        self.win.refresh()
+
+    def _process_search_input_del_char(self) -> None:
+        """
+        Delete char from search input field
+        """
+
+        if not self.search_input:
+            return
+
+        logger.debug("deleting char from search input")
+        self.search_input = self.search_input[:-1]
+        self._process_search_input_show()
+
+    def _process_search_input_enter(self) -> None:
+        """
+        Search for string in search input field
+        """
+
+        if not self.search_input:
+            return
+
+        self.search_text = self.search_input[1:]
+        logger.debug("starting search for %s", self.search_text)
+        self.search_input = ""
+        self._process_search_input_show()
+        self._search_next()
+
+    def _process_search_input_abort(self) -> None:
+        """
+        Abort search
+        """
+
+        logger.debug("leaving search input mode")
+        self.search_input = ""
+        self._process_search_input_show()
 
     def _search_next(self, *args: Any) -> None:
         """
@@ -544,8 +600,21 @@ class LogWin(Win):
 
         self.state.cur_y, self.state.cur_x = self.pad.getyx()
 
-        # look for special key mappings in keymap
-        self.handle_keybinds(char)
+        # check if we are in search input mode
+        if self.search_input:
+            # search input: look for special key mapping or process as text
+            if not self.handle_keybinds(
+                    char, keybinds=self.config.keybinds["__search__"],
+                    keyfunc=self.search_keyfunc):
+                # no special key, add character to search input field
+                try:
+                    self.search_input += char
+                    self._process_search_input_show()
+                except (ValueError, TypeError):
+                    pass
+        else:
+            # look for special key mappings in keymap
+            self.handle_keybinds(char)
 
         # display changes in the pad
         # TODO: switch this back on and remove redraw code from other methods?

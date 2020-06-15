@@ -104,6 +104,13 @@ DEFAULT_LOG_WIN_KEYBINDS = {
     "WIN_ZOOM_URL":         "KEY_F10",
 }
 
+# default key bindings for log window in search input mode
+DEFAULT_LOG_WIN_SEARCH_KEYBINDS = {
+    "GO_BACK":              "KEY_ESC",
+    "ENTER":                "KEY_ENTER",
+    "DEL_CHAR":             "KEY_DEL, KEY_BACKSPACE, KEY_BS",
+}
+
 # default key bindings for list window (Buddy List)
 DEFAULT_LIST_WIN_KEYBINDS = {
     "CURSOR_DOWN":          "KEY_DOWN, KEY_J",
@@ -120,6 +127,7 @@ DEFAULT_LIST_WIN_KEYBINDS = {
     "GO_LOG":               "KEY_H",
     "QUIT":                 "KEY_Q",
 }
+
 # default key bindings for list window in filter mode
 DEFAULT_LIST_WIN_FILTER_KEYBINDS = {
     "CURSOR_DOWN":          "KEY_DOWN",
@@ -498,6 +506,8 @@ class WinConfig:
         keybinds_config["list_win_filter_keybinds"] = \
             DEFAULT_LIST_WIN_FILTER_KEYBINDS
         keybinds_config["log_win_keybinds"] = DEFAULT_LOG_WIN_KEYBINDS
+        keybinds_config["log_win_search_keybinds"] = \
+            DEFAULT_LOG_WIN_SEARCH_KEYBINDS
         keybinds_config["input_win_keybinds"] = DEFAULT_INPUT_WIN_KEYBINDS
 
         # read config file if it exists
@@ -509,7 +519,8 @@ class WinConfig:
         # parse config read from file
         for section in config.sections():
             if section in ("list_win_keybinds", "list_win_filter_keybinds",
-                           "log_win_keybinds", "input_win_keybinds"):
+                           "log_win_keybinds", "log_win_search_keybinds",
+                           "input_win_keybinds"):
                 # overwrite default keymap config entries
                 for key in config[section]:
                     if key in keybinds_config[section]:
@@ -517,7 +528,8 @@ class WinConfig:
 
         # write (updated) config to file again
         for win_binds in ("list_win_keybinds", "list_win_filter_keybinds",
-                          "log_win_keybinds", "input_win_keybinds"):
+                          "log_win_keybinds", "log_win_search_keybinds",
+                          "input_win_keybinds"):
             config[win_binds] = keybinds_config[win_binds]
         with open(config_file, "w+") as configfile:
             config.write(configfile)
@@ -526,7 +538,8 @@ class WinConfig:
         # swap keys and values in config dictionaries
         tmp_keybinds: Dict[str, Any] = {}
         for win_binds in ("list_win_keybinds", "list_win_filter_keybinds",
-                          "log_win_keybinds", "input_win_keybinds"):
+                          "log_win_keybinds", "log_win_search_keybinds",
+                          "input_win_keybinds"):
             tmp_keybinds[win_binds] = {}
             for key, value in keybinds_config[win_binds].items():
                 # might be comma separated list of keys bound to same function
@@ -540,6 +553,9 @@ class WinConfig:
         keybinds["list_win"]["__filter__"] = \
             tmp_keybinds["list_win_filter_keybinds"]
         keybinds["log_win"] = tmp_keybinds["log_win_keybinds"]
+        # log win has additional keybinds for search input mode
+        keybinds["log_win"]["__search__"] = \
+            tmp_keybinds["log_win_search_keybinds"]
         keybinds["input_win"] = tmp_keybinds["input_win_keybinds"]
 
         return keybinds
