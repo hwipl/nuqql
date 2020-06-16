@@ -286,24 +286,15 @@ class InputWin(Win):
         logger.debug("jumping to log")
         self.state.active = False
         self.conversation.wins.log_win.state.active = True
+        self.conversation.wins.log_win.zoom_win()
 
-    def _zoom_win(self, *args: Any) -> None:
+    def _go_log_search_url(self, *args: Any) -> None:
         """
-        Jump to log and zoom window
+        Jump to log and search for next url
         """
 
-        logger.debug("jumping to log and zooming window")
+        logger.debug("jumping to log and starting url search")
         self._go_log()
-        self.conversation.wins.log_win.keyfunc["WIN_ZOOM"]()
-
-    def _zoom_win_url(self, *args: Any) -> None:
-        """
-        Jump to log, zoom window and search for next url
-        """
-
-        logger.debug("jumping to log, zooming window, and starting url search")
-        self._go_log()
-        self.conversation.wins.log_win.keyfunc["WIN_ZOOM"]()
         self.conversation.wins.log_win.search_text = "http"
         self.conversation.wins.log_win.search_next()
 

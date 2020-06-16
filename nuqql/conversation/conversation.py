@@ -83,9 +83,8 @@ class Conversation:
         # check log_win to determine, if windows are already created
         if self.wins.log_win is not None:
             self.wins.input_win.state.active = False
-            self.wins.input_win.redraw()
             self.wins.log_win.state.active = True
-            self.wins.log_win.redraw()
+            self.wins.log_win.zoom_win()
             self.clear_notifications()
             logger.debug("activated log of conversation %s", self.name)
             return

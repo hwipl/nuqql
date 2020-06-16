@@ -331,16 +331,9 @@ class Win:
 
         # implemented in sub classes
 
-    def _zoom_win(self, *args: Any) -> None:
+    def _go_log_search_url(self, *args: Any) -> None:
         """
-        User input: zoom current window
-        """
-
-        # implemented in sub classes
-
-    def _zoom_win_url(self, *args: Any) -> None:
-        """
-        User input: zoom current window
+        User input: go to conversation log/history and search for a URL
         """
 
         # implemented in sub classes
@@ -475,12 +468,11 @@ class Win:
             "GO_PREV": self._go_prev,
             "GO_CONV": self._go_conv,
             "GO_LOG": self._go_log,
+            "GO_LOG_SEARCH_URL": self._go_log_search_url,
             "QUIT": self._quit,
             "SEARCH": self._search,
             "SEARCH_NEXT": self._search_next,
             "SEARCH_PREV": self._search_prev,
             "SEND_MSG": self._send_msg,
             "TAB": self._tab,
-            "WIN_ZOOM": self._zoom_win,
-            "WIN_ZOOM_URL": self._zoom_win_url,
         }

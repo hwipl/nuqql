@@ -372,7 +372,7 @@ class LogWin(Win):
         props = self._get_properties()
         self._pad_refresh(props)
 
-    def _zoom_win(self, *args: Any) -> None:
+    def zoom_win(self) -> None:
         """
         Zoom in and out of log window
         """
@@ -404,21 +404,12 @@ class LogWin(Win):
             self.conversation.wins.log_win.redraw()
             self.conversation.wins.input_win.redraw()
 
-    def _zoom_win_url(self, *args: Any) -> None:
-        """
-        Zoom window and search for next url.
-        """
-
-        # logwin should already be zoomed. So, just jump to next match
-        logger.debug("searching for next url")
-        self._search_next()
-
     def _go_back(self, *args: Any) -> None:
         logger.debug("leaving window")
 
         # if window was zoomed, switch back to normal view
         if self.zoomed:
-            self._zoom_win()
+            self.zoom_win()
 
         # reactivate input window
         self.state.active = True

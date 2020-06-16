@@ -78,11 +78,10 @@ DEFAULT_INPUT_WIN_KEYBINDS = {
     "GO_NEXT":              "KEY_CTRL_N",
     "GO_PREV":              "KEY_CTRL_B",
     "GO_CONV":              "KEY_CTRL_V",
-    "GO_LOG":               "KEY_CTRL_O",
+    "GO_LOG":               "KEY_CTRL_O, KEY_F9",
+    "GO_LOG_SEARCH_URL":    "KEY_F10",
     "SEND_MSG":             "KEY_CTRL_X",
     "TAB":                  "KEY_TAB",
-    "WIN_ZOOM":             "KEY_F9",
-    "WIN_ZOOM_URL":         "KEY_F10",
 }
 
 # default key bindings for log windows
@@ -95,13 +94,11 @@ DEFAULT_LOG_WIN_KEYBINDS = {
     "CURSOR_BOTTOM":        "KEY_END, KEY_CTRL_E",
     "CURSOR_PAGE_UP":       "KEY_PAGE_UP",
     "CURSOR_PAGE_DOWN":     "KEY_PAGE_DOWN",
-    "GO_BACK":              "KEY_ESC",
+    "GO_BACK":              "KEY_ESC, KEY_F9",
     "SEARCH":               "KEY_/",
-    "SEARCH_NEXT":          "KEY_N",
+    "SEARCH_NEXT":          "KEY_N, KEY_F10",
     "SEARCH_PREV":          "KEY_P",
     "SEND_MSG":             "KEY_CTRL_X",
-    "WIN_ZOOM":             "KEY_F9",
-    "WIN_ZOOM_URL":         "KEY_F10",
 }
 
 # default key bindings for log window in search input mode
