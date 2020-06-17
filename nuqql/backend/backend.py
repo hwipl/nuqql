@@ -191,11 +191,11 @@ class Backend:
         msg = parsed_msg[5]
 
         # account specific message parsing
-        sender, resource = self._parse_message_account_specific(
+        sender, _resource = self._parse_message_account_specific(
             acc_id, sender, parsed_msg)
 
         # let ui handle the message
-        nuqql.ui.handle_message(self, acc_id, tstamp, sender, msg, resource)
+        nuqql.ui.handle_message(self, acc_id, sender, tstamp, sender, msg)
 
     def handle_chat_msg(self, parsed_msg: Tuple[str, ...]) -> None:
         """
@@ -220,8 +220,7 @@ class Backend:
                 acc_id, sender, parsed_msg)
 
             # handle message in ui
-            nuqql.ui.handle_chat_msg_message(self, acc_id, chat, timestamp,
-                                             sender, msg)
+            nuqql.ui.handle_message(self, acc_id, chat, timestamp, sender, msg)
             return
 
         # user message

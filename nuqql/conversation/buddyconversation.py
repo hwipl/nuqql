@@ -52,6 +52,16 @@ class BuddyConversation(Conversation):
         # try to read old messages from message history
         self.history.init_log_from_file()
 
+        # if this conversation belongs to a group chat invite, display special
+        # event to the user
+        if self.peers:
+            buddy = self.peers[0]
+            if buddy.status == "grp_invite":
+                msg = "<You are invited to this group chat. " \
+                        "Enter \"/join\" to accept or \"/part\" to decline " \
+                        "this invite.>"
+                self.log("<event>", msg, own=True)
+
     def get_name(self) -> str:
         """
         Get the name of the conversation, depending on type
@@ -94,6 +104,58 @@ class BuddyConversation(Conversation):
         # return tuple of sort keys
         return sort_notify, sort_used, sort_type, sort_status, sort_name
 
+    def group_send_msg(self, msg: str) -> None:
+        """
+        Send message to a group conversation coming from the UI/input window
+        """
+
+        assert self.account and self.backend and self.backend.client
+        logger.debug("sending group message %s in conversation %s", msg,
+                     self.name)
+        log_msg = self.log("you", msg, own=True)
+
+        # check for special commands
+        if msg == "/names":
+            # TODO: use peers list for this?
+            # create user list command
+            msg = "account {} chat users {}".format(self.account.aid,
+                                                    self.name)
+            # send command message to backend
+            self.backend.client.send_command(msg)
+            return
+
+        if msg == "/part":
+            # create chat part command
+            msg = "account {} chat part {}".format(self.account.aid,
+                                                   self.name)
+            # send command message to backend
+            self.backend.client.send_command(msg)
+            return
+
+        if msg.startswith("/invite "):
+            parts = msg.split()
+            if len(parts) > 1:
+                # create chat invite command
+                user = parts[1]
+                msg = "account {} chat invite {} {}".format(
+                    self.account.aid, self.name, user)
+                # send command message to backend
+                self.backend.client.send_command(msg)
+                return
+
+        if msg == "/join":
+            # TODO: allow specification of another group chat?
+            # create chat join command
+            msg = "account {} chat join {}".format(self.account.aid,
+                                                   self.name)
+            # send command message to backend
+            self.backend.client.send_command(msg)
+            return
+
+        # send and log group chat message
+        self.backend.client.send_group_msg(self.account.aid, self.name, msg)
+        self.history.log_to_file(log_msg)
+
     def send_msg(self, msg: str) -> None:
         """
         Send message coming from the UI/input window
@@ -101,10 +163,8 @@ class BuddyConversation(Conversation):
 
         logger.debug("sending message %s in conversation %s", msg, self.name)
 
-        # send message and log it in the history file
-        if not self.account or not self.backend.client:
+        if not self.account or not self.backend or not self.backend.client:
             return
-        self.backend.client.send_msg(self.account.aid, self.name, msg)
 
         # statistics
         self.stats["last_send"] = datetime.datetime.now().timestamp()
@@ -113,7 +173,15 @@ class BuddyConversation(Conversation):
         # redraw list_win in case sorting is affected by stats update above
         self.wins.list_win.redraw_pad()
 
-        # log message
+        # handle group chat messages separately
+        if self.peers:
+            buddy = self.peers[0]
+            if buddy.status == "grp" or buddy.status == "grp_invite":
+                self.group_send_msg(msg)
+                return
+
+        # send message and log it in the history file
+        self.backend.client.send_msg(self.account.aid, self.name, msg)
         log_msg = self.log("you", msg, own=True)
         self.history.log_to_file(log_msg)
 

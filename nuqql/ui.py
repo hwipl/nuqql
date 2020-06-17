@@ -29,8 +29,7 @@ def handle_message(*args: Any) -> None:
     """
 
     # parse args
-    # TODO: remove resource
-    backend, acc_id, tstamp, sender, msg, _resource = args
+    backend, acc_id, chat, tstamp, sender, msg = args
 
     # convert timestamp
     tstamp = datetime.datetime.fromtimestamp(tstamp)
@@ -39,10 +38,10 @@ def handle_message(*args: Any) -> None:
     for conv in nuqql.conversation.CONVERSATIONS:
         if conv.backend is backend and \
            conv.account and conv.account.aid == acc_id and \
-           conv.name == sender:
+           conv.name == chat:
             # log message
             logger.debug("found conversation %s for message", conv.name)
-            log_msg = conv.log(conv.name, msg, tstamp=tstamp)
+            log_msg = conv.log(sender, msg, tstamp=tstamp)
             conv.history.log_to_file(log_msg)
 
             # if window is not already active notify user
@@ -58,61 +57,11 @@ def handle_message(*args: Any) -> None:
         backend.conversation.log(sender, msg, tstamp=tstamp)
     else:
         # create buddy conversation
-        conv = nuqql.conversation.BuddyConversation(backend, account, sender)
+        conv = nuqql.conversation.BuddyConversation(backend, account, chat)
         conv.temporary = True
         conv.wins.list_win.add(conv)
         conv.wins.list_win.redraw()
         logger.debug("created temporary conversation %s", conv.name)
-
-        # log message
-        log_msg = conv.log(conv.name, msg, tstamp=tstamp)
-        conv.history.log_to_file(log_msg)
-
-        # if window is not already active notify user
-        if not conv.is_input_win_active():
-            conv.notify()
-
-
-def handle_chat_msg_message(*args: Any) -> None:
-    """
-    Handle "chat msg" message from backend
-    """
-
-    # TODO: remove duplicate code?
-    # parse args
-    backend, acc_id, chat, tstamp, sender, msg = args
-
-    # convert timestamp
-    tstamp = datetime.datetime.fromtimestamp(tstamp)
-
-    for conv in nuqql.conversation.CONVERSATIONS:
-        if isinstance(conv, nuqql.conversation.GroupConversation) and \
-           conv.backend is backend and \
-           conv.account and conv.account.aid == acc_id and \
-           conv.name == chat:
-            # log message
-            logger.debug("found group conversation %s for message", conv.name)
-            log_msg = conv.log(sender, msg, tstamp=tstamp)
-            conv.history.log_to_file(log_msg)
-
-            # if window is not already active notify user
-            if not conv.is_input_win_active():
-                conv.notify()
-            return
-
-    # nothing found, log to main window
-    # or create temporary conversation
-    account = backend.get_account(acc_id)
-    if account is None:
-        logger.debug("no group conversation found for message")
-        backend.conversation.log(sender, msg, tstamp=tstamp)
-    else:
-        # create group conversation
-        conv = nuqql.conversation.GroupConversation(backend, account, chat)
-        conv.temporary = True
-        conv.wins.list_win.add(conv)
-        conv.wins.list_win.redraw()
-        logger.debug("created temporary group conversation %s", conv.name)
 
         # log message
         log_msg = conv.log(sender, msg, tstamp=tstamp)
@@ -128,13 +77,11 @@ def handle_chat_message(*args: Any) -> bool:
     Handle chat message from backend
     """
 
-    # TODO: remove duplicate code?
     # parse args
     backend, acc_id, ctype, chat, nick, alias, status = args
 
     for conv in nuqql.conversation.CONVERSATIONS:
-        if isinstance(conv, nuqql.conversation.GroupConversation) and \
-           conv.backend is backend and \
+        if conv.backend is backend and \
            conv.account and conv.account.aid == acc_id and \
            conv.name == chat:
             # log chat message/event
@@ -214,16 +161,9 @@ def add_buddy(buddy: "Buddy") -> None:
     conv = add_buddy_to_temporary_conv(buddy)
     if not conv:
         # no temporary conversation found, add new one
-        if buddy.status in ("grp", "grp_invite"):
-            # this "buddy" is a group chat
-            conv = nuqql.conversation.GroupConversation(buddy.backend,
-                                                        buddy.account,
-                                                        buddy.name)
-        else:
-            # this is a regular buddy
-            conv = nuqql.conversation.BuddyConversation(buddy.backend,
-                                                        buddy.account,
-                                                        buddy.name)
+        conv = nuqql.conversation.BuddyConversation(buddy.backend,
+                                                    buddy.account,
+                                                    buddy.name)
         conv.peers.append(buddy)
         conv.wins.list_win.add(conv)
         logger.debug("added conversation for buddy %s", buddy.name)

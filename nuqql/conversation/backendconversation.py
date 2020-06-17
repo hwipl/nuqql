@@ -81,7 +81,7 @@ class BackendConversation(Conversation):
                 return
 
             # create temporary group conversation
-            conv = nuqql.conversation.GroupConversation(backend, account, name)
+            conv = nuqql.conversation.BuddyConversation(backend, account, name)
             conv.temporary = True
             conv.wins.list_win.add(conv)
             conv.wins.list_win.redraw()

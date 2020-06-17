@@ -10,6 +10,5 @@ from .helper import \
         remove_backend_conversations, \
         resize_main_window
 from .buddyconversation import BuddyConversation
-from .groupconversation import GroupConversation
 from .backendconversation import BackendConversation
 from .nuqqlconversation import NuqqlConversation
