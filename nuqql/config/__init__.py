@@ -3,7 +3,7 @@ nuqql config
 """
 
 from .config import \
-        get, \
         init, \
-        parse_args, \
-        WinConfig
+        parse_args
+from .configs import get
+from .winconfig import WinConfig
