@@ -2,10 +2,6 @@
 User Interface part of nuqql
 """
 
-#######################
-# USER INTERFACE PART #
-#######################
-
 import curses
 import curses.ascii
 import datetime
