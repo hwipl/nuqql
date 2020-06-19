@@ -2,16 +2,14 @@
 nuqql window config
 """
 
-import configparser
 import curses
 import curses.ascii
 import logging
 import sys
 
-from pathlib import Path
 from typing import Any, Dict, Tuple
 
-from .configs import get
+from .configs import get, read_from_file, write_to_file
 
 logger = logging.getLogger(__name__)
 
@@ -198,13 +196,8 @@ class WinConfig:
         # init configuration from defaults
         layout_config = DEFAULT_LAYOUT
 
-        # read config file if it exists
-        config_file = Path.home() / ".config/nuqql/config.ini"
-        config = configparser.ConfigParser()
-        config.optionxform = lambda option: option  # type: ignore
-        config.read(config_file)
-
         # parse config read from file
+        config = read_from_file()
         for section in config.sections():
             if section == "layout":
                 # overwrite default color config entries
@@ -214,8 +207,7 @@ class WinConfig:
 
         # write (updated) config to file again
         config["layout"] = layout_config
-        with open(config_file, "w+") as configfile:
-            config.write(configfile)
+        write_to_file(config)
 
         # create and return internally used layout configuration
         layout = {}
@@ -253,13 +245,8 @@ class WinConfig:
         win_config["log_win"] = DEFAULT_LOG_WIN_CONFIG
         win_config["input_win"] = DEFAULT_INPUT_WIN_CONFIG
 
-        # read config file if it exists
-        config_file = Path.home() / ".config/nuqql/config.ini"
-        config = configparser.ConfigParser()
-        config.optionxform = lambda option: option  # type: ignore
-        config.read(config_file)
-
         # parse config read from file
+        config = read_from_file()
         for section in config.sections():
             if section in ("list_win", "log_win", "input_win"):
                 # overwrite default config entries
@@ -275,8 +262,7 @@ class WinConfig:
         # write (updated) config to file again
         for win_type in ("list_win", "log_win", "input_win"):
             config[win_type] = win_config[win_type]
-        with open(config_file, "w+") as configfile:
-            config.write(configfile)
+        write_to_file(config)
 
         return win_config
 
@@ -303,12 +289,8 @@ class WinConfig:
         color_config = DEFAULT_COLORS
         attrib_config = DEFAULT_ATTRIBS
 
-        # read config file if it exists
-        config_file = Path.home() / ".config/nuqql/config.ini"
-        config = configparser.ConfigParser()
-        config.read(config_file)
-
         # parse config read from file
+        config = read_from_file()
         for section in config.sections():
             if section == "colors":
                 # overwrite default color config entries
@@ -324,8 +306,7 @@ class WinConfig:
         # write (updated) config to file again
         config["colors"] = color_config
         config["attributes"] = attrib_config
-        with open(config_file, "w+") as configfile:
-            config.write(configfile)
+        write_to_file(config)
 
         return color_config, attrib_config
 
@@ -439,13 +420,8 @@ class WinConfig:
         # init configuration from defaults
         keymap_config = DEFAULT_KEYMAP
 
-        # read config file if it exists
-        config_file = Path.home() / ".config/nuqql/config.ini"
-        config = configparser.ConfigParser()
-        config.optionxform = lambda option: option  # type: ignore
-        config.read(config_file)
-
         # parse config read from file
+        config = read_from_file()
         for section in config.sections():
             if section == "keymap":
                 # overwrite default keymap config entries
@@ -458,8 +434,7 @@ class WinConfig:
 
         # write (updated) config to file again
         config["keymap"] = keymap_config
-        with open(config_file, "w+") as configfile:
-            config.write(configfile)
+        write_to_file(config)
 
         # create and return internally used keymap
         keymap = {}
@@ -491,13 +466,8 @@ class WinConfig:
             DEFAULT_LOG_WIN_SEARCH_KEYBINDS
         keybinds_config["input_win_keybinds"] = DEFAULT_INPUT_WIN_KEYBINDS
 
-        # read config file if it exists
-        config_file = Path.home() / ".config/nuqql/config.ini"
-        config = configparser.ConfigParser()
-        config.optionxform = lambda option: option  # type: ignore
-        config.read(config_file)
-
         # parse config read from file
+        config = read_from_file()
         for section in config.sections():
             if section in ("list_win_keybinds", "list_win_filter_keybinds",
                            "log_win_keybinds", "log_win_search_keybinds",
@@ -512,8 +482,7 @@ class WinConfig:
                           "log_win_keybinds", "log_win_search_keybinds",
                           "input_win_keybinds"):
             config[win_binds] = keybinds_config[win_binds]
-        with open(config_file, "w+") as configfile:
-            config.write(configfile)
+        write_to_file(config)
 
         # create and return internally used keymap
         # swap keys and values in config dictionaries

@@ -3,7 +3,6 @@ Nuqql's User Interface configuration
 """
 
 import argparse
-import configparser
 import logging
 import os
 import stat
@@ -12,7 +11,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from nuqql import VERSION
-from .configs import CONFIGS, get
+from .configs import CONFIGS, get, read_from_file, write_to_file
 from .winconfig import WinConfig
 
 logger = logging.getLogger(__name__)
@@ -70,13 +69,8 @@ def _get_conversation_config() -> Dict[str, str]:
     # init configuration from defaults
     conversation_config = DEFAULT_CONVERSATION_CONFIG
 
-    # read config file if it exists
-    config_file = Path.home() / ".config/nuqql/config.ini"
-    config = configparser.ConfigParser()
-    config.optionxform = lambda option: option  # type: ignore
-    config.read(config_file)
-
     # parse config read from file
+    config = read_from_file()
     for section in config.sections():
         if section == "conversations":
             # overwrite default keymap config entries
@@ -86,8 +80,7 @@ def _get_conversation_config() -> Dict[str, str]:
 
     # write (updated) config to file again
     config["conversations"] = conversation_config
-    with open(config_file, "w+") as configfile:
-        config.write(configfile)
+    write_to_file(config)
 
     # return config
     return conversation_config
