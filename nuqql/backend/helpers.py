@@ -25,6 +25,9 @@ BACKENDS_WAIT_TIME = 1
 # disable the python backends' own history?
 BACKEND_DISABLE_HISTORY = True
 
+# let backend push accounts to us?
+BACKEND_PUSH_ACCOUNTS = True
+
 # filenames that should not get started as backends
 BACKEND_BLACKLIST = ["nuqql-keys", "nuqql-based"]
 
@@ -135,6 +138,8 @@ def start_backend_from_path(filename) -> Optional[Backend]:
         f"{backend_name}.sock"
     if BACKEND_DISABLE_HISTORY:
         backend_cmd_fmt += " --disable-history"
+    if BACKEND_PUSH_ACCOUNTS:
+        backend_cmd_fmt += " --push-accounts"
     loglevel = nuqql.config.get("loglevel")
     if loglevel:
         backend_cmd_fmt += f" --loglevel {loglevel}"
