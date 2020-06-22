@@ -56,7 +56,7 @@ def handle_message(*args: Any) -> None:
         conv = nuqql.conversation.BuddyConversation(backend, account, chat)
         conv.temporary = True
         conv.wins.list_win.add(conv)
-        conv.wins.list_win.redraw()
+        conv.wins.list_win.redraw_pad()
         logger.debug("created temporary conversation %s", conv.name)
 
         # log message
@@ -114,7 +114,7 @@ def update_buddy(buddy: "Buddy") -> None:
 
         conv_buddy = conv.peers[0]
         if conv_buddy is buddy:
-            conv.wins.list_win.redraw()
+            conv.wins.list_win.redraw_pad()
             logger.debug("updated buddy %s in ui", buddy.name)
             return
 
@@ -165,7 +165,7 @@ def add_buddy(buddy: "Buddy") -> None:
         logger.debug("added conversation for buddy %s", buddy.name)
 
     # redraw list to show update
-    conv.wins.list_win.redraw()
+    conv.wins.list_win.redraw_pad()
 
     # check if there are unread messages for this new buddy in the history
     last_log_msg = conv.history.get_last_log_line()
@@ -195,7 +195,7 @@ def remove_buddy(buddy: "Buddy") -> None:
         conv_buddy = conv.peers[0]
         if conv_buddy is buddy:
             del nuqql.conversation.CONVERSATIONS[index]
-            conv.wins.list_win.redraw()
+            conv.wins.list_win.redraw_pad()
             logger.debug("removed buddy %s from ui", buddy.name)
             return
 
