@@ -2,6 +2,7 @@
 Nuqql Conversations
 """
 
+import curses
 import datetime
 import logging
 
@@ -65,6 +66,7 @@ class Conversation:
 
         # check log_win to determine, if windows are already created
         if self.wins.log_win is not None:
+            curses.curs_set(1)
             self.wins.input_win.state.active = True
             self.wins.input_win.redraw()
             self.wins.log_win.state.active = False
@@ -82,6 +84,7 @@ class Conversation:
 
         # check log_win to determine, if windows are already created
         if self.wins.log_win is not None:
+            curses.curs_set(1)
             self.wins.input_win.state.active = False
             self.wins.log_win.state.active = True
             self.wins.log_win.zoom_win()

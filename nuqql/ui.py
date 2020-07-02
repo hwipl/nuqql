@@ -310,6 +310,9 @@ def start(stdscr: Any, func: Callable) -> str:
     stdscr.clear()
     stdscr.refresh()
 
+    # disable cursor
+    curses.curs_set(0)
+
     # make sure configs are loaded
     nuqql.config.init(stdscr)
 

@@ -2,6 +2,7 @@
 Nuqql UI Input Windows
 """
 
+import curses
 import logging
 import unicodedata
 
@@ -270,6 +271,9 @@ class InputWin(Win):
         logger.debug("leaving input window")
         self.state.active = False
         self.conversation.wins.log_win.state.active = False
+
+        # disable cursor
+        curses.curs_set(0)
 
         # redraw main windows
         MAIN_WINS["input"].redraw()
