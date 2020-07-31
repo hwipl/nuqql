@@ -195,6 +195,7 @@ def remove_buddy(buddy: "Buddy") -> None:
         conv_buddy = conv.peers[0]
         if conv_buddy is buddy:
             del nuqql.conversation.CONVERSATIONS[index]
+            conv.wins.list_win.pad.erase()
             conv.wins.list_win.redraw_pad()
             logger.debug("removed buddy %s from ui", buddy.name)
             return
