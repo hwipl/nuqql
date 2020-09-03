@@ -43,6 +43,8 @@ class Win:
 
         # window state
         self.state = SimpleNamespace(
+            # is window visible?
+            visible=True,
             # is window active?
             active=False,
             # position inside pad
