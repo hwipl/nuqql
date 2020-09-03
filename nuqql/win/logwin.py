@@ -396,8 +396,18 @@ class LogWin(Win):
 
         # redraw everything
         if self.zoomed:
+            # make list win and input win invisible
+            self.conversation.wins.list_win.state.visible = False
+            self.conversation.wins.input_win.state.visible = False
+
+            # redraw window
             self.redraw()
         else:
+            # make list win and input win visible
+            self.conversation.wins.list_win.state.visible = True
+            self.conversation.wins.input_win.state.visible = True
+
+            # redraw everything
             MAIN_WINS["screen"].clear()
             MAIN_WINS["screen"].refresh()
             self.conversation.wins.list_win.redraw()
