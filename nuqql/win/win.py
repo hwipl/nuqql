@@ -177,8 +177,9 @@ class Win:
         Redraw the window
         """
 
-        self._redraw_win()
-        self.redraw_pad()
+        if self.state.visible:
+            self._redraw_win()
+            self.redraw_pad()
 
     def resize_win(self, win_y_max: int, win_x_max: int) -> None:
         """
