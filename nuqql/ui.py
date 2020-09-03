@@ -203,8 +203,7 @@ def remove_buddy(buddy: "Buddy") -> None:
 
             # remove conversation
             del nuqql.conversation.CONVERSATIONS[index]
-            conv.wins.list_win.pad.erase()
-            conv.wins.list_win.redraw_pad()
+            conv.wins.list_win.redraw()
             logger.debug("removed buddy %s from ui", buddy.name)
             return
 
