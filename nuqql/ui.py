@@ -194,6 +194,14 @@ def remove_buddy(buddy: "Buddy") -> None:
 
         conv_buddy = conv.peers[0]
         if conv_buddy is buddy:
+            # if log window or input window are active, close them first
+            if conv.is_log_win_active():
+                # note: this activates the input window
+                conv.wins.log_win.go_back()
+            if conv.is_input_win_active():
+                conv.wins.input_win.go_back()
+
+            # remove conversation
             del nuqql.conversation.CONVERSATIONS[index]
             conv.wins.list_win.pad.erase()
             conv.wins.list_win.redraw_pad()
