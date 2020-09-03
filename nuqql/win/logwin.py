@@ -404,7 +404,11 @@ class LogWin(Win):
             self.conversation.wins.log_win.redraw()
             self.conversation.wins.input_win.redraw()
 
-    def _go_back(self, *args: Any) -> None:
+    def go_back(self, *_args: Any) -> None:
+        """
+        Go back to input win
+        """
+
         logger.debug("leaving window")
 
         # if window was zoomed, switch back to normal view

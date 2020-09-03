@@ -205,7 +205,7 @@ class Win:
                      pos_y, pos_x)
         self.win.mvwin(pos_y, pos_x)
 
-    def _go_back(self, *args: Any) -> None:
+    def go_back(self, *args: Any) -> None:
         """
         User input: go back
         """
@@ -463,7 +463,7 @@ class Win:
             "DEL_LINE_END": self._delete_line_end,
             "DEL_LINE": self._delete_line,
             "ENTER": self._enter,
-            "GO_BACK": self._go_back,
+            "GO_BACK": self.go_back,
             "GO_NEXT": self._go_next,
             "GO_PREV": self._go_prev,
             "GO_CONV": self._go_conv,

@@ -267,7 +267,11 @@ class InputWin(Win):
         # display changes in the pad
         self.redraw_pad()
 
-    def _go_back(self, *args: Any) -> None:
+    def go_back(self, *_args: Any) -> None:
+        """
+        Close conversation windows
+        """
+
         logger.debug("leaving input window")
         self.state.active = False
         self.conversation.wins.log_win.state.active = False
@@ -324,7 +328,7 @@ class InputWin(Win):
             return
 
         # deactivate this and switch to other conversation
-        self._go_back()
+        self.go_back()
         conv.wins.list_win.jump_to_conv(conv, set_last_used=set_last_used)
 
     def _go_prev(self, *args: Any) -> None:
@@ -338,7 +342,7 @@ class InputWin(Win):
 
         # deactivate this and switch to other conversation
         logger.debug("jumping to previous conversation")
-        self._go_back()
+        self.go_back()
         prev.wins.list_win.jump_to_conv(prev, set_last_used=False)
 
     def _go_conv(self, *args: Any) -> None:
@@ -348,7 +352,7 @@ class InputWin(Win):
 
         # deactivate this and switch to filter mode in list window
         logger.debug("jumping to specific conversation")
-        self._go_back()
+        self.go_back()
         self.conversation.wins.list_win.go_conv()
 
     def _tab(self, *args: Any) -> None:
