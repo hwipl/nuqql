@@ -153,7 +153,7 @@ class Backend:
                                         parsed_msg: Tuple[str, ...]
                                         ) -> Tuple[str, str]:
         msg = parsed_msg[5]
-        resource = ""
+        resource = sender
         for tmp_acc in self.accounts.values():
             if tmp_acc.aid == acc_id:
                 if tmp_acc.type == "icq":
