@@ -253,7 +253,7 @@ def restart_backend(backend_name: str) -> None:
 
     # start the backend client
     if backend:
-        # give backend servers some time
+        # give backend server some time
         time.sleep(BACKENDS_WAIT_TIME)
         start_backend_client(backend)
 
