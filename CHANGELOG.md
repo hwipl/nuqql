@@ -2,6 +2,19 @@
 
 This file contains the changes in each nuqql version:
 
+## devel:
+* Add backend support:
+  * nuqql-matrixd-nio
+  * nuqql-mattermostd
+* Always zoom Log Window when entering and change search input
+* Add logging and the "--loglevel" command line argument
+* Improve backend handling
+* Update backend interface documentation:
+  * Add "version" command
+* Cleanups, fixes, and improvements
+* Requires nuqql-slixmppd v0.6.0, nuqql-matrixd v0.4.0,
+  nuqql-matrixd-nio v0.1.0, nuqql-mattermostd v0.1.0, or purpled v0.5
+
 ## v0.8:
 * Add version information
   * Add `--version` command line argument
