@@ -12,8 +12,8 @@ is in your PATH)
 # Setup
 
 The basic setup of nuqql consists of installing a backend (nuqql-slixmppd,
-nuqql-matrixd, and/or purpled) and adding your instant messaging accounts
-to it.
+nuqql-matrixd-nio, nuqql-matrixd, and/or purpled) and adding
+your instant messaging accounts to it.
 
 ## Installing backends
 
@@ -27,6 +27,18 @@ done already, you can install nuqql-slixmppd with the following command:
 
 ```console
 $ pip install --user nuqql-slixmppd
+```
+
+(Note: make sure the directory where pip installs executables (`~/.local/bin`)
+is in your PATH)
+
+### nuqql-matrixd-nio
+
+nuqql can use nuqql-matrixd-nio to connect to Matrix chat networks. If you have
+not done already, you can install nuqql-matrixd-nio with the following command:
+
+```console
+$ pip install --user nuqql-matrixd-nio
 ```
 
 (Note: make sure the directory where pip installs executables (`~/.local/bin`)
