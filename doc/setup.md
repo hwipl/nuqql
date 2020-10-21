@@ -1,3 +1,14 @@
+# Installation
+
+If you have not done already, you can install nuqql with the following command:
+
+```console
+$ pip install --user nuqql
+```
+
+(Note: make sure the directory where pip installs executables (`~/.local/bin`)
+is in your PATH)
+
 # Setup
 
 The basic setup of nuqql consists of installing a backend (nuqql-slixmppd,
