@@ -29,6 +29,9 @@ done already, you can install nuqql-slixmppd with the following command:
 $ pip install --user nuqql-slixmppd
 ```
 
+(Note: make sure the directory where pip installs executables (`~/.local/bin`)
+is in your PATH)
+
 ### nuqql-matrixd
 
 nuqql can use nuqql-matrixd to connect to Matrix chat networks. If you have not
@@ -37,6 +40,9 @@ done already, you can install nuqql-matrixd with the following command:
 ```console
 $ pip install --user nuqql-matrixd
 ```
+
+(Note: make sure the directory where pip installs executables (`~/.local/bin`)
+is in your PATH)
 
 ### purpled
 
