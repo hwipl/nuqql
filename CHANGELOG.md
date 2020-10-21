@@ -2,7 +2,7 @@
 
 This file contains the changes in each nuqql version:
 
-## devel:
+## v0.9.0:
 * Add backend support:
   * nuqql-matrixd-nio
   * nuqql-mattermostd
