@@ -12,7 +12,7 @@ is in your PATH)
 # Setup
 
 The basic setup of nuqql consists of installing a backend (nuqql-slixmppd,
-nuqql-matrixd-nio, nuqql-matrixd, and/or purpled) and adding
+nuqql-matrixd-nio, nuqql-matrixd, nuqql-mattermostd, and/or purpled) and adding
 your instant messaging accounts to it.
 
 ## Installing backends
@@ -55,6 +55,27 @@ $ pip install --user nuqql-matrixd
 
 (Note: make sure the directory where pip installs executables (`~/.local/bin`)
 is in your PATH)
+
+### nuqql-mattermostd
+
+nuqql can use nuqql-mattermostd to connect to Mattermost servers. If you have
+not done already, you can install nuqql-mattermostd as follows:
+
+If you just want the latest version, you can install nuqql-mattermostd with its
+dependencies with the following command:
+
+```console
+$ go get -u github.com/hwipl/nuqql-mattermostd/cmd/nuqql-mattermostd
+```
+
+If you want to install a specific version, you can install it with the
+following steps:
+
+* Download [nuqql-mattermostd](https://github.com/hwipl/nuqql-mattermostd)
+* Build and install nuqql-mattermostd with:
+  * `go get -u ./cmd/nuqql-mattermostd`
+
+(Note: make sure your GOPATH/GOBIN is in your PATH)
 
 ### purpled
 
