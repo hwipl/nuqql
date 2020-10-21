@@ -17,8 +17,8 @@ your instant messaging accounts to it.
 
 ## Installing backends
 
-You can use nuqql-slixmppd, slixmppd-matrixd, and/or purpled to connect to
-different chat networks.
+You can use nuqql-slixmppd, nuqql-matrixd-nio, nuqql-matrixd,
+nuqql-mattermostd, and/or purpled to connect to different chat networks.
 
 ### nuqql-slixmppd
 
