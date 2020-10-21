@@ -5,12 +5,19 @@ nuqql is a command line instant messenger inspired by
 [centerim](http://www.centerim.org) written in Python and using ncurses.
 
 nuqql uses so-called backends for connecting to chat networks. Currently, nuqql
-supports [nuqql-slixmppd](https://github.com/hwipl/nuqql-slixmppd),
-[nuqql-matrixd](https://github.com/hwipl/nuqql-matrixd), and
-[purpled](https://github.com/hwipl/purpled) as backends. nuqql-slixmppd uses
-slixmpp and allows nuqql to connect to XMPP chat networks. nuqql-matrixd uses
-the Matrix Python SDK and allows nuqql to connect to Matrix chat networks.
-purpled uses libpurple and allows nuqql to connect to multiple chat networks.
+supports the following backends:
+* [nuqql-slixmppd](https://github.com/hwipl/nuqql-slixmppd): nuqql-slixmppd
+  uses slixmpp and allows nuqql to connect to XMPP chat networks.
+* [nuqql-matrixd-nio](https://github.com/hwipl/nuqql-matrixd-nio):
+  nuqql-matrixd-nio uses matrix-nio and allows nuqql to connect to Matrix chat
+  networks.
+* [nuqql-matrixd](https://github.com/hwipl/nuqql-matrixd): nuqql-matrixd uses
+  the Matrix Python SDK and allows nuqql to connect to Matrix chat networks.
+* [nuqql-mattermostd](https://github.com/hwipl/nuqql-mattermostd):
+  nuqql-mattermostd uses the Mattermost Golang Driver and allows nuqql to
+  connect to Mattermost servers
+* [purpled](https://github.com/hwipl/purpled): purpled uses libpurple and
+  allows nuqql to connect to multiple chat networks.
 
 
 ## Quick Start
