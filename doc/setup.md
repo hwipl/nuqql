@@ -96,7 +96,7 @@ to your backends. You can do this from nuqql with the following steps:
 
 * Start nuqql.
 * Enter the conversation with the backend by pressing the `ENTER` key
-  on the entry in the Conversation List (`{backend} purpled` or `{backend}
+  on the entry in the Conversation List (e.g.,`{backend} purpled` or `{backend}
   slixmppd`).
 * Add your accounts (note: send the following commands the backend with the
   `CTRL-X` key combination):
@@ -106,6 +106,60 @@ to your backends. You can do this from nuqql with the following steps:
 * If you want to add an extra buddy, you can just send a message to it, for
   example, with this command: `account 0 send user_name@server.com`. Note: `0`
   is the account ID as shown with `account list`.
+
+The details are backend and chat network/protocol specific. See below for more
+information about XMPP/Jabber, Matrix and Mattermost accounts.
+
+### XMPP/Jabber accounts
+
+You can add a XMPP/Jabber account with the following command:
+
+```
+account add xmpp <account> <password>
+```
+
+The format of xmpp accounts in nuqql-slixmppd is `<username>@<jabberserver>`,
+e.g., `dummy_user@jabber.org`
+
+Example:
+
+```
+account add xmpp user@jabber-server.com users_password
+```
+
+### Matrix accounts
+
+You can add a Matrix account with the following command:
+
+```
+account add matrix <account> <password>
+```
+
+The format of matrix accounts in nuqql-matrixd is `<username>@<homeserver>`,
+e.g., `dummy_user@matrix.org`.
+
+Example:
+
+```
+account add matrix dummy_user@matrix.org users_password
+```
+
+### Mattermost accounts
+
+You can add a Mattermost account with the following command:
+
+```
+account add mattermost <account> <password>
+```
+
+The format of mattermost accounts in nuqql-mattermostd is
+`<username>@<server>`, e.g., `dummy_user@yourserver.org:8065`.
+
+Example:
+
+```
+account add mattermost dummy_user@yourserver.org:8065 users_password
+```
 
 ## Hacky stuff/additional tools
 
