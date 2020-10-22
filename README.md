@@ -13,6 +13,8 @@ supports the following backends:
   networks.
 * [nuqql-matrixd](https://github.com/hwipl/nuqql-matrixd): nuqql-matrixd uses
   the Matrix Python SDK and allows nuqql to connect to Matrix chat networks.
+  Note: the Matrix Python SDK project strongly recommends using matrix-nio, so
+  prefer using nuqql-matrixd-nio.
 * [nuqql-mattermostd](https://github.com/hwipl/nuqql-mattermostd):
   nuqql-mattermostd uses the Mattermost Golang Driver and allows nuqql to
   connect to Mattermost servers
