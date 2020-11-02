@@ -128,9 +128,10 @@ class Win:
         if self.state.cur_x > self.state.pad_x + (win_size_x - 3):
             self.state.pad_x = self.state.cur_x - (win_size_x - 3)
 
-        # move pad left, if cursor leaves current pad position on the left
+        # move pad left (1/3 of the window's width), if cursor leaves current
+        # pad position on the left
         if self.state.cur_x < self.state.pad_x:
-            self.state.pad_x = self.state.cur_x
+            self.state.pad_x = self.state.cur_x - int(win_size_x/3)
 
         # move pad down, if cursor leaves window area at the bottom
         if self.state.cur_y > self.state.pad_y + (win_size_y - 3):
