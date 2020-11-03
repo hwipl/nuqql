@@ -337,7 +337,7 @@ class Backend:
                 logger.debug("updating buddies in backend %s", self.name)
                 self.client.send_buddies(acc.aid)
 
-    def get_account(self, account_id: int) -> Optional["Account"]:
+    def get_account(self, account_id: str) -> Optional["Account"]:
         """
         Get account with specified account id
         """
