@@ -155,8 +155,8 @@ class Win:
             self.state.pad_x = 0
 
         # do not move visible area too far to the right
-        if self.state.pad_x + (win_size_x - 3) > pad_size_x:
-            self.state.pad_x = pad_size_x - (win_size_x - 3)
+        if self.state.pad_x + (win_size_x - 2) > pad_size_x:
+            self.state.pad_x = pad_size_x - (win_size_x - 1)
 
         # do not move visible area too far up
         if self.state.pad_y < 0:
