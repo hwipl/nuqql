@@ -572,7 +572,7 @@ class LogWin(Win):
             self.state.cur_x += len(self.search_text)
 
         # search views for text until last view
-        while self.view.cur <= len(self.list) - view_size:
+        while self.view.cur <= max(0, len(self.list) - view_size):
             # search current view for text until end of view
             while self.state.cur_y <= self.pad.getmaxyx()[0]:
                 _cur_text = self.pad.instr(self.state.cur_y, self.state.cur_x,
@@ -593,7 +593,7 @@ class LogWin(Win):
                 self.state.cur_x = 0    # set it to first position in line
 
             # reached end of view, move view further down
-            if self.view.cur == len(self.list) - view_size:
+            if self.view.cur == max(0, len(self.list) - view_size):
                 # reached bottom already
                 break
             self._cursor_down()
