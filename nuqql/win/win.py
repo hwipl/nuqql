@@ -126,7 +126,8 @@ class Win:
 
         # move pad right, if cursor leaves window area on the right
         if self.state.cur_x > self.state.pad_x + (win_size_x - 3):
-            self.state.pad_x = self.state.cur_x - (win_size_x - 3)
+            self.state.pad_x = self.state.cur_x - (win_size_x - 3) + \
+                int(win_size_x/3)
 
         # move pad left (1/3 of the window's width), if cursor leaves current
         # pad position on the left
