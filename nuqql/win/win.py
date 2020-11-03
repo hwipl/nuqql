@@ -163,8 +163,8 @@ class Win:
             self.state.pad_y = 0
 
         # do not move visible area too far down
-        if self.state.pad_y + (win_size_y - 3) > pad_size_y:
-            self.state.pad_y = pad_size_y - (win_size_y - 3)
+        if self.state.pad_y + (win_size_y - 2) > pad_size_y:
+            self.state.pad_y = pad_size_y - (win_size_y - 1)
 
     def redraw_pad(self) -> None:
         """
