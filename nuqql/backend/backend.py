@@ -349,6 +349,18 @@ class Backend:
 
         return None
 
+    def delete_account(self, account_id: str) -> None:
+        """
+        Delete account identified by the account id
+        """
+
+        account = self.get_account(account_id)
+        if account:
+            logger.debug("removing account %s in backend %s", account_id,
+                         self.name)
+            account.flush_buddies()
+            del self.accounts[account.name]
+
     def read_global_status(self) -> str:
         """
         Read global status from global_status file
