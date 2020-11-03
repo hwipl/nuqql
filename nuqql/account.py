@@ -84,3 +84,12 @@ class Account:
 
         # tell ui there is a new buddy
         nuqql.ui.add_buddy(new_buddy)
+
+    def flush_buddies(self) -> None:
+        """
+        Flush all buddies of this account
+        """
+
+        for buddy in self.buddies:
+            nuqql.ui.remove_buddy(buddy)
+        self.buddies = []
