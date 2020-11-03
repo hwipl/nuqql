@@ -102,13 +102,11 @@ class BackendConversation(Conversation):
         # TODO: test if we still need these functions
 
         parts = msg.split(" ")
-        # check for account and chat commands
-        # account <id> chat <join/part> <name>
-        if len(parts) < 5:
+        # check for account command
+        # account <id> <command>
+        if len(parts) < 3:
             return
         if parts[0] != "account":
-            return
-        if parts[2] != "chat":
             return
 
         # get account for this command
@@ -116,8 +114,17 @@ class BackendConversation(Conversation):
         if not account:
             return
 
+        # check for delete command
+        # account <id> delete
+        if parts[2] == "delete":
+            self.backend.delete_account(account.aid)
+            return
+
         # check for chat commands
-        self._check_chat_command(self.backend, account, parts[3], parts[4])
+        # account <id> chat <join/part> <name>
+        if len(parts) >= 5 and parts[2] == "chat":
+            self._check_chat_command(self.backend, account, parts[3], parts[4])
+            return
 
     def send_msg(self, msg: str) -> None:
         """
