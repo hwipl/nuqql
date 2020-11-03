@@ -112,10 +112,7 @@ class BackendConversation(Conversation):
             return
 
         # get account for this command
-        account = None
-        for acc in self.backend.accounts.values():
-            if acc.aid == parts[1]:
-                account = acc
+        account = self.backend.get_account(parts[1])
         if not account:
             return
 
