@@ -539,6 +539,9 @@ class LogWin(Win):
             self._cursor_up()
             self.state.cur_x = self.pad.getmaxyx()[1] - 1
 
+        # make sure current cursor position is visible even if nothing found
+        self._pad_refresh(props)
+
     def search_next(self) -> None:
         """
         Helper for calling search from other windows
@@ -597,6 +600,9 @@ class LogWin(Win):
                 # reached bottom already
                 break
             self._cursor_down()
+
+        # make sure current cursor position is visible even if nothing found
+        self._pad_refresh(props)
 
     def process_input(self, char: str) -> None:
         """
