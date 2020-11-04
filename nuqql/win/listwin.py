@@ -107,7 +107,7 @@ class ListWin(Win):
 
             # check if there is a zoomed conversation
             # TODO: move this into a separate helper?
-            if conv.wins.log_win and conv.wins.log_win.zoomed:
+            if conv.wins.log_win and conv.wins.log_win.state.zoomed:
                 zoomed_log_win = conv.wins.log_win
 
         # move cursor back to original or active conversation's position

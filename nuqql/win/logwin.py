@@ -27,9 +27,6 @@ class LogWin(Win):
                  title: str) -> None:
         Win.__init__(self, config, conversation, title)
 
-        # window in zoomed/fullscreen mode
-        self.zoomed = False
-
         # list entries/message log
         self.list: List["LogMessage"] = []
 
@@ -161,7 +158,7 @@ class LogWin(Win):
 
         props = SimpleNamespace()
         props.max_y, props.max_x = MAIN_WINS["screen"].getmaxyx()
-        if self.zoomed:
+        if self.state.zoomed:
             # window is currently zoomed
             props.pos_y, props.pos_x = 0, 0
             props.pos_y_off, props.pos_x_off = 1, 0
@@ -378,12 +375,12 @@ class LogWin(Win):
         """
 
         # get positions and sizes for zoomed and normal mode
-        if self.zoomed:
+        if self.state.zoomed:
             logger.debug("zooming out")
-            self.zoomed = False
+            self.state.zoomed = False
         else:
             logger.debug("zooming in")
-            self.zoomed = True
+            self.state.zoomed = True
         props = self._get_properties()
 
         # resize window and pad
@@ -395,7 +392,7 @@ class LogWin(Win):
         self._check_borders()
 
         # redraw everything
-        if self.zoomed:
+        if self.state.zoomed:
             # make list win and input win invisible
             self.conversation.wins.list_win.state.visible = False
             self.conversation.wins.input_win.state.visible = False
@@ -422,7 +419,7 @@ class LogWin(Win):
         logger.debug("leaving window")
 
         # if window was zoomed, switch back to normal view
-        if self.zoomed:
+        if self.state.zoomed:
             self.zoom_win()
 
         # reactivate input window

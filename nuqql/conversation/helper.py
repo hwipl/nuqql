@@ -70,7 +70,7 @@ def resize_main_window() -> None:
             conv.wins.list_win.resize_win(size_y, size_x)
         if conv.wins.log_win:
             # TODO: move zoom/resizing to win.py?
-            if conv.wins.log_win.zoomed:
+            if conv.wins.log_win.state.zoomed:
                 size_y, size_x = max_y, max_x
                 pos_y, pos_x = 0, 0
                 conv.wins.log_win.state.pad_y = 0  # reset pad position

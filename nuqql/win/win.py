@@ -43,6 +43,8 @@ class Win:
 
         # window state
         self.state = SimpleNamespace(
+            # is window zoomed?
+            zoomed=False,
             # is window visible?
             visible=True,
             # is window active?
