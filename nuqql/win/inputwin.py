@@ -380,7 +380,7 @@ class InputWin(Win):
             if len(segments) == pad_size_y - 1 and char == "\n":
                 pad_size_y += 1
                 self.pad.resize(pad_size_y, pad_size_x)
-            if len(segments[self.state.cur_y]) == pad_size_x - 2 and \
+            if len(segments[self.state.cur_y]) == pad_size_x - 1 and \
                char != "\n":
                 pad_size_x += 1
                 self.pad.resize(pad_size_y, pad_size_x)
