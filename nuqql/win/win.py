@@ -162,24 +162,24 @@ class Win:
         """
 
         # get sizes
-        win_size_y, win_size_x = self.win.getmaxyx()
         pad_size_y, pad_size_x = self.pad.getmaxyx()
+        pad_rect_y, pad_rect_x = self._get_pad_rect_size()
 
         # do not move visible area too far to the left
         if self.state.pad_x < 0:
             self.state.pad_x = 0
 
         # do not move visible area too far to the right
-        if self.state.pad_x + (win_size_x - 2) > pad_size_x:
-            self.state.pad_x = pad_size_x - (win_size_x - 1)
+        if self.state.pad_x + pad_rect_x > pad_size_x:
+            self.state.pad_x = pad_size_x - pad_rect_x
 
         # do not move visible area too far up
         if self.state.pad_y < 0:
             self.state.pad_y = 0
 
         # do not move visible area too far down
-        if self.state.pad_y + (win_size_y - 2) > pad_size_y:
-            self.state.pad_y = pad_size_y - (win_size_y - 1)
+        if self.state.pad_y + pad_rect_y > pad_size_y:
+            self.state.pad_y = pad_size_y - pad_rect_y
 
     def redraw_pad(self) -> None:
         """
