@@ -131,26 +131,26 @@ class Win:
         Move the pad
         """
 
-        # get window size
-        win_size_y, win_size_x = self.win.getmaxyx()
+        # get size of pad rectangle
+        pad_rect_y, pad_rect_x = self._get_pad_rect_size()
 
         # get current cursor positions
         self.state.cur_y, self.state.cur_x = self.pad.getyx()
 
         # move pad right (1/3 of the window's width), if cursor leaves window
         # area on the right
-        if self.state.cur_x > self.state.pad_x + (win_size_x - 3):
-            self.state.pad_x = self.state.cur_x - (win_size_x - 3) + \
-                int(win_size_x/3)
+        if self.state.cur_x > self.state.pad_x + (pad_rect_x - 1):
+            self.state.pad_x = self.state.cur_x - (pad_rect_x - 1) + \
+                int(pad_rect_x/3)
 
         # move pad left (1/3 of the window's width), if cursor leaves current
         # pad position on the left
         if self.state.cur_x < self.state.pad_x:
-            self.state.pad_x = self.state.cur_x - int(win_size_x/3)
+            self.state.pad_x = self.state.cur_x - int(pad_rect_x/3)
 
         # move pad down, if cursor leaves window area at the bottom
-        if self.state.cur_y > self.state.pad_y + (win_size_y - 3):
-            self.state.pad_y = self.state.cur_y - (win_size_y - 3)
+        if self.state.cur_y > self.state.pad_y + (pad_rect_y - 1):
+            self.state.pad_y = self.state.cur_y - (pad_rect_y - 1)
 
         # move pad up, if cursor leaves current pad position at the top
         if self.state.cur_y < self.state.pad_y:
