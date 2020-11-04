@@ -6,7 +6,7 @@ import curses
 import logging
 
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any, Callable, Dict, List
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Tuple
 
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
@@ -114,6 +114,17 @@ class Win:
             self.win.addstr(0, 2, title)
 
         self.win.refresh()
+
+    def _get_pad_rect_size(self) -> Tuple[int, int]:
+        """
+        Get the y and x size of the visible pad rectangle
+        """
+
+        win_size_y, win_size_x = self.win.getmaxyx()
+        pad_rect_y, pad_rect_x = win_size_y - 2, win_size_x - 2
+        if self.state.zoomed:
+            pad_rect_x = win_size_x
+        return pad_rect_y, pad_rect_x
 
     def _move_pad(self) -> None:
         """
