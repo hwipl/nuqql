@@ -97,7 +97,7 @@ class LogWin(Win):
                 # always print the first part of a line, even if it's empty.
                 first = False
                 if output:
-                    self.pad.insnstr(line, max_x)
+                    self.pad.insnstr(max_y - 1, 0, line, max_x)
                 num_output += 1
 
                 # drop all characters we printed from the current line
@@ -113,8 +113,8 @@ class LogWin(Win):
                     continue
                 max_y += 1
                 self.pad.resize(max_y, max_x)
-                self.pad.move(max_y - 1, 0)
 
+        self.pad.move(max_y - 1, max_x - 1)
         return num_output
 
     def _print_log(self, props: SimpleNamespace) -> None:
