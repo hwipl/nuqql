@@ -596,6 +596,9 @@ class LogWin(Win):
             # reached end of view, move view further down
             if self.view.cur == max(0, len(self.list) - view_size):
                 # reached bottom already
+                pad_size_y, pad_size_x = self.pad.getmaxyx()
+                self.pad.move(pad_size_y - 1, pad_size_x - 1)
+                self.state.cur_y, self.state.cur_x = self.pad.getyx()
                 break
             self._cursor_down()
 
