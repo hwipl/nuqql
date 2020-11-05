@@ -513,9 +513,9 @@ class LogWin(Win):
         while self.view.cur >= 0:
             # search current view for text until first line
             while self.state.cur_y >= 0:
-                _cur_text = self.pad.instr(self.state.cur_y, 0,
-                                           self.state.cur_x)
+                _cur_text = self.pad.instr(self.state.cur_y, 0)
                 cur_text = _cur_text.decode()   # type: ignore
+                cur_text = cur_text[:self.state.cur_x]
                 index = cur_text.rfind(self.search_text)
                 if index != -1:
                     # found it, stop here
