@@ -565,9 +565,10 @@ class LogWin(Win):
         view_size = props.win_size_y - props.pad_y_delta
 
         # if we are already on a match, skip it
-        _cur_text = self.pad.instr(self.state.cur_y, self.state.cur_x,
-                                   len(self.search_text))
+        _cur_text = self.pad.instr(self.state.cur_y, 0)
         cur_text = _cur_text.decode()   # type: ignore
+        cur_text = cur_text[self.state.cur_x:]
+        cur_text = cur_text[:len(self.search_text)]
         if cur_text == self.search_text:
             self.state.cur_x += len(self.search_text)
 
@@ -575,9 +576,9 @@ class LogWin(Win):
         while self.view.cur <= max(0, len(self.list) - view_size):
             # search current view for text until end of view
             while self.state.cur_y <= self.pad.getmaxyx()[0]:
-                _cur_text = self.pad.instr(self.state.cur_y, self.state.cur_x,
-                                           props.pad_size_x)
+                _cur_text = self.pad.instr(self.state.cur_y, 0)
                 cur_text = _cur_text.decode()   # type: ignore
+                cur_text = cur_text[self.state.cur_x:]
                 index = cur_text.find(self.search_text)
 
                 # found it, stop here
