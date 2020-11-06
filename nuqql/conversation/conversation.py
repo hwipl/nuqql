@@ -34,8 +34,8 @@ class Conversation:
     Class for conversations
     """
 
-    def __init__(self, backend: "Backend", account: Optional["Account"],
-                 name: str) -> None:
+    def __init__(self, backend: Optional["Backend"], account:
+                 Optional["Account"], name: str) -> None:
         # general
         self.name = name
         self.notification = 0

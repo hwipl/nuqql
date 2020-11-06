@@ -110,6 +110,7 @@ class BackendConversation(Conversation):
             return
 
         # get account for this command
+        assert self.backend
         account = self.backend.get_account(parts[1])
         if not account:
             return

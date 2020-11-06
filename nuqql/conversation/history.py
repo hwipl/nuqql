@@ -40,7 +40,7 @@ class History:
         """
 
         # construct directory path
-        assert self.conv.account
+        assert self.conv.backend and self.conv.account
         conv_dir = str(pathlib.Path.home()) + \
             "/.config/nuqql/conversation/{}/{}/{}".format(
                 self.conv.backend.name, self.conv.account.aid, self.conv.name)
@@ -90,7 +90,7 @@ class History:
         logger.debug("initializing logger of conversation %s", self.conv.name)
 
         # get log dir and make sure it exists
-        assert self.conv.account
+        assert self.conv.backend and self.conv.account
         self.conv_path = self._get_conv_path()
 
         # create logger with log name and log file
