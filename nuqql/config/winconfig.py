@@ -128,12 +128,14 @@ DEFAULT_LIST_WIN_FILTER_KEYBINDS = {
 # default ui layout
 DEFAULT_LAYOUT: Dict[str, Any] = {
     # window x and y sizes in percent
-    "LIST_WIN_Y_PER":   100,
-    "LIST_WIN_X_PER":   20,
-    "LOG_WIN_Y_PER":    80,
-    "LOG_WIN_X_PER":    80,
-    "INPUT_WIN_Y_PER":  20,
-    "INPUT_WIN_X_PER":  80,
+    "LIST_WIN_Y_PER":       100,
+    "LIST_WIN_X_PER":       20,
+    "LOG_WIN_Y_PER":        80,
+    "LOG_WIN_X_PER":        80,
+    "LOG_WIN_MAIN_Y_PER":   100,
+    "LOG_WIN_MAIN_X_PER":   80,
+    "INPUT_WIN_Y_PER":      20,
+    "INPUT_WIN_X_PER":      80,
 }
 
 # window default colors and attributes
@@ -232,6 +234,9 @@ class WinConfig:
             self._rel_yx = layout["LIST_WIN_Y_PER"], layout["LIST_WIN_X_PER"]
         if self._type == "log_win":
             self._rel_yx = layout["LOG_WIN_Y_PER"], layout["LOG_WIN_X_PER"]
+        if self._type == "log_win_main":
+            self._rel_yx = layout["LOG_WIN_MAIN_Y_PER"], \
+                    layout["LOG_WIN_MAIN_X_PER"]
         if self._type == "input_win":
             self._rel_yx = layout["INPUT_WIN_Y_PER"], layout["INPUT_WIN_X_PER"]
 
@@ -247,12 +252,13 @@ class WinConfig:
         win_config = {}
         win_config["list_win"] = DEFAULT_LIST_WIN_CONFIG
         win_config["log_win"] = DEFAULT_LOG_WIN_CONFIG
+        win_config["log_win_main"] = DEFAULT_LOG_WIN_CONFIG
         win_config["input_win"] = DEFAULT_INPUT_WIN_CONFIG
 
         # parse config read from file
         config = read_from_file()
         for section in config.sections():
-            if section in ("list_win", "log_win", "input_win"):
+            if section in ("list_win", "log_win", "log_win_main", "input_win"):
                 # overwrite default config entries
                 for key in config[section]:
                     if key in win_config[section]:
@@ -264,7 +270,7 @@ class WinConfig:
                             win_config[section][key] = config[section][key]
 
         # write (updated) config to file again
-        for win_type in ("list_win", "log_win", "input_win"):
+        for win_type in ("list_win", "log_win", "log_win_main", "input_win"):
             config[win_type] = win_config[win_type]
         write_to_file(config)
 
@@ -507,8 +513,11 @@ class WinConfig:
         keybinds["list_win"]["__filter__"] = \
             tmp_keybinds["list_win_filter_keybinds"]
         keybinds["log_win"] = tmp_keybinds["log_win_keybinds"]
+        keybinds["log_win_main"] = tmp_keybinds["log_win_keybinds"]
         # log win has additional keybinds for search input mode
         keybinds["log_win"]["__search__"] = \
+            tmp_keybinds["log_win_search_keybinds"]
+        keybinds["log_win_main"]["__search__"] = \
             tmp_keybinds["log_win_search_keybinds"]
         keybinds["input_win"] = tmp_keybinds["input_win_keybinds"]
 
@@ -544,6 +553,7 @@ class WinConfig:
         max_y, max_x = get("screen").getmaxyx()
         list_y, list_x = get("list_win").get_win_size(max_y, max_x)
         log_y, log_x = get("log_win").get_win_size(max_y, max_x)
+        log_main_y, log_main_x = get("log_win_main").get_win_size(max_y, max_x)
         input_y, input_x = get("input_win").get_win_size(max_y, max_x)
 
         # make sure input and log win use all available space
@@ -554,14 +564,24 @@ class WinConfig:
         if input_y + log_y > max_y:
             log_y = max(max_y - input_y, 3)
 
+        # reduce log main window height if necessary
+        if log_main_y > max_y:
+            log_main_y = max(max_y, 3)
+
         # reduce log and input window width if necessary
         if list_x + log_x > max_x:
             log_x = max(max_x - list_x, 3)
             input_x = max(max_x - list_x, 3)
 
+        # reduce log main window width if necessary
+        if list_x + log_main_x > max_x:
+            log_main_x = max(max_x - list_x, 3)
+
         # return height and width of this window
         if self._type == "log_win":
             return log_y, log_x
+        if self._type == "log_win_main":
+            return log_main_y, log_main_x
         if self._type == "input_win":
             return input_y, input_x
         if self._type == "list_win":
@@ -581,6 +601,8 @@ class WinConfig:
         if self._type == "list_win":
             return 0, 0
         if self._type == "log_win":
+            return 0, max_x - size_x
+        if self._type == "log_win_main":
             return 0, max_x - size_x
         if self._type == "input_win":
             return max_y - size_y, max_x - size_x

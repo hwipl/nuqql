@@ -29,30 +29,37 @@ def init_win(screen: Any) -> None:
 
     list_win = WinConfig("list_win")
     log_win = WinConfig("log_win")
+    log_win_main = WinConfig("log_win_main")
     input_win = WinConfig("input_win")
 
     list_win.init_layout()
     log_win.init_layout()
+    log_win_main.init_layout()
     input_win.init_layout()
 
     list_win.init_window_settings()
     log_win.init_window_settings()
+    log_win_main.init_window_settings()
     input_win.init_window_settings()
 
     list_win.init_colors()
     log_win.init_colors()
+    log_win_main.init_colors()
     input_win.init_colors()
 
     list_win.init_keymap()
     log_win.init_keymap()
+    log_win_main.init_keymap()
     input_win.init_keymap()
 
     list_win.init_keybinds()
     log_win.init_keybinds()
+    log_win_main.init_keybinds()
     input_win.init_keybinds()
 
     CONFIGS["list_win"] = list_win
     CONFIGS["log_win"] = log_win
+    CONFIGS["log_win_main"] = log_win_main
     CONFIGS["input_win"] = input_win
 
     # special "config" for main screen/window
