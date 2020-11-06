@@ -12,3 +12,4 @@ from .helper import \
 from .buddyconversation import BuddyConversation
 from .backendconversation import BackendConversation
 from .nuqqlconversation import NuqqlConversation
+from .mainconversation import MainConversation
