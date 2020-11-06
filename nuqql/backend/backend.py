@@ -392,7 +392,7 @@ class Backend:
         # print to main window
         log_msg = "Stopping client and server for backend \"{0}\".".format(
             self.name)
-        nuqql.conversation.log_main_window(log_msg)
+        nuqql.conversation.log_nuqql_conv(log_msg)
 
         # stop client and server
         self.stop_client()

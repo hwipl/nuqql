@@ -103,7 +103,7 @@ class BackendClient:
             reads, unused_writes, errs = select.select([self.sock, ], [],
                                                        [self.sock, ], 0)
         except OSError:
-            nuqql.conversation.log_main_window(BACKEND_ERROR)
+            nuqql.conversation.log_nuqql_conv(BACKEND_ERROR)
             logger.error("read error (select)")
             if self.backend:
                 self.backend.stop()
@@ -121,7 +121,7 @@ class BackendClient:
             try:
                 data = self.sock.recv(BUFFER_SIZE)
             except OSError:
-                nuqql.conversation.log_main_window(BACKEND_ERROR)
+                nuqql.conversation.log_nuqql_conv(BACKEND_ERROR)
                 logger.error("read error (recv)")
                 if self.backend:
                     self.backend.stop()
@@ -154,7 +154,7 @@ class BackendClient:
             self.sock.sendall(msg.encode())
             logger.debug("sent message: %s", msg)
         except OSError:
-            nuqql.conversation.log_main_window(BACKEND_ERROR)
+            nuqql.conversation.log_nuqql_conv(BACKEND_ERROR)
             logger.error("send error")
             if self.backend:
                 self.backend.stop()

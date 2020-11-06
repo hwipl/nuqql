@@ -191,7 +191,7 @@ def start_backend_client(backend: Backend) -> None:
 
     # let user know we are connecting
     log_msg = "Starting client for backend \"{0}\".".format(backend.name)
-    nuqql.conversation.log_main_window(log_msg)
+    nuqql.conversation.log_nuqql_conv(log_msg)
 
     # start backend client and connect to backend server
     backend.start_client()
@@ -200,7 +200,7 @@ def start_backend_client(backend: Backend) -> None:
     if not backend.client or not backend.client.sock:
         log_msg = "Could not connect to backend \"{0}\".".format(backend.name)
         logger.error("could not connect to backend %s", backend.name)
-        nuqql.conversation.log_main_window(log_msg)
+        nuqql.conversation.log_nuqql_conv(log_msg)
         backend.stop()
         return
 
@@ -290,7 +290,7 @@ def start_backends() -> None:
     start_nuqql()
 
     # start backends
-    nuqql.conversation.log_main_window("Starting backends.")
+    nuqql.conversation.log_nuqql_conv("Starting backends.")
     start_purpled()
     start_backends_from_path()
 
