@@ -132,6 +132,10 @@ class ListWin(Win):
         if not self.config.is_terminal_valid():
             return
 
+        # if list is empty, stop here
+        if not self.list:
+            return
+
         # screen/pad properties
         pos_y, pos_x = self.config.get_pos()
         win_size_y, win_size_x = self.win.getmaxyx()
