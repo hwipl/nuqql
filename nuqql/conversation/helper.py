@@ -93,6 +93,18 @@ def resize_main_window() -> None:
 
     # if there are no active conversations, redraw nuqql main windows
     if not found_active:
-        nuqql.win.MAIN_WINS["list"].redraw()
-        nuqql.win.MAIN_WINS["log"].redraw()
-        nuqql.win.MAIN_WINS["input"].redraw()
+        # list win
+        list_win = nuqql.win.MAIN_WINS["list"]
+        size_y, size_x = list_win.config.get_size()
+
+        list_win.resize_win(size_y, size_x)
+        list_win.redraw()
+
+        # log main win
+        log_win = nuqql.win.MAIN_WINS["log"]
+        size_y, size_x = log_win.config.get_size()
+        pos_y, pos_x = log_win.config.get_pos()
+
+        log_win.resize_win(size_y, size_x)
+        log_win.move_win(pos_y, pos_x)
+        log_win.redraw()
