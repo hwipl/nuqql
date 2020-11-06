@@ -280,7 +280,6 @@ class InputWin(Win):
         curses.curs_set(0)
 
         # redraw main windows
-        MAIN_WINS["input"].redraw()
         MAIN_WINS["log"].redraw()
 
         # assume user read all messages and set lastread to last message

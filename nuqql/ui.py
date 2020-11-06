@@ -328,6 +328,7 @@ def start(stdscr: Any, func: Callable) -> str:
     if not nuqql.config.WinConfig.is_terminal_valid():
         logger.error("terminal size invalid")
         return "Terminal size invalid."
+    nuqql.conversation.MainConversation(None, None, "").create_windows()
 
     # run function provided by caller
     return func()
