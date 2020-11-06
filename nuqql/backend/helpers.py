@@ -88,6 +88,10 @@ def start_backend(backend_name: str, backend_exe: str, backend_path: str,
     backend.conversation = conv
     conv.wins.list_win.redraw()
 
+    # log backend start
+    log_msg = "Starting backend \"{0}\".".format(backend.name)
+    nuqql.conversation.log_nuqql_conv(log_msg)
+
     # return the backend
     return backend
 
