@@ -44,6 +44,18 @@ def log_main_window(msg: str) -> None:
     nuqql.win.MAIN_WINS["log"].add(log_msg)
 
 
+def log_nuqql_conv(msg: str) -> None:
+    """
+    Log message to the nuqql conversation
+    """
+
+    logger.debug("logging message to nuqql conversation: %s", msg)
+    for conv in CONVERSATIONS:
+        if conv.name == "nuqql":
+            conv.log("nuqql", msg)
+            return
+
+
 def resize_main_window() -> None:
     """
     Resize main window
