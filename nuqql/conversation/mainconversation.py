@@ -29,7 +29,7 @@ class MainConversation(Conversation):
         self.wins.list_win = nuqql.win.ListWin(list_config, self,
                                                "Conversation list")
         self.wins.log_win = nuqql.win.LogWin(log_config, self,
-                                             "Welcome to nuqql")
+                                             f"nuqql v{nuqql.VERSION}")
 
         # list conversations in list window
         self.wins.list_win.list = nuqql.conversation.CONVERSATIONS
