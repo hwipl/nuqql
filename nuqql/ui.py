@@ -329,6 +329,14 @@ def start(stdscr: Any, func: Callable) -> str:
         logger.error("terminal size invalid")
         return "Terminal size invalid."
     nuqql.conversation.MainConversation(None, None, "").create_windows()
+    nuqql.conversation.log_main_window(f"Welcome to nuqql v{nuqql.VERSION}!")
+    nuqql.conversation.log_main_window("""Basic controls:
+  * Navigate with arrow keys
+  * Open conversation with <Enter>
+  * Send message with <Ctrl-x>
+  * Leave conversation with <Esc>
+  * Exit nuqql with "q"
+""")
 
     # run function provided by caller
     return func()
