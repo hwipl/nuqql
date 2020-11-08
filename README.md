@@ -84,9 +84,8 @@ Basic controls of nuqql are:
 * In a conversation:
   * Enter your message/command
   * Send message/command with `CTRL-x`
-  * Switch to chat log window with `CTRL-o`
+  * Switch to chat log window with `CTRL-o` or `F9`
     * Search chat log with `/`
-    * Zoom chat log with `F9`
   * Leave conversation with the `ESC` key
 * Exit nuqql with the `q` key when you are in no conversation
 
