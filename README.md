@@ -19,7 +19,8 @@ supports the following backends:
   nuqql-mattermostd uses the Mattermost Golang Driver and allows nuqql to
   connect to Mattermost servers
 * [purpled](https://github.com/hwipl/purpled): purpled uses libpurple and
-  allows nuqql to connect to multiple chat networks.
+  allows nuqql to connect to multiple chat networks. Note: purpled is less
+  tested than other backends, so you might want to prefer other backends.
 
 
 ## Quick Start
