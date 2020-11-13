@@ -279,6 +279,7 @@ def start_nuqql() -> None:
     conv = nuqql.conversation.NuqqlConversation(backend, None, backend.name)
     conv.create_windows()
     backend.conversation = conv
+    conv.wins.list_win.redraw()
     nuqql.conversation.log_nuqql_conv(f"Started nuqql v{VERSION}.")
     logger.debug("started nuqql backend version %s", VERSION)
 
