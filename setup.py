@@ -8,7 +8,7 @@ import os
 import re
 import codecs
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 # setup parameters
 DESCRIPTION = "Command line instant messenger inspired by centericq/centerim"
@@ -55,7 +55,7 @@ setup(
     author="hwipl",
     author_email="nuqql@hwipl.net",
     url="https://github.com/hwipl/nuqql",
-    packages=["nuqql", "nuqql.tools"],
+    packages=find_packages(include=["nuqql", "nuqql.*"]),
     entry_points={
         "console_scripts": ["nuqql = nuqql.main:run",
                             "nuqql-keys = nuqql.tools.nuqql_keys:main"]
