@@ -5,6 +5,7 @@ Nuqql UI Windows
 import curses
 import logging
 import re
+import unicodedata
 
 from typing import TYPE_CHECKING, Any, List
 
@@ -402,6 +403,9 @@ class ListWin(Win):
                     keyfunc=self.filter_keyfunc):
                 # no special key, add character to filter
                 try:
+                    # filter special keys
+                    if unicodedata.category(char)[0] == "C":
+                        return
                     self.filter += char
                     self._process_filter_nearest()
                 except (ValueError, TypeError):
