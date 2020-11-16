@@ -2,6 +2,15 @@
 
 This file contains the changes in each nuqql version:
 
+## devel:
+* UI changes
+  * Add welcome screen
+  * Improve scrolling to the left/right in input window
+* Add missing packages to setup.py; pip installation should work now
+* Cleanups, fixes and improvements
+* Requires nuqql-slixmppd v0.6.0, nuqql-matrixd v0.4.0,
+  nuqql-matrixd-nio v0.1.0, nuqql-mattermostd v0.1.0, or purpled v0.5
+
 ## v0.9.0:
 * Add backend support:
   * nuqql-matrixd-nio
