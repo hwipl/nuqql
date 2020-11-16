@@ -2,7 +2,7 @@
 
 This file contains the changes in each nuqql version:
 
-## devel:
+## v0.10.0:
 * UI changes
   * Add welcome screen
   * Improve scrolling to the left/right in input window
