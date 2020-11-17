@@ -6,4 +6,4 @@ from .config import \
         init, \
         parse_args
 from .configs import get
-from .winconfig import WinConfig
+from .winconfig import DEFAULT_KEYMAP, WinConfig
