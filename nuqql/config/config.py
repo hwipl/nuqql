@@ -180,6 +180,8 @@ def parse_args() -> None:
     parser.add_argument("--loglevel", choices=["debug", "info", "warn",
                                                "error"],
                         help="Logging level")
+    parser.add_argument("--escdelay", default="100",
+                        help="ESC delay for curses")
     args = parser.parse_args()
 
     # configure loglevel and logging
@@ -187,3 +189,6 @@ def parse_args() -> None:
     if args.loglevel:
         CONFIGS["loglevel"] = args.loglevel
     init_logging()
+
+    # configure esc delay
+    CONFIGS["escdelay"] = args.escdelay

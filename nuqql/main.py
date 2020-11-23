@@ -44,7 +44,7 @@ def _set_esc_delay() -> None:
     Configure ESC delay for curses
     """
 
-    os.environ.setdefault("ESCDELAY", "100")
+    os.environ.setdefault("ESCDELAY", nuqql.config.get("escdelay"))
 
 
 # main entry point
