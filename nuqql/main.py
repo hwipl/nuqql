@@ -3,6 +3,7 @@ Main part of nuqql.
 """
 
 import logging
+import os
 import signal
 
 import nuqql.backend
@@ -38,6 +39,14 @@ def main_loop() -> str:
     return ""
 
 
+def _set_esc_delay() -> None:
+    """
+    Configure ESC delay for curses
+    """
+
+    os.environ.setdefault("ESCDELAY", "100")
+
+
 # main entry point
 def run() -> None:
     """
@@ -52,6 +61,9 @@ def run() -> None:
 
     # ignore SIGINT
     signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+    # configure esc delay for curses
+    _set_esc_delay()
 
     # initialize ui and run main_loop
     nuqql.ui.init(main_loop)
