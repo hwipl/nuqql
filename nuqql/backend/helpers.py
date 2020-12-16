@@ -96,38 +96,6 @@ def start_backend(backend_name: str, backend_exe: str, backend_path: str,
     return backend
 
 
-def start_purpled() -> Optional[Backend]:
-    """
-    Helper for starting the "purpled" backend
-    """
-
-    logger.debug("trying to find backend purpled")
-
-    # check if purpled exists in path
-    exe = shutil.which("purpled", path=os.getcwd())
-    if exe is None:
-        exe = shutil.which("purpled")
-    if exe is None:
-        # does not exist, stop here
-        return None
-    logger.debug("found backend purpled in file %s", exe)
-
-    ###########
-    # purpled #
-    ###########
-
-    logger.debug("starting backend purpled")
-
-    backend_name = "purpled"
-    backend_exe = "purpled"
-    backend_path = str(Path.home()) + "/.config/nuqql/backend/purpled"
-    backend_cmd_fmt = "{0} -u -w{1}"
-    backend_sockfile = backend_path + "/purpled.sock"
-
-    return start_backend(backend_name, backend_exe, backend_path,
-                         backend_cmd_fmt, backend_sockfile)
-
-
 def start_backend_from_path(filename) -> Optional[Backend]:
     """
     Helper for starting a single backend found in PATH.
@@ -160,6 +128,8 @@ def _is_backend_filename(filename: str) -> bool:
 
     if filename.startswith("nuqql-"):
         return True
+    if filename == "purpled":
+        return True
     return False
 
 
@@ -168,6 +138,8 @@ def _get_backend_name(filename: str) -> str:
     Return the backend name for given backend filename
     """
 
+    if filename == "purpled":
+        return filename
     return filename[6:]
 
 
@@ -263,15 +235,11 @@ def restart_backend(backend_name: str) -> None:
     # try to start backend
     backend = None
 
-    # extra check for purpled, other backends are started from PATH
-    if backend_name == "purpled":
-        backend = start_purpled()
-    else:
-        for filename in get_backends_from_path():
-            # ignore "nuqql-" in filename
-            if backend_name == _get_backend_name(filename):
-                backend = start_backend_from_path(filename)
-                break
+    # backends are started from PATH
+    for filename in get_backends_from_path():
+        if backend_name == _get_backend_name(filename):
+            backend = start_backend_from_path(filename)
+            break
 
     # start the backend client
     if backend:
@@ -314,7 +282,6 @@ def start_backends() -> None:
 
     # start backends
     nuqql.conversation.log_nuqql_conv("Starting backends.")
-    start_purpled()
     start_backends_from_path()
 
     # start backend clients
