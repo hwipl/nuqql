@@ -153,6 +153,16 @@ def start_backend_from_path(filename) -> Optional[Backend]:
                          backend_cmd_fmt, backend_sockfile)
 
 
+def _is_backend_filename(filename: str) -> bool:
+    """
+    Check if given filename matches a backend name
+    """
+
+    if filename.startswith("nuqql-"):
+        return True
+    return False
+
+
 def get_backends_from_path() -> List[str]:
     """
     Get a list of backends found in PATH.
@@ -166,7 +176,7 @@ def get_backends_from_path() -> List[str]:
         with os.scandir(path_dir) as path:
             for entry in path:
                 if entry.is_file() and \
-                   entry.name.startswith("nuqql-") and \
+                   _is_backend_filename(entry.name) and \
                    entry.name not in BACKEND_BLACKLIST and \
                    entry.name not in backends:
                     backends.append(entry.name)
