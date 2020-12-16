@@ -135,7 +135,7 @@ def start_backend_from_path(filename) -> Optional[Backend]:
 
     logger.debug("starting backend found in PATH")
 
-    backend_name = filename[6:]
+    backend_name = _get_backend_name(filename)
     backend_exe = filename
     backend_path = str(Path.home()) + f"/.config/nuqql/backend/{backend_name}"
     backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile " + \
@@ -161,6 +161,14 @@ def _is_backend_filename(filename: str) -> bool:
     if filename.startswith("nuqql-"):
         return True
     return False
+
+
+def _get_backend_name(filename: str) -> str:
+    """
+    Return the backend name for given backend filename
+    """
+
+    return filename[6:]
 
 
 def get_backends_from_path() -> List[str]:
@@ -261,7 +269,7 @@ def restart_backend(backend_name: str) -> None:
     else:
         for filename in get_backends_from_path():
             # ignore "nuqql-" in filename
-            if backend_name == filename[6:]:
+            if backend_name == _get_backend_name(filename):
                 backend = start_backend_from_path(filename)
                 break
 
