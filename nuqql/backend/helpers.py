@@ -199,12 +199,13 @@ def start_backend_client(backend: Backend) -> None:
         return
 
     # request accounts from backend
-    backend.client.send_accounts()
+    if not BACKEND_PUSH_ACCOUNTS:
+        backend.client.send_accounts()
 
-    # log it
-    log_msg = "Collecting accounts for \"{0}\".".format(backend.name)
-    if backend.conversation:
-        backend.conversation.log("nuqql", log_msg)
+        # log it
+        log_msg = "Collecting accounts for \"{0}\".".format(backend.name)
+        if backend.conversation:
+            backend.conversation.log("nuqql", log_msg)
 
 
 def start_backend_clients() -> None:
