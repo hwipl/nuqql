@@ -112,10 +112,11 @@ class BuddyConversation(Conversation):
         assert self.account and self.backend and self.backend.client
         logger.debug("sending group message %s in conversation %s", msg,
                      self.name)
-        log_msg = self.log("you", msg, own=True)
 
         # check for special commands
         if msg == "/names":
+            log_msg = self.log("you", msg, own=True)
+
             # TODO: use peers list for this?
             # create user list command
             msg = "account {} chat users {}".format(self.account.aid,
@@ -125,6 +126,8 @@ class BuddyConversation(Conversation):
             return
 
         if msg == "/part":
+            log_msg = self.log("you", msg, own=True)
+
             # create chat part command
             msg = "account {} chat part {}".format(self.account.aid,
                                                    self.name)
@@ -133,6 +136,8 @@ class BuddyConversation(Conversation):
             return
 
         if msg.startswith("/invite "):
+            log_msg = self.log("you", msg, own=True)
+
             parts = msg.split()
             if len(parts) > 1:
                 # create chat invite command
@@ -144,6 +149,8 @@ class BuddyConversation(Conversation):
                 return
 
         if msg == "/join":
+            log_msg = self.log("you", msg, own=True)
+
             # TODO: allow specification of another group chat?
             # create chat join command
             msg = "account {} chat join {}".format(self.account.aid,
@@ -154,7 +161,12 @@ class BuddyConversation(Conversation):
 
         # send and log group chat message
         self.backend.client.send_group_msg(self.account.aid, self.name, msg)
-        self.history.log_to_file(log_msg)
+
+        # mattermost sends all group chat messages including our own to us, so
+        # do not log them here
+        if self.account.type != "mattermost":
+            log_msg = self.log("you", msg, own=True)
+            self.history.log_to_file(log_msg)
 
     def send_msg(self, msg: str) -> None:
         """
