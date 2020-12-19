@@ -30,6 +30,12 @@ def handle_message(*args: Any) -> None:
     # convert timestamp
     tstamp = datetime.datetime.fromtimestamp(tstamp)
 
+    # own message?
+    own = False
+    if sender == "<self>":
+        own = True
+        sender = "you"
+
     # look for an existing conversation and use it
     for conv in nuqql.conversation.CONVERSATIONS:
         if conv.backend is backend and \
@@ -37,7 +43,7 @@ def handle_message(*args: Any) -> None:
            conv.name == chat:
             # log message
             logger.debug("found conversation %s for message", conv.name)
-            log_msg = conv.log(sender, msg, tstamp=tstamp)
+            log_msg = conv.log(sender, msg, tstamp=tstamp, own=own)
             conv.history.log_to_file(log_msg)
 
             # if window is not already active notify user
@@ -60,7 +66,7 @@ def handle_message(*args: Any) -> None:
         logger.debug("created temporary conversation %s", conv.name)
 
         # log message
-        log_msg = conv.log(sender, msg, tstamp=tstamp)
+        log_msg = conv.log(sender, msg, tstamp=tstamp, own=own)
         conv.history.log_to_file(log_msg)
 
         # if window is not already active notify user
