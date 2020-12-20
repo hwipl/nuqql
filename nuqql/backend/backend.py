@@ -171,7 +171,8 @@ class Backend:
                         resource = sender_parts[1]
                     break
                 if tmp_acc.type == "matrix":
-                    resource = sender[1:].split(":")[0]
+                    if sender != "<self>":
+                        resource = sender[1:].split(":")[0]
                     sender = parsed_msg[2]
                     break
         return sender, resource
