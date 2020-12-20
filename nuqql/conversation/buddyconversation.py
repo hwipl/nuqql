@@ -164,7 +164,7 @@ class BuddyConversation(Conversation):
 
         # mattermost sends all group chat messages including our own to us, so
         # do not log them here
-        if self.account.type != "mattermost":
+        if self.account.type not in ("matrix", "mattermost"):
             log_msg = self.log("you", msg, own=True)
             self.history.log_to_file(log_msg)
 
