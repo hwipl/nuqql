@@ -115,7 +115,7 @@ class BuddyConversation(Conversation):
 
         # check for special commands
         if msg == "/names":
-            log_msg = self.log("you", msg, own=True)
+            self.log("you", msg, own=True)
 
             # TODO: use peers list for this?
             # create user list command
@@ -126,7 +126,7 @@ class BuddyConversation(Conversation):
             return
 
         if msg == "/part":
-            log_msg = self.log("you", msg, own=True)
+            self.log("you", msg, own=True)
 
             # create chat part command
             msg = "account {} chat part {}".format(self.account.aid,
@@ -136,7 +136,7 @@ class BuddyConversation(Conversation):
             return
 
         if msg.startswith("/invite "):
-            log_msg = self.log("you", msg, own=True)
+            self.log("you", msg, own=True)
 
             parts = msg.split()
             if len(parts) > 1:
@@ -149,7 +149,7 @@ class BuddyConversation(Conversation):
                 return
 
         if msg == "/join":
-            log_msg = self.log("you", msg, own=True)
+            self.log("you", msg, own=True)
 
             # TODO: allow specification of another group chat?
             # create chat join command
@@ -159,14 +159,10 @@ class BuddyConversation(Conversation):
             self.backend.client.send_command(msg)
             return
 
-        # send and log group chat message
+        # send group chat message
+        # note: backends send all group chat messages including our own to us,
+        # so do not log them here
         self.backend.client.send_group_msg(self.account.aid, self.name, msg)
-
-        # mattermost sends all group chat messages including our own to us, so
-        # do not log them here
-        if self.account.type not in ("matrix", "mattermost"):
-            log_msg = self.log("you", msg, own=True)
-            self.history.log_to_file(log_msg)
 
     def send_msg(self, msg: str) -> None:
         """
