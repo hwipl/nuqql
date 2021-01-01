@@ -469,7 +469,14 @@ account id `<id>`.
 
 #### Reply
 
-The backend does not send a reply for a `chat send` message.
+```
+chat: msg: <acc_id> <chat> <timestamp> <self> <message>
+```
+
+The backend sends the sent message back to the backend client as a `chat msg`
+message with the special sender name `<self>`. Note: this is the literal name
+`<self>` and not a variable. The remainder of the message is as described in
+the section "Receiving a Message from a Group Chat".
 
 
 #### Examples
