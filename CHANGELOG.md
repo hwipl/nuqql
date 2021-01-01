@@ -2,6 +2,18 @@
 
 This file contains the changes in each nuqql version:
 
+## devel:
+* Set default `ESC` delay to 100ms and add the `--escdelay` command line
+  argument for configuring it
+* Update backend handling
+  * Expect backends to send own messages in group chats back to nuqql with the
+    sender `<self>` and handle these messages accordingly
+  * Disable collecting accounts from backends and rely on the backend setting
+    `--push-accounts`
+  * Start purpled like other backends
+* Requires nuqql-slixmppd devel, nuqql-matrixd devel,
+  nuqql-matrixd-nio devel, nuqql-mattermostd devel, or purpled devel
+
 ## v0.10.0:
 * UI changes
   * Add welcome screen
