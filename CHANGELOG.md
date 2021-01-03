@@ -11,8 +11,8 @@ This file contains the changes in each nuqql version:
   * Disable collecting accounts from backends and rely on the backend setting
     `--push-accounts`
   * Start purpled like other backends
-* Requires nuqql-slixmppd devel, nuqql-matrixd devel,
-  nuqql-matrixd-nio devel, nuqql-mattermostd devel, or purpled devel
+* Requires nuqql-slixmppd v0.7.0, nuqql-matrixd v0.5.0,
+  nuqql-matrixd-nio v0.2.0, nuqql-mattermostd v0.2.0, or purpled v0.6.0
 
 ## v0.10.0:
 * UI changes
