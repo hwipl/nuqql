@@ -2,7 +2,7 @@
 
 This file contains the changes in each nuqql version:
 
-## devel:
+## v0.11.0:
 * Set default `ESC` delay to 100ms and add the `--escdelay` command line
   argument for configuring it
 * Update backend handling
