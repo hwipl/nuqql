@@ -191,7 +191,7 @@ def remove_buddy(buddy: "Buddy") -> None:
     Remove a buddy from the UI
     """
 
-    for index, conv in enumerate(nuqql.conversation.CONVERSATIONS):
+    for conv in nuqql.conversation.CONVERSATIONS:
         if not isinstance(conv, nuqql.conversation.BuddyConversation):
             continue
         if conv.temporary:
@@ -208,7 +208,7 @@ def remove_buddy(buddy: "Buddy") -> None:
                 conv.wins.input_win.go_back()
 
             # remove conversation
-            del nuqql.conversation.CONVERSATIONS[index]
+            conv.wins.list_win.remove(conv)
             conv.wins.list_win.redraw()
             logger.debug("removed buddy %s from ui", buddy.name)
             return

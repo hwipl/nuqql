@@ -27,7 +27,7 @@ def remove_backend_conversations(backend: "Backend") -> None:
     logger.debug("removing all conversations of backend %s", backend.name)
     for conv in CONVERSATIONS[:]:
         if conv.backend == backend:
-            CONVERSATIONS.remove(conv)
+            conv.wins.list_win.remove(conv)
             conv.wins.list_win.redraw()
             logger.debug("removed conversation %s of backend %s",
                          conv.name, backend.name)

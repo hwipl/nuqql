@@ -63,15 +63,13 @@ class BackendConversation(Conversation):
 
         # check for existing conversation
         existing_conv = None
-        existing_conv_index = -1
-        for index, conv in enumerate(CONVERSATIONS):
+        for conv in CONVERSATIONS:
             if not isinstance(conv, nuqql.conversation.BuddyConversation):
                 continue
             if conv.backend == backend and \
                conv.account == account and \
                conv.name == name:
                 existing_conv = conv
-                existing_conv_index = index
                 break
 
         # join: account <id> chat join <name>
@@ -90,7 +88,7 @@ class BackendConversation(Conversation):
         if cmd == "part":
             # if it is (still) a temporary group conversation, remove it again
             if existing_conv and existing_conv.temporary:
-                del CONVERSATIONS[existing_conv_index]
+                existing_conv.wins.list_win.remove(existing_conv)
                 existing_conv.wins.list_win.redraw()
 
     def _check_command(self, msg: str) -> None:

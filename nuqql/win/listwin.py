@@ -50,6 +50,23 @@ class ListWin(Win):
         logger.debug("adding entry %s", entry)
         self.list_add(self.list, entry)
 
+    def remove(self, entry: "Conversation") -> None:
+        """
+        Remove entry at index from internal list
+        """
+
+        # get index of entry
+        index = self.list.index(entry)
+
+        # move current cursor position if necessary
+        if index <= self.state.cur_y:
+            self.state.cur_y = max(0, self.state.cur_y - 1)
+            self.pad.move(self.state.cur_y, self.state.cur_x)
+
+        # remove entry
+        logger.debug("removing entry %s with index %d", entry, index)
+        del self.list[index]
+
     def _match_filter(self, name: str) -> bool:
         """
         check if name matches the currently active filter
@@ -150,10 +167,6 @@ class ListWin(Win):
             pad_size_x = win_size_x - 2
 
         # store last selected entry
-        if self.state.cur_y >= len(self.list):
-            # make sure cur_y is still "within" the list. Length difference
-            # should be only 1, because buddies get removed individually
-            self.state.cur_y = max(0, self.state.cur_y - 1)
         last_selected = self.list[self.state.cur_y]
 
         # sort list
