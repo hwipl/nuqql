@@ -8,9 +8,9 @@ import curses
 import curses.ascii
 import configparser
 
-from pathlib import Path
 from typing import Any, Dict
 
+import nuqql.config
 from nuqql.config import DEFAULT_KEYMAP
 
 
@@ -20,7 +20,7 @@ def _write_keymap_to_file(keymap: Dict[str, Any]) -> None:
     """
 
     # read config file if it exists
-    config_file = Path.home() / ".config/nuqql/config.ini"
+    config_file = nuqql.config.get("nuqql") / "/config.ini"
     config = configparser.ConfigParser()
     config.optionxform = lambda option: option  # type: ignore
     config.read(config_file)

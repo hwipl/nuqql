@@ -9,6 +9,7 @@ import os
 
 from typing import List, Optional, TYPE_CHECKING
 
+import nuqql.config
 from .logmessage import LogMessage
 
 if TYPE_CHECKING:   # imports for typing
@@ -41,8 +42,8 @@ class History:
 
         # construct directory path
         assert self.conv.backend and self.conv.account
-        conv_dir = str(pathlib.Path.home()) + \
-            "/.config/nuqql/conversation/{}/{}/{}".format(
+        conv_dir = str(nuqql.config.get("dir")) + \
+            "/conversation/{}/{}/{}".format(
                 self.conv.backend.name, self.conv.account.aid, self.conv.name)
 
         # make sure directory exists

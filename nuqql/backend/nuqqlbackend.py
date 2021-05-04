@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 from typing import Callable, List
 
+import nuqql.config
 from .backend import Backend
 
 logger = logging.getLogger(__name__)
@@ -94,7 +95,7 @@ class NuqqlBackend(Backend):
         logger.debug("writing global status %s to file", status)
 
         # write status to file
-        global_status_dir = str(Path.home()) + "/.config/nuqql"
+        global_status_dir = str(nuqql.config.get("dir"))
         Path(global_status_dir).mkdir(parents=True, exist_ok=True)
         global_status_file = global_status_dir + "/global_status"
         line = status + "\n"

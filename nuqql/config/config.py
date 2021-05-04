@@ -108,7 +108,7 @@ def init_path() -> None:
     Initialize configuration path. Make sure config directories exist.
     """
 
-    config_path = Path.home() / ".config/nuqql"
+    config_path = CONFIGS["dir"]
     Path(config_path).mkdir(parents=True, exist_ok=True)
     logger.debug("initialized config path %s", config_path)
 
@@ -148,7 +148,7 @@ def init_logging() -> None:
     fmt = "%(asctime)s - %(levelname)-5.5s - %(name)s - %(message)s"
     formatter = logging.Formatter(fmt=fmt)
 
-    file_name = Path.home() / ".config/nuqql" / "nuqql.log"
+    file_name = CONFIGS["dir"] / "nuqql.log"
     fileh = logging.FileHandler(file_name)
     fileh.setLevel(loglevel)
     fileh.setFormatter(formatter)
@@ -182,7 +182,12 @@ def parse_args() -> None:
                         help="Logging level")
     parser.add_argument("--escdelay", default="100",
                         help="ESC delay for curses")
+    parser.add_argument("--dir", default=Path.home() / ".config/nuqql",
+                        help="nuqql directory")
     args = parser.parse_args()
+
+    # configure nuqql directory
+    CONFIGS["dir"] = Path(args.dir)
 
     # configure loglevel and logging
     CONFIGS["loglevel"] = ""

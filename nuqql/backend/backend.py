@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
+import nuqql.config
 import nuqql.conversation
 import nuqql.ui
 
@@ -370,7 +371,7 @@ class Backend:
         logger.debug("reading global status in backend %s", self.name)
 
         # if there is a global_status file, read it
-        global_status_dir = str(Path.home()) + "/.config/nuqql"
+        global_status_dir = str(nuqql.config.get("dir"))
         Path(global_status_dir).mkdir(parents=True, exist_ok=True)
         global_status_file = global_status_dir + "/global_status"
         try:

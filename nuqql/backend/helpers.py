@@ -7,7 +7,6 @@ import shutil
 import os
 import time
 
-from pathlib import Path
 from typing import Dict, List, Optional
 
 import nuqql.config
@@ -105,7 +104,7 @@ def start_backend_from_path(filename) -> Optional[Backend]:
 
     backend_name = _get_backend_name(filename)
     backend_exe = filename
-    backend_path = str(Path.home()) + f"/.config/nuqql/backend/{backend_name}"
+    backend_path = str(nuqql.config.get("dir")) + f"/backend/{backend_name}"
     backend_cmd_fmt = "{0} --af unix --dir {1} --sockfile " + \
         f"{backend_name}.sock"
     if BACKEND_DISABLE_HISTORY:
