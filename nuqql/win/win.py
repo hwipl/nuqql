@@ -166,16 +166,14 @@ class Win:
         pad_rect_y, pad_rect_x = self._get_pad_rect_size()
 
         # do not move visible area too far to the left
-        if self.state.pad_x < 0:
-            self.state.pad_x = 0
+        self.state.pad_x = max(self.state.pad_x, 0)
 
         # do not move visible area too far to the right
         if self.state.pad_x + pad_rect_x > pad_size_x:
             self.state.pad_x = pad_size_x - pad_rect_x
 
         # do not move visible area too far up
-        if self.state.pad_y < 0:
-            self.state.pad_y = 0
+        self.state.pad_y = max(self.state.pad_y, 0)
 
         # do not move visible area too far down
         if self.state.pad_y + pad_rect_y > pad_size_y:

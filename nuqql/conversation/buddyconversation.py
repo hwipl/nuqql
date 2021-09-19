@@ -185,7 +185,7 @@ class BuddyConversation(Conversation):
         # handle group chat messages separately
         if self.peers:
             buddy = self.peers[0]
-            if buddy.status == "grp" or buddy.status == "grp_invite":
+            if buddy.status in ("grp", "grp_invite"):
                 self.group_send_msg(msg)
                 return
 
