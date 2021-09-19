@@ -2,6 +2,7 @@
 Nuqql UI Log Windows
 """
 
+import curses
 import logging
 
 from types import SimpleNamespace
@@ -497,6 +498,27 @@ class LogWin(Win):
         self.search_input = ""
         self._process_search_input_show()
 
+    def _search_abort(self) -> bool:
+        """
+        Check if ongoing search should be aborted
+        """
+
+        keybinds = {
+            "KEY_ESC": "GO_BACK",
+        }
+        keyfunc = {
+            "GO_BACK":      self._process_search_input_abort,
+        }
+        self.win.timeout(0)
+        try:
+            char = self.win.get_wch()
+            if self.handle_keybinds(
+                    char, keybinds=keybinds, keyfunc=keyfunc):
+                return True
+        except curses.error:
+            pass
+        return False
+
     def _search_next(self, *args: Any) -> None:
         """
         Search for next match
@@ -510,7 +532,7 @@ class LogWin(Win):
         props = self._get_properties()
 
         # search views for text until first view
-        while self.view.cur >= 0:
+        while self.view.cur >= 0 and not self._search_abort():
             # search current view for text until first line
             while self.state.cur_y >= 0:
                 _cur_text = self.pad.instr(self.state.cur_y, 0)
@@ -573,7 +595,8 @@ class LogWin(Win):
             self.state.cur_x += len(self.search_text)
 
         # search views for text until last view
-        while self.view.cur <= max(0, len(self.list) - view_size):
+        while (self.view.cur <= max(0, len(self.list) - view_size) and
+               not self._search_abort()):
             # search current view for text until end of view
             while self.state.cur_y <= self.pad.getmaxyx()[0]:
                 _cur_text = self.pad.instr(self.state.cur_y, 0)
