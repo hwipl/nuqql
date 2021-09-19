@@ -79,7 +79,7 @@ class ListWin(Win):
         # construct regurlar expression
         regex = ".*"
         for char in self.filter[1:].lower():
-            regex += "{}.*".format(char)
+            regex += f"{char}.*"
 
         # check if any words in name match regular expression
         for word in name.lower().split():
