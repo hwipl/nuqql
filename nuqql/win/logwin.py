@@ -46,6 +46,9 @@ class LogWin(Win):
             cur=-1
         )
 
+        # set window timeout for _search_abort()
+        self.win.timeout(0)
+
     def add(self, entry: "LogMessage") -> None:
         """
         Add entry to internal list
@@ -509,7 +512,6 @@ class LogWin(Win):
         keyfunc = {
             "GO_BACK":      self._process_search_input_abort,
         }
-        self.win.timeout(0)
         try:
             char = self.win.get_wch()
             if self.handle_keybinds(
