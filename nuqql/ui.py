@@ -88,11 +88,10 @@ def handle_chat_message(*args: Any) -> bool:
            conv.name == chat:
             # log chat message/event
             if alias == nick:
-                log_msg = conv.log(chat, "{} {} [{}]".format(ctype, nick,
-                                                             status))
+                log_msg = conv.log(chat, f"{ctype} {nick} [{status}]")
             else:
-                log_msg = conv.log(chat, "{} {} ({}) [{}]".format(
-                    ctype, alias, nick, status))
+                log_msg = conv.log(chat, (f"{ctype} {alias} ({nick}) "
+                                          f"[{status}]"))
             conv.history.log_to_file(log_msg)
 
             # if window is not already active notify user
