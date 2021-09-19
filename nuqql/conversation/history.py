@@ -43,8 +43,8 @@ class History:
         # construct directory path
         assert self.conv.backend and self.conv.account
         conv_dir = str(nuqql.config.get("dir")) + \
-            "/conversation/{}/{}/{}".format(
-                self.conv.backend.name, self.conv.account.aid, self.conv.name)
+            (f"/conversation/{self.conv.backend.name}/"
+             f"{self.conv.account.aid}/{self.conv.name}")
 
         # make sure directory exists
         pathlib.Path(conv_dir).mkdir(parents=True, exist_ok=True)
@@ -95,9 +95,8 @@ class History:
         self.conv_path = self._get_conv_path()
 
         # create logger with log name and log file
-        log_name = "nuqql.history.{}.{}.{}".format(self.conv.backend.name,
-                                                   self.conv.account.aid,
-                                                   self.conv.name)
+        log_name = (f"nuqql.history.{self.conv.backend.name}."
+                    f"{self.conv.account.aid}.{self.conv.name}")
         self.log_file = self.conv_path + HISTORY_FILE
         self.logger = self._get_logger(log_name, self.log_file)
 
@@ -137,7 +136,7 @@ class History:
             sender = "you"
         msg = log_msg.msg
 
-        return "{} {} {} {}".format(tstamp, direction, sender, msg)
+        return f"{tstamp} {direction} {sender} {msg}"
 
     def get_lastread(self) -> Optional[LogMessage]:
         """
@@ -237,8 +236,8 @@ class History:
                    prev_msg.tstamp.date() != log_msg.tstamp.date():
                     date_change_msg = LogMessage(
                         log_msg.tstamp,
-                        "<event>", "<Date changed to {}>".format(
-                            log_msg.tstamp.date()), own=True)
+                        "<event>", (f"<Date changed to "
+                                    f"{log_msg.tstamp.date()}>"), own=True)
                     date_change_msg.is_read = True
                     self.log.append(date_change_msg)
                 prev_msg = log_msg
@@ -254,8 +253,8 @@ class History:
             # if there were any log messages in the log file, put a marker in
             # the log where the new messages start
             tstamp = datetime.datetime.now()
-            new_conv_msg = "<Started new conversation at {}.>".format(
-                tstamp.strftime("%Y-%m-%d %H:%M:%S"))
+            tstamp_str = tstamp.strftime("%Y-%m-%d %H:%M:%S")
+            new_conv_msg = f"<Started new conversation at {tstamp_str}.>"
             log_msg = LogMessage(tstamp, "<event>", new_conv_msg, own=True)
             log_msg.is_read = True
             self.log.append(log_msg)
