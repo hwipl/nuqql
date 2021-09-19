@@ -31,8 +31,8 @@ class BackendConversation(Conversation):
         logger.debug("creating windows for conversation %s", self.name)
 
         # create command windows for backends
-        log_title = "Command log of {0}".format(self.name)
-        input_title = "Command to {0}".format(self.name)
+        log_title = f"Command log of {self.name}"
+        input_title = f"Command to {self.name}"
         self._create_windows_common(log_title, input_title)
 
         self.wins.list_win = nuqql.win.MAIN_WINS["list"]
@@ -43,7 +43,7 @@ class BackendConversation(Conversation):
         """
 
         notify = self._get_name_notification()
-        return "{0}{{backend}} {1}".format(notify, self.name)
+        return f"{notify}{{backend}} {self.name}"
 
     def get_key(self) -> Tuple:
         """

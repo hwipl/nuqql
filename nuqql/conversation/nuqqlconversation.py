@@ -42,7 +42,7 @@ class NuqqlConversation(Conversation):
         """
 
         notify = self._get_name_notification()
-        return "{0}{{nuqql}}".format(notify)
+        return f"{notify}{{nuqql}}"
 
     def get_key(self) -> Tuple:
         """

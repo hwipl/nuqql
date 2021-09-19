@@ -45,8 +45,8 @@ class BuddyConversation(Conversation):
         logger.debug("creating windows for conversation %s", self.name)
 
         # create standard chat windows
-        log_title = "Chat log with {0}".format(self.name)
-        input_title = "Message to {0}".format(self.name)
+        log_title = f"Chat log with {self.name}"
+        input_title = f"Message to {self.name}"
         self._create_windows_common(log_title, input_title)
 
         # try to read old messages from message history
@@ -72,8 +72,8 @@ class BuddyConversation(Conversation):
             peer = self.peers[0]
             # unquote the alias, e.g., remove %20 for whitespace
             alias = urllib.parse.unquote(peer.alias)
-            return "{0}[{1}] {2}".format(notify, peer.status, alias)
-        return "{0}[{1}] {2}".format(notify, "off", self.name)
+            return f"{notify}[{peer.status}] {alias}"
+        return f"{notify}[off] {self.name}"
 
     def get_key(self) -> Tuple:
         """
@@ -119,8 +119,8 @@ class BuddyConversation(Conversation):
 
             # TODO: use peers list for this?
             # create user list command
-            msg = "account {} chat users {}".format(self.account.aid,
-                                                    self.name)
+            msg = f"account {self.account.aid} chat users {self.name}"
+
             # send command message to backend
             self.backend.client.send_command(msg)
             return
@@ -129,8 +129,8 @@ class BuddyConversation(Conversation):
             self.log("you", msg, own=True)
 
             # create chat part command
-            msg = "account {} chat part {}".format(self.account.aid,
-                                                   self.name)
+            msg = f"account {self.account.aid} chat part {self.name}"
+
             # send command message to backend
             self.backend.client.send_command(msg)
             return
@@ -142,8 +142,9 @@ class BuddyConversation(Conversation):
             if len(parts) > 1:
                 # create chat invite command
                 user = parts[1]
-                msg = "account {} chat invite {} {}".format(
-                    self.account.aid, self.name, user)
+                msg = (f"account {self.account.aid} chat invite "
+                       f"{self.name} {user}")
+
                 # send command message to backend
                 self.backend.client.send_command(msg)
                 return
@@ -153,8 +154,8 @@ class BuddyConversation(Conversation):
 
             # TODO: allow specification of another group chat?
             # create chat join command
-            msg = "account {} chat join {}".format(self.account.aid,
-                                                   self.name)
+            msg = f"account {self.account.aid} chat join {self.name}"
+
             # send command message to backend
             self.backend.client.send_command(msg)
             return

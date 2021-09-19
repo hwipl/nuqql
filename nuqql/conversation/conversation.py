@@ -165,8 +165,9 @@ class Conversation:
             last_msg = self.history.log[-1]
             if last_msg.tstamp.date() != tstamp.date():
                 date_change_msg = LogMessage(
-                    log_msg.tstamp, "<event>", "<Date changed to {}>".format(
-                        log_msg.tstamp.date()), own=True)
+                    log_msg.tstamp, "<event>", (f"<Date changed to "
+                                                f"{log_msg.tstamp.date()}>"),
+                    own=True)
                 date_change_msg.is_read = True
                 self.history.log.append(date_change_msg)
         self.history.log.append(log_msg)
