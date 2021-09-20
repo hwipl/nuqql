@@ -146,7 +146,8 @@ class History:
         logger.debug("getting lastread of conversation %s", self.conv.name)
         lastread_file = self.conv_path + LASTREAD_FILE
         try:
-            with open(lastread_file, newline="\r\n") as in_file:
+            with open(lastread_file, encoding='UTF-8',
+                      newline="\r\n") as in_file:
                 for line in in_file:
                     log_msg = self._parse_log_line(line)
                     log_msg.is_read = True
@@ -172,7 +173,7 @@ class History:
         lines.append(line)
 
         lastread_file = self.conv_path + LASTREAD_FILE
-        with open(lastread_file, "w+") as out_file:
+        with open(lastread_file, "w+", encoding='UTF-8') as out_file:
             out_file.writelines(lines)
 
     def get_last_log_line(self) -> Optional[LogMessage]:
@@ -224,7 +225,7 @@ class History:
         last_read = self.get_lastread()
         is_read = True
 
-        with open(self.log_file, newline="\r\n") as in_file:
+        with open(self.log_file, encoding='UTF-8', newline="\r\n") as in_file:
             prev_msg = None
             for line in in_file:
                 # parse log line and create log message
