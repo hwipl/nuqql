@@ -343,7 +343,7 @@ class WinConfig:
         }
         # allow definition of color numbers
         for i in range(0, 16):
-            bg_colors["color{}".format(i)] = i
+            bg_colors[f"color{i}"] = i
 
         # allow usage of default colors and initialize color pairs
         curses.use_default_colors()
@@ -373,7 +373,7 @@ class WinConfig:
         }
         # allow definition of color numbers
         for i in range(0, 16):
-            colors["color{}".format(i)] = curses.color_pair(i + 1)
+            colors[f"color{i}"] = curses.color_pair(i + 1)
 
         # text attributes
         attrib_italic = curses.A_NORMAL     # italic was added in python 3.7
