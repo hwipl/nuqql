@@ -240,7 +240,7 @@ class ListWin(Win):
             self.pad.move(self.state.cur_y + 1, self.state.cur_x)
 
     def _go_next(self, *args: Any) -> None:
-        logger.debug("jumping to next conversation")
+        logger.debug("jumping to next conversation from list window")
 
         # find a new(er) conversation and jump into it
         set_last_used = True

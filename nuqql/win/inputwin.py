@@ -311,7 +311,7 @@ class InputWin(Win):
         conversation
         """
 
-        logger.debug("jumping to next conversation")
+        logger.debug("jumping to next conversation from input window")
 
         # find next new conversation
         set_last_used = True
