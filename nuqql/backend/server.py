@@ -69,6 +69,7 @@ class BackendServer:
             stderr = subprocess.STDOUT
 
         # start server process
+        # pylint: disable=consider-using-with
         self.proc = subprocess.Popen(
             self.server_cmd,
             shell=True,
