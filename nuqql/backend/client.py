@@ -174,7 +174,7 @@ class BackendClient:
         Send a regular message over the client connection
         """
 
-        prefix = "account {0} send {1} ".format(account_id, buddy)
+        prefix = f"account {account_id} send {buddy} "
         msg = html.escape(msg)
         msg = "<br/>".join(msg.split("\n"))
         msg = prefix + msg + "\r\n"
@@ -186,7 +186,7 @@ class BackendClient:
         Send a group message over the client connection
         """
 
-        prefix = "account {0} chat send {1} ".format(account_id, buddy)
+        prefix = f"account {account_id} chat send {buddy} "
         msg = html.escape(msg)
         msg = "<br/>".join(msg.split("\n"))
         msg = prefix + msg + "\r\n"
@@ -202,7 +202,7 @@ class BackendClient:
         # collect all messages since time 0
         # TODO: only works as intended if we spawn our own purpled daemon at
         # nuqql's startup, FIXME?
-        msg = "account {0} collect 0\r\n".format(account_id)
+        msg = f"account {account_id} collect 0\r\n"
         # self.collect_acc = account
         logger.debug("sending collect message: %s", msg)
         self._send(msg)
@@ -213,7 +213,7 @@ class BackendClient:
         which retrieves all buddies of the specified account from the backend
         """
 
-        msg = "account {0} buddies\r\n".format(account_id)
+        msg = f"account {account_id} buddies\r\n"
         logger.debug("sending buddies message: %s", msg)
         self._send(msg)
 
@@ -233,6 +233,6 @@ class BackendClient:
         which sets the status of the specified account of the backend
         """
 
-        msg = "account {} status set {}\r\n".format(account_id, status)
+        msg = f"account {account_id} status set {status}\r\n"
         logger.debug("sending status set message: %s", msg)
         self._send(msg)
