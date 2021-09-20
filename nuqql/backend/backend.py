@@ -374,7 +374,7 @@ class Backend:
         Path(global_status_dir).mkdir(parents=True, exist_ok=True)
         global_status_file = global_status_dir + "/global_status"
         try:
-            with open(global_status_file) as status_file:
+            with open(global_status_file, encoding='UTF-8') as status_file:
                 line = status_file.readline()
                 status = line.split()
                 if not status:

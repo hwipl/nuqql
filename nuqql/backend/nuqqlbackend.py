@@ -101,7 +101,7 @@ class NuqqlBackend(Backend):
         line = status + "\n"
         lines = []
         lines.append(line)
-        with open(global_status_file, "w+") as status_file:
+        with open(global_status_file, "w+", encoding='UTF-8') as status_file:
             status_file.writelines(lines)
 
     def _handle_stop(self, parts: List[str]) -> None:
