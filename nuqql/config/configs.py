@@ -31,7 +31,7 @@ def write_to_file(config: configparser.ConfigParser) -> None:
     """
 
     config_file = CONFIGS["dir"] / "config.ini"
-    with open(config_file, "w+") as configfile:
+    with open(config_file, "w+", encoding='UTF-8') as configfile:
         config.write(configfile)
 
 
