@@ -114,7 +114,7 @@ class Backend:
 
         # handle status message
         if msg_type == "status":
-            text = "account {} status: {}".format(parsed_msg[1], parsed_msg[2])
+            text = f"account {parsed_msg[1]} status: {parsed_msg[2]}"
             if self.conversation:
                 self.conversation.log("nuqql", text)
             return
@@ -241,10 +241,10 @@ class Backend:
             chat_alias = parsed_msg[4]
             nick = parsed_msg[5]
             if chat != chat_alias:
-                chat = "{} ({})".format(chat_alias, chat)
+                chat = f"{chat_alias} ({chat})"
 
         # log to backend conversation
-        text = "account {} chat: {} {} {}".format(acc_id, ctype, chat, nick)
+        text = f"account {acc_id} chat: {ctype} {chat} {nick}"
         if self.conversation:
             self.conversation.log("nuqql", text)
 
@@ -264,9 +264,8 @@ class Backend:
         acc_status = parsed_msg[5]
 
         # output account
-        text = "account {0} ({1}) {2} {3} {4}.".format(acc_id, acc_alias,
-                                                       acc_prot, acc_user,
-                                                       acc_status)
+        text = (f"account {acc_id} ({acc_alias}) {acc_prot} {acc_user} "
+                f"{acc_status}.")
         if self.conversation:
             self.conversation.log("nuqql", text)
 
@@ -282,16 +281,16 @@ class Backend:
         self.accounts[acc.name] = acc
 
         # collect buddies from backend
-        text = "Collecting buddies for {0} account {1}: {2}.".format(
-            acc.type, acc.aid, acc.name)
+        text = (f"Collecting buddies for {acc.type} account {acc.aid}: "
+                f"{acc.name}.")
         if self.conversation:
             self.conversation.log("nuqql", text)
         acc.buddies_update = int(time.time())
         self.client.send_buddies(acc.aid)
 
         # collect messages from backend
-        text = "Collecting messages for {0} account {1}: {2}.".format(
-            acc.type, acc.aid, acc.name)
+        text = (f"Collecting messages for {acc.type} account {acc.aid}: "
+                f"{acc.name}.")
         if self.conversation:
             self.conversation.log("nuqql", text)
         self.client.send_collect(acc.aid)
@@ -392,8 +391,7 @@ class Backend:
         logger.debug("stopping backend %s", self.name)
 
         # print to main window
-        log_msg = "Stopping client and server for backend \"{0}\".".format(
-            self.name)
+        log_msg = f"Stopping client and server for backend \"{self.name}\"."
         nuqql.conversation.log_nuqql_conv(log_msg)
 
         # stop client and server
