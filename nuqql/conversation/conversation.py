@@ -17,8 +17,10 @@ from .logmessage import LogMessage
 
 if TYPE_CHECKING:   # imports for typing
     # pylint: disable=cyclic-import
-    # pylint hack: avoid code-duplication warning with buddyconversation
-    # (see: https://github.com/PyCQA/pylint/issues/214)
+    if TYPE_CHECKING:
+        # pylint hack: avoid code-duplication warning with buddyconversation
+        # (see: https://github.com/PyCQA/pylint/issues/214)
+        pass
     from nuqql.account import Account  # noqa
     from nuqql.backend import Backend  # noqa
     from nuqql.buddy import Buddy   # noqa
