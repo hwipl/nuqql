@@ -88,7 +88,7 @@ def start_backend(backend_name: str, backend_exe: str, backend_path: str,
     conv.wins.list_win.redraw()
 
     # log backend start
-    log_msg = "Starting backend \"{0}\".".format(backend.name)
+    log_msg = f"Starting backend \"{backend.name}\"."
     nuqql.conversation.log_nuqql_conv(log_msg)
 
     # return the backend
@@ -183,7 +183,7 @@ def start_backend_client(backend: Backend) -> None:
     logger.debug("starting backend client for backend %s", backend.name)
 
     # let user know we are connecting
-    log_msg = "Starting client for backend \"{0}\".".format(backend.name)
+    log_msg = f"Starting client for backend \"{backend.name}\"."
     nuqql.conversation.log_nuqql_conv(log_msg)
 
     # start backend client and connect to backend server
@@ -191,7 +191,7 @@ def start_backend_client(backend: Backend) -> None:
 
     # make sure the connection to the backend was successful
     if not backend.client or not backend.client.sock:
-        log_msg = "Could not connect to backend \"{0}\".".format(backend.name)
+        log_msg = f"Could not connect to backend \"{backend.name}\"."
         logger.error("could not connect to backend %s", backend.name)
         nuqql.conversation.log_nuqql_conv(log_msg)
         backend.stop()
@@ -202,7 +202,7 @@ def start_backend_client(backend: Backend) -> None:
         backend.client.send_accounts()
 
         # log it
-        log_msg = "Collecting accounts for \"{0}\".".format(backend.name)
+        log_msg = f"Collecting accounts for \"{backend.name}\"."
         if backend.conversation:
             backend.conversation.log("nuqql", log_msg)
 
