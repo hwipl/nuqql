@@ -12,7 +12,7 @@ from setuptools import find_packages, setup
 
 # setup parameters
 DESCRIPTION = "Command line instant messenger inspired by centericq/centerim"
-with open("README.md", 'r') as f:
+with open("README.md", 'r', encoding='UTF-8') as f:
     LONG_DESCRIPTION = f.read()
 CLASSIFIERS = [
     "Programming Language :: Python :: 3",
