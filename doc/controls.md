@@ -83,6 +83,7 @@ These are the special keys you can use when browsing a conversation's history
 * `/`: search conversation's history
 * `n`: search for next match
 * `p`: search for previous match
+* `ESC`: abort ongoing search
 
 * `F9`: zoom chat history
 
