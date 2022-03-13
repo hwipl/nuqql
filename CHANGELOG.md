@@ -2,6 +2,13 @@
 
 This file contains the changes in each nuqql version:
 
+## devel:
+* Add aborting of an ongoing search in a log window with the `ESC` key
+* Add `--dir` command line argument for nuqql's config and working directory
+* Cleanups and improvements
+* Requires nuqql-slixmppd v0.8.0, nuqql-matrixd-nio v0.3.0,
+  nuqql-mattermostd v0.3.0, nuqql-matrixd v0.6.0, or purpled v0.6.0
+
 ## v0.11.0:
 * Set default `ESC` delay to 100ms and add the `--escdelay` command line
   argument for configuring it
