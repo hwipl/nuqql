@@ -2,7 +2,7 @@
 
 This file contains the changes in each nuqql version:
 
-## devel:
+## v0.12.0:
 * Add aborting of an ongoing search in a log window with the `ESC` key
 * Add `--dir` command line argument for nuqql's config and working directory
 * Cleanups and improvements
