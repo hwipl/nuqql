@@ -22,7 +22,6 @@ supports the following backends:
   allows nuqql to connect to multiple chat networks. Note: purpled is less
   tested than other backends, so you might want to prefer other backends.
 
-
 ## Quick Start
 
 You can install nuqql, for example, with pip for your user only with the
@@ -91,15 +90,6 @@ Basic controls of nuqql are:
 * Exit nuqql with the `q` key when you are in no conversation
 
 See [controls](doc/controls.md) for more information about nuqql's controls.
-
-
-## Development
-
-Most of the development happens in the *devel* branch. When a new version of
-nuqql is released, the *devel* code is merged into the *master* branch. So,
-if you want to try the latest code, check out the *devel* branch, otherwise
-just use *master*.
-
 
 ## Changes
 
